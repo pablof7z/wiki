@@ -11,4 +11,7 @@ export default defineConfig({
       include: [/@repo-ui/, /node_modules/],
     },
   },
+  define: {
+    'process.env': process.env
+  }
 });

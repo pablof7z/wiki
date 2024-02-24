@@ -2,15 +2,16 @@
     import { ndk } from "$lib/ndk";
 	import Login from "./Login.svelte";
     import "../app.css";
-	import { prepareSession } from "@/stores/session";
+	import { networkFollows, prepareSession, userFollows } from "@/stores/session";
 	import { Avatar, RelayList } from "@nostr-dev-kit/ndk-svelte-components";
 	import { NDKEvent, type NDKUser, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { Button } from "@/components/ui/button";
 	import { goto } from "$app/navigation";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Input } from "@/components/ui/input";
-	import { Circle, Plus } from "radix-icons-svelte";
+	import { Circle, Gear, Plus } from "radix-icons-svelte";
 	import { Globe } from "svelte-radix";
+	import { minimumScore, wot } from "@/stores/wot";
 
     let connected = false;
     let sessionStarted = false;
@@ -47,7 +48,12 @@
 </script>
 
 <div class="flex flex-row justify-between gap-6 items-center mb-8">
-    <h2 class="text-orange-600"> <a href="/">Wikifreedia</a> </h2>
+    <h2 class="text-orange-600">
+        <a href="/">Wikifreedia</a>
+        <a href="/wikifreedia/fa984bd7dbb282f0" class="text-base font-normal">
+            v0.0.2
+        </a>
+    </h2>
 
     <div class="flex flex-row gap-4">
         <div class="flex flex-row grow items-center gap-2">
@@ -63,10 +69,38 @@
                 <DropdownMenu.Trigger asChild let:builder>
                     <Button builders={[builder]} variant="outline">
                         <Globe class="w-4 h-4 sm:hidden" />
-                        <span class="hidden sm:block">Relays</span>
+                        <span class="hidden sm:block">
+                            <Gear class="w-4 h-4" />
+                        </span>
                     </Button>
                 </DropdownMenu.Trigger>
-                <DropdownMenu.Content class="w-96">
+                <DropdownMenu.Content class="w-96 p-6">
+                    <h3>Filtering</h3>
+                    <div class="title">Web-of-trust</div>
+                    <table class="table">
+                        <tr>
+                            <td>Follows</td>
+                            <td>{$userFollows.size}</td>
+                        </tr>
+                        <tr>
+                            <td>Network size</td>
+                            <td>{$networkFollows.size}</td>
+                        </tr>
+                        <tr>
+                            <td>WOT size</td>
+                            <td>{$wot.size}</td>
+                        </tr>
+                        <tr>
+                            <td>WOT required score</td>
+                            <td>
+                                <input type="number" bind:value={$minimumScore} class="input w-24" />
+                            </td>
+                        </tr>
+                    </table>
+
+                    <hr class="my-6">
+
+                    <h3>Relays</h3>
                     <div class="flex flex-row gap-2 w-fit">
                         <Input type="text" bind:value={relay} class="" />
                         <Button on:click={() => $ndk.addExplicitRelay(relay)}>Add Relay</Button>

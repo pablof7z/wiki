@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
     import markdownit from 'markdown-it'
-    import wikilinks from 'markdown-it-wikilinks';
+    import wikilinks from 'markdown-it-wikicustom';
 
     const md = markdownit()
         .use(wikilinks({
