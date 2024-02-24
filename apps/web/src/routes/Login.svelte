@@ -2,6 +2,7 @@
 	import { ndk } from "$lib/ndk";
 	import { Button } from "@/components/ui/button";
 	import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
+	import { Person } from "radix-icons-svelte";
 	import { onMount } from "svelte";
 
     onMount(() => {
@@ -29,5 +30,6 @@
 </script>
 
 <Button on:click={nip07}>
-    Login
+    <Person class="w-4 h-4 sm:hidden" />
+    <span class="hidden sm:block">Sign in</span>
 </Button>

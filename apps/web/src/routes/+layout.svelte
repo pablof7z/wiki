@@ -9,6 +9,8 @@
 	import { goto } from "$app/navigation";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { Input } from "@/components/ui/input";
+	import { Circle, Plus } from "radix-icons-svelte";
+	import { Globe } from "svelte-radix";
 
     let connected = false;
     let sessionStarted = false;
@@ -45,36 +47,45 @@
 </script>
 
 <div class="flex flex-row justify-between gap-6 items-center mb-8">
-    <h2 class="text-orange-600">
-        <a href="/">Wikifreedia</a>
-    </h2>
+    <h2 class="text-orange-600"> <a href="/">Wikifreedia</a> </h2>
 
-    <div class="flex flex-row grow items-center gap-2">
-        <Button href="/" variant="outline">All Entries</Button>
-        <Button on:click={newEntry} variant="outline">New entry</Button>
+    <div class="flex flex-row gap-4">
+        <div class="flex flex-row grow items-center gap-2">
+            <Button href="/" variant="outline" class="max-sm:hidden">All Entries</Button>
+            <Button on:click={newEntry} variant="outline" class="">
+                <Plus class="w-4 h-4 sm:hidden" />
+                <span class="hidden sm:block">New Entry</span>
+            </Button>
+        </div>
+
+        <div class="flex flex-row gap-2 items-center">
+            <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild let:builder>
+                    <Button builders={[builder]} variant="outline">
+                        <Globe class="w-4 h-4 sm:hidden" />
+                        <span class="hidden sm:block">Relays</span>
+                    </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content class="w-96">
+                    <div class="flex flex-row gap-2 w-fit">
+                        <Input type="text" bind:value={relay} class="" />
+                        <Button on:click={() => $ndk.addExplicitRelay(relay)}>Add Relay</Button>
+
+                    </div>
+                    <RelayList ndk={$ndk} />
+                </DropdownMenu.Content>
+            </DropdownMenu.Root>
+
+            {#if user}
+                <a href="/p/{user.npub}">
+                    <Avatar ndk={$ndk} pubkey={user.pubkey} class="w-8 h-8 rounded-full object-cover" />
+                </a>
+            {:else}
+                <Login />
+            {/if}
+        </div>
     </div>
 
-    <div class="flex flex-row gap-2 items-center">
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild let:builder>
-              <Button builders={[builder]} variant="outline">Relays</Button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content class="w-96">
-                <div class="flex flex-row gap-2 w-fit">
-                    <Input type="text" bind:value={relay} class="" />
-                    <Button on:click={() => $ndk.addExplicitRelay(relay)}>Add Relay</Button>
-
-                </div>
-                <RelayList ndk={$ndk} />
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-
-        {#if user}
-            <Avatar ndk={$ndk} pubkey={user.pubkey} class="w-8 h-8 rounded-full object-cover" />
-        {:else}
-            <Login />
-        {/if}
-    </div>
 </div>
 
 {#if !connected}

@@ -34,13 +34,17 @@
         <h1 class="px-6 pt-4">{title}</h1>
     {/if}
     <div class="flex flex-row gap-2 items-start bg-zinc-50 px-6 py-2 w-full">
-        <Avatar ndk={$ndk} pubkey={event.pubkey} class="w-12 h-12 rounded-full object-cover" />
+        <a href="/p/{event.author.npub}">
+            <Avatar ndk={$ndk} pubkey={event.pubkey} class="w-12 h-12 rounded-full object-cover" />
+        </a>
         <div class="flex flex-col items-start w-full">
-            <Name ndk={$ndk} pubkey={event.pubkey} />
+            <a href="/p/{event.author.npub}">
+                <Name ndk={$ndk} pubkey={event.pubkey} />
+            </a>
             <div class="text-xs text-neutral-500 flex flex-row gap-8 items-center">
                 <span>{event.created_at}</span>
 
-                <span>{event.relay?.url}</span>
+                <span>{event.onRelays?.map(r => r.url).join(', ')}</span>
 
                 {#if fork}
                     <Button href="/a/{fork.encode()}" size="sm">
