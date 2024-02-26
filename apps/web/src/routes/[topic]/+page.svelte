@@ -6,6 +6,8 @@
 	import { Avatar, EventContent, Name } from "@nostr-dev-kit/ndk-svelte-components";
 	import { onMount } from "svelte";
 	import TopicEntry from "./TopicEntry.svelte";
+	import EntriesList from "@/components/EntriesList.svelte";
+	import TopicEntriesList from "@/components/TopicEntriesList.svelte";
 
     export let topic: string;
 
@@ -25,14 +27,10 @@
 
 <h1>{topic}</h1>
 
-{#if $entries}
+{#if entries && $entries}
     <h3 class="text-lg text-neutral-500 font-medium">
         There are {$entries.length} entries for this topic
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {#each $entries as entry}
-            <TopicEntry {topic} {entry} />
-        {/each}
-    </div>
+    <TopicEntriesList {topic} {entries} />
 {/if}

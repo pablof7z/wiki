@@ -1,15 +1,11 @@
-import { writable, get as getStore, type Writable, derived, get } from 'svelte/store';
-import NDK, {
+import { writable, get as getStore, type Writable, get } from 'svelte/store';
+import {
 	NDKEvent,
-	NDKList,
 	NDKSubscriptionCacheUsage,
 	type NDKFilter,
 	type NDKTag,
 	NDKKind,
-	NDKListKinds,
 	type Hexpubkey,
-	profileFromEvent,
-	NDKSubscriptionTier,
 	NDKRelaySet,
     NDKUser,
 } from '@nostr-dev-kit/ndk';
@@ -17,6 +13,8 @@ import type NDKSvelte from '@nostr-dev-kit/ndk-svelte';
 import { persist, createLocalStorage } from '@macfja/svelte-persistent-store';
 
 export const debugMode = writable<boolean>(false);
+
+export const currentUser = writable<NDKUser | undefined>(undefined);
 
 /**
  * Current user's follows
@@ -82,6 +80,8 @@ export async function prepareSession(ndk: NDKSvelte, user: NDKUser): Promise<voi
 				}, kind3RelaySet).then(() => {
 					networkFollowsUpdatedAt.set(Math.floor(Date.now() / 1000));
 				})
+			} else {
+				console.log('not requesting', $networkFollows.size, $networkFollowsUpdatedAt);
 			}
 		});
 	});
@@ -185,10 +185,11 @@ async function fetchData(
 		if (authors.length > 10) {
 			authorPubkeyLength -= Math.floor(authors.length / 10);
 
-			if (authorPubkeyLength < 5) authorPubkeyLength = 6;
+			if (authorPubkeyLength < 5) authorPubkeyLength = 12;
 		}
 
-		const authorPrefixes = authors.map((f) => f.slice(0, authorPubkeyLength));
+		const authorPrefixes = authors.map((f) => f.slice(0, authorPubkeyLength))
+			.filter((f) => /^[0-9a-fA-F]+$/.test(f));
 
 		const filters: NDKFilter[] = [];
 
@@ -202,6 +203,7 @@ async function fetchData(
 			filters.push({ kinds: [3], authors: authorPrefixes });
 		}
 
+		console.log('fetchData', name, filters, relaySet);
 		const userDataSubscription = ndk.subscribe(filters, {
 			closeOnEose: opts.closeOnEose!,
 			groupable: false,

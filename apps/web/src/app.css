@@ -70,7 +70,7 @@
   }
 
   body {
-    @apply p-6 max-w-3xl mx-auto !bg-zinc-50;
+    @apply p-6 mx-auto;
   }
 
   h1 {
@@ -94,6 +94,10 @@
     @apply bg-background text-foreground;
   }
 
+  .prose {
+    @apply overflow-auto;
+  }
+
   .prose p {
 
   }
@@ -103,7 +107,7 @@
   }
 
   .prose pre {
-    @apply bg-gray-100 p-4 rounded-md overflow-auto w-full;
+    @apply bg-black/10 dark:bg-white/10 p-4 rounded-md overflow-auto w-full;
   }
 
   .prose table {
@@ -115,7 +119,7 @@
   }
 
   .prose table tbody tr:nth-child(odd) {
-    @apply bg-zinc-100;
+    @apply bg-black/10 dark:bg-white/10;
   }
 
 }

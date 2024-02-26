@@ -2,7 +2,8 @@
     import { ndk } from "$lib/ndk";
 	import Login from "./Login.svelte";
     import "../app.css";
-	import { networkFollows, prepareSession, userFollows } from "@/stores/session";
+    import { ModeWatcher } from "mode-watcher";
+	import { currentUser, networkFollows, prepareSession, userFollows } from "@/stores/session";
 	import { Avatar, RelayList } from "@nostr-dev-kit/ndk-svelte-components";
 	import { NDKEvent, type NDKUser, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { Button } from "@/components/ui/button";
@@ -12,6 +13,10 @@
 	import { Circle, Gear, Plus } from "radix-icons-svelte";
 	import { Globe } from "svelte-radix";
 	import { minimumScore, wot } from "@/stores/wot";
+	import { maxBodyWidth } from "@/stores/layout";
+    import Sun from "svelte-radix/Sun.svelte";
+    import Moon from "svelte-radix/Moon.svelte";
+    import { toggleMode } from "mode-watcher";
 
     let connected = false;
     let sessionStarted = false;
@@ -23,6 +28,7 @@
 
     $: if (connected && !sessionStarted && $ndk.signer) {
         $ndk.signer.user().then((u) => {
+            $currentUser = u;
             user = u;
             prepareSession($ndk, user).then(() => {
                 sessionStarted = true;
@@ -47,11 +53,13 @@
     let relay = '';
 </script>
 
-<div class="flex flex-row justify-between gap-6 items-center mb-8">
+<ModeWatcher />
+
+<div class="flex flex-row justify-between gap-6 items-center mb-8 {$maxBodyWidth} mx-auto">
     <h2 class="text-orange-600">
         <a href="/">Wikifreedia</a>
         <a href="/wikifreedia/fa984bd7dbb282f0" class="text-base font-normal">
-            v0.0.2
+            v0.0.3
         </a>
     </h2>
 
@@ -65,6 +73,15 @@
         </div>
 
         <div class="flex flex-row gap-2 items-center">
+            <Button on:click={toggleMode} variant="outline" size="icon" class="max-sm:hidden">
+                <Sun
+                  class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+                />
+                <Moon
+                  class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+                />
+                <span class="sr-only">Toggle theme</span>
+            </Button>
             <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild let:builder>
                     <Button builders={[builder]} variant="outline">
@@ -127,5 +144,7 @@
 {:else if $ndk.signer && !sessionStarted}
     Preparing session...
 {:else}
-    <slot />
+    <div class="mx-auto {$maxBodyWidth}">
+        <slot />
+    </div>
 {/if}

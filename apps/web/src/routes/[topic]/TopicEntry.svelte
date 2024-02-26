@@ -27,7 +27,7 @@
     </Card.Content>
 
     <Card.Footer class="gap-1 justify-between">
-        <Button href="/{topic}/{entry.pubkey.slice(0,16)}">
+        <Button href="/{encodeURIComponent(topic)}/{entry.pubkey.slice(0,16)}">
             View
         </Button>
 
