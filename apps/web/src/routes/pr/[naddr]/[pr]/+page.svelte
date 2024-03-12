@@ -4,7 +4,7 @@
 	import { Avatar, Name } from '@nostr-dev-kit/ndk-svelte-components';
 	import { page } from "$app/stores";
 	import { ndk } from "@/ndk";
-	import { NDKEvent, type NostrEvent } from "@nostr-dev-kit/ndk";
+	import { NDKEvent, NDKSubscriptionCacheUsage, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { onDestroy, onMount } from "svelte";
 	import { maxBodyWidth } from "@/stores/layout";
 	import Button from "@/components/ui/button/button.svelte";
@@ -46,10 +46,14 @@
         $ndk.fetchEvent(pr).then((event) => {
             prEvent = event;
 
+            console.log(event.rawEvent());
             const eTagFork = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
+            console.log('asking for fork version', eTagFork);
             if (eTagFork) {
-                $ndk.fetchEvent(eTagFork).then((event) => {
-                    proposedVersion = event;
+                console.log('fetching fork', eTagFork);
+                $ndk.fetchEvents({ids: [eTagFork]}, {cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY}).then((event) => {
+                    console.log('received fork', event);
+                    proposedVersion = Array.from(event)?.[0];
                 });
             }
         });
@@ -96,6 +100,10 @@
         await acceptedEvent.publish();
     }
 </script>
+
+originalEvent = {!!originalEvent}
+prEvent = {!!prEvent}
+proposedVersion = {!!proposedVersion}
 
 {#if originalEvent && prEvent && proposedVersion}
     <h3 class="flex flex-row items-center gap-1 justify-center">

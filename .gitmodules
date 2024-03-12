@@ -1,3 +1,9 @@
 [submodule "packages/ndk"]
 	path = packages/ndk
 	url = git@github.com:nostr-dev-kit/ndk.git
+[submodule "packages/khatru"]
+	path = packages/khatru
+	url = https://github.com/fiatjaf/khatru/
+[submodule "packages/eventstore"]
+	path = packages/eventstore
+	url = git@github.com:pablof7z/eventstore.git

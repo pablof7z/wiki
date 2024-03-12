@@ -16,6 +16,12 @@ export const debugMode = writable<boolean>(false);
 
 export const currentUser = writable<NDKUser | undefined>(undefined);
 
+export const explicitRelays = persist(
+	writable<string[]>([]),
+	createLocalStorage(),
+	'explicit-relays'
+);
+
 /**
  * Current user's follows
  */
@@ -80,8 +86,6 @@ export async function prepareSession(ndk: NDKSvelte, user: NDKUser): Promise<voi
 				}, kind3RelaySet).then(() => {
 					networkFollowsUpdatedAt.set(Math.floor(Date.now() / 1000));
 				})
-			} else {
-				console.log('not requesting', $networkFollows.size, $networkFollowsUpdatedAt);
 			}
 		});
 	});

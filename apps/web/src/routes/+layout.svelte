@@ -3,7 +3,7 @@
 	import Login from "./Login.svelte";
     import "../app.css";
     import { ModeWatcher } from "mode-watcher";
-	import { currentUser, networkFollows, prepareSession, userFollows } from "@/stores/session";
+	import { currentUser, explicitRelays, networkFollows, prepareSession, userFollows } from "@/stores/session";
 	import { Avatar, RelayList } from "@nostr-dev-kit/ndk-svelte-components";
 	import { NDKEvent, type NDKUser, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { Button } from "@/components/ui/button";
@@ -17,10 +17,17 @@
     import Sun from "svelte-radix/Sun.svelte";
     import Moon from "svelte-radix/Moon.svelte";
     import { toggleMode } from "mode-watcher";
+	import { onMount } from "svelte";
 
     let connected = false;
     let sessionStarted = false;
     let user: NDKUser | undefined;
+
+    onMount(() => {
+        for (const relay of $explicitRelays) {
+            $ndk.addExplicitRelay(relay);
+        }
+    })
 
     $ndk.connect(5000).then(() => {
         connected = true;
@@ -51,6 +58,12 @@
 	}
 
     let relay = '';
+
+    function addRelay() {
+        $ndk.addExplicitRelay(relay);
+        $explicitRelays.push(relay);
+        $explicitRelays = $explicitRelays;
+    }
 </script>
 
 <ModeWatcher />
@@ -59,7 +72,7 @@
     <h2 class="text-orange-600">
         <a href="/">Wikifreedia</a>
         <a href="/wikifreedia/fa984bd7dbb282f0" class="text-base font-normal">
-            v0.0.3
+            v0.0.5
         </a>
     </h2>
 
@@ -120,7 +133,7 @@
                     <h3>Relays</h3>
                     <div class="flex flex-row gap-2 w-fit">
                         <Input type="text" bind:value={relay} class="" />
-                        <Button on:click={() => $ndk.addExplicitRelay(relay)}>Add Relay</Button>
+                        <Button on:click={addRelay}>Add Relay</Button>
 
                     </div>
                     <RelayList ndk={$ndk} />
