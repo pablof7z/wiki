@@ -143,7 +143,7 @@ async function fetchData(
 			processContactList(event, opts.followsStore);
 		}
 
-		if (event.kind === 10008 && opts.relaysStore) {
+		if (event.kind === 10102 && opts.relaysStore) {
 			processRelayList(event, opts.relaysStore, opts.relayEventStore);
 		}
 	};
@@ -227,7 +227,7 @@ async function fetchData(
 		}
 
 		if (opts.relaysStore) {
-			filters.push({ kinds: [10008 as number], authors: authorPrefixes });
+			filters.push({ kinds: [10102 as number], authors: authorPrefixes });
 		}
 
 		const userDataSubscription = ndk.subscribe(filters, {

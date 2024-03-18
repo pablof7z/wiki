@@ -101,7 +101,7 @@
     }
 
     async function saveRelayList() {
-        const e = new NDKEvent($ndk, { kind: 10008, } as NostrEvent);
+        const e = new NDKEvent($ndk, { kind: 10102, } as NostrEvent);
         $userRelays.forEach(r => e.tags.push(["relay", r]));
         await e.publish();
     }
