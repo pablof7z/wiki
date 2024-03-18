@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
     import markdownit from 'markdown-it'
+    import markdownitMathjax3 from 'markdown-it-mathjax3'
+
     import wikilinks from 'markdown-it-wikicustom';
 
     const md = markdownit()
@@ -10,7 +12,8 @@
             postProcessPageName: (pageName: string) => {
                 return pageName.toLowerCase().replace(/ /g, '-')
             }
-        }));
+        }))
+        .use(markdownitMathjax3)
 
     export let event: NDKEvent;
 </script>

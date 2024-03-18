@@ -12,6 +12,8 @@
 
     if (!user) throw new Error('User not found')
 
+    console.log('networkFollows', $networkFollows)
+
     const wotScore = $networkFollows.get(user.pubkey) ?? "";
 </script>
 

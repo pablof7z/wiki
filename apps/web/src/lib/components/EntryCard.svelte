@@ -12,6 +12,7 @@
 
     export let skipTitle = false;
     export let event: NDKEvent;
+    export let skipEdit = false;
     let title = event.tagValue("title") || event.dTag;
     let forkPubkey: string;
     let fork: NDKEvent;
@@ -71,7 +72,7 @@
             <div class="flex flex-row justify-between">
                 <h1 class="grow">{title}</h1>
 
-                <div>
+                <div class:hidden={skipEdit}>
                     <Button href="/a/{event.encode()}/edit" size="sm">
                         Edit
                     </Button>

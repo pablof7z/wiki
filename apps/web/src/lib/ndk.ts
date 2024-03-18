@@ -11,5 +11,5 @@ export const ndk = writable(new NDKSvelte({
         "wss://nos.lol",
         "wss://relay.wikifreedia.xyz",
     ],
-    enableOutboxModel: true
+    enableOutboxModel: false
 }));

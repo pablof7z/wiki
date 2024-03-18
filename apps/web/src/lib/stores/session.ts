@@ -4,7 +4,6 @@ import {
 	NDKSubscriptionCacheUsage,
 	type NDKFilter,
 	type NDKTag,
-	NDKKind,
 	type Hexpubkey,
 	NDKRelaySet,
     NDKUser,
@@ -16,10 +15,18 @@ export const debugMode = writable<boolean>(false);
 
 export const currentUser = writable<NDKUser | undefined>(undefined);
 
-export const explicitRelays = persist(
+export const userRelays = persist(
 	writable<string[]>([]),
 	createLocalStorage(),
-	'explicit-relays'
+	'user-relays'
+);
+
+export const userRelayEvent = writable<NDKEvent | undefined>(undefined);
+
+export const followRelays = persist(
+	writable<string[]>([]),
+	createLocalStorage(),
+	'follow-relays'
 );
 
 /**
@@ -29,17 +36,6 @@ export const userFollows = persist(
 	writable<Set<string>>(new Set()),
 	createLocalStorage(),
 	'user-follows'
-);
-
-/**
- * Current user app handlers
- */
-type AppHandlerType = string;
-type Nip33EventPointer = string;
-export const userAppHandlers = persist(
-	writable<Map<number, Map<AppHandlerType, Nip33EventPointer>>>(new Map()),
-	createLocalStorage(),
-	'user-app-handlers'
 );
 
 /**
@@ -62,16 +58,27 @@ export const networkFollowsUpdatedAt = persist(
  */
 export async function prepareSession(ndk: NDKSvelte, user: NDKUser): Promise<void> {
 	return new Promise((resolve) => {
-		const alreadyKnowFollows = getStore(userFollows).size > 0;
-
 		fetchData('user', ndk, [user.pubkey], {
 			followsStore: userFollows,
-			appHandlersStore: userAppHandlers,
-			waitUntilEoseToResolve: !alreadyKnowFollows,
+			relaysStore: userRelays,
+			relayEventStore: userRelayEvent,
+			waitUntilEoseToResolve: true,
 		}).then(() => {
 			const $userFollows = getStore(userFollows);
 
-			resolve();
+			// check if the relay list is empty, if it is, add wss://relay.wikifreedia.xyz
+			const $userRelays = getStore(userRelays);
+			if ($userRelays.length === 0) {
+				userRelays.update((relays) => {
+					relays.push('wss://relay.wikifreedia.xyz');
+					return relays;
+				});
+			}
+
+			fetchData('relays', ndk, Array.from($userFollows), {
+				relaysStore: followRelays,
+				closeOnEose: true
+			}).then(resolve);
 
 			const $networkFollows = get(networkFollows);
 			const $networkFollowsUpdatedAt = get(networkFollowsUpdatedAt);
@@ -86,6 +93,7 @@ export async function prepareSession(ndk: NDKSvelte, user: NDKUser): Promise<voi
 				}, kind3RelaySet).then(() => {
 					networkFollowsUpdatedAt.set(Math.floor(Date.now() / 1000));
 				})
+
 			}
 		});
 	});
@@ -93,7 +101,8 @@ export async function prepareSession(ndk: NDKSvelte, user: NDKUser): Promise<voi
 
 interface IFetchDataOptions {
 	followsStore?: Writable<Set<Hexpubkey>> | Writable<Map<Hexpubkey, number>>;
-	appHandlersStore?: Writable<Map<number, Map<AppHandlerType, Nip33EventPointer>>>;
+	relaysStore?: Writable<string[]>;
+	relayEventStore?: Writable<NDKEvent | undefined>;
 	closeOnEose?: boolean;
 	waitUntilEoseToResolve?: boolean;
 }
@@ -132,27 +141,35 @@ async function fetchData(
 
 		if (event.kind === 3 && opts.followsStore) {
 			processContactList(event, opts.followsStore);
-		} else if (event.kind === NDKKind.AppRecommendation) {
-			processAppRecommendation(event);
+		}
+
+		if (event.kind === 10008 && opts.relaysStore) {
+			processRelayList(event, opts.relaysStore, opts.relayEventStore);
 		}
 	};
 
-	const processAppRecommendation = (event: NDKEvent) => {
-		opts.appHandlersStore!.update((appHandlersStore) => {
-			if (!event.dTag) return appHandlersStore;
-			const handlerKind = parseInt(event.dTag!);
-			const val = appHandlersStore.get(handlerKind) || new Map();
+	const processRelayList = (event: NDKEvent, store: Writable<string[]>, relayEventStore?: Writable<NDKEvent | undefined>) => {
+		if (relayEventStore) {
+			const $relayEventStore = getStore(relayEventStore);
 
-			for (const tag of event.getMatchingTags('a')) {
-				const [, eventPointer, , handlerType] = tag;
-				val.set(handlerType || 'default', eventPointer);
+			if (!$relayEventStore || event.created_at! > $relayEventStore.created_at!) {
+				relayEventStore.set(event);
+			} else {
+				return;
 			}
+		}
 
-			appHandlersStore.set(handlerKind, val);
+		const relays = event.tags.filter((t: NDKTag) => t[0] === 'relay').map((t: NDKTag) => t[1]);
 
-			return appHandlersStore;
+		store.update((existingRelays: string[]) => {
+			relays.forEach((r) => {
+				if (!existingRelays.includes(r)) {
+					existingRelays.push(r);
+				}
+			});
+			return existingRelays;
 		});
-	};
+	}
 
 	/**
 	 * Called when a newer event of kind 3 is received.
@@ -180,7 +197,11 @@ async function fetchData(
 				});
 				return existingFollows;
 			});
-		} else store!.set(new Set(follows));
+		} else {
+			const $store = getStore(store);
+			const val = $store instanceof Map ? new Map(follows.map((f) => [f, 1])) : new Set(follows);
+			store!.set(val);
+		}
 	};
 
 	return new Promise((resolve) => {
@@ -189,7 +210,7 @@ async function fetchData(
 		if (authors.length > 10) {
 			authorPubkeyLength -= Math.floor(authors.length / 10);
 
-			if (authorPubkeyLength < 5) authorPubkeyLength = 12;
+			if (authorPubkeyLength < 5) authorPubkeyLength = 18;
 		}
 
 		const authorPrefixes = authors.map((f) => f.slice(0, authorPubkeyLength))
@@ -201,13 +222,14 @@ async function fetchData(
 			filters.push({ kinds, authors: authorPrefixes, limit: 10 });
 		}
 
-		if (opts.appHandlersStore) kinds.push(NDKKind.AppRecommendation);
-
 		if (opts.followsStore) {
 			filters.push({ kinds: [3], authors: authorPrefixes });
 		}
 
-		console.log('fetchData', name, filters, relaySet);
+		if (opts.relaysStore) {
+			filters.push({ kinds: [10008 as number], authors: authorPrefixes });
+		}
+
 		const userDataSubscription = ndk.subscribe(filters, {
 			closeOnEose: opts.closeOnEose!,
 			groupable: false,
