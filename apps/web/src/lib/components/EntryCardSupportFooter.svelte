@@ -46,7 +46,7 @@
     }
 </script>
 
-<div class="h-32"></div>
+<div class="h-[5rem] w-full"></div>
 
 <div class="fixed bottom-0 left-0 right-0 p-4 bg-black/10 dark:bg-white !bg-opacity-10 backdrop-blur-[50px]">
     <div class="mx-auto {$maxBodyWidth}">

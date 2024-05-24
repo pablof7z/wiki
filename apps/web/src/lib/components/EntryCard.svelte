@@ -8,11 +8,15 @@
 	import { currentUser } from '@/stores/session';
 	import { derived } from 'svelte/store';
 	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
+	import type { NDKEventStore } from '@nostr-dev-kit/ndk-svelte';
+	import TopicEntriesList from './TopicEntriesList.svelte';
 
 
     export let skipTitle = false;
     export let event: NDKEvent;
     export let skipEdit = false;
+    export let otherVersions: NDKEventStore<NDKEvent> | undefined = undefined;;
+
     let title = event.tagValue("title") || event.dTag;
     let forkPubkey: string;
     let fork: NDKEvent;
@@ -124,6 +128,14 @@
         <EventContent {event} />
     </div>
 </div>
+
+{#if otherVersions && $otherVersions && $otherVersions.length > 1}
+    <div class="my-8">
+        <h2>Other versions</h2>
+    
+        <TopicEntriesList entries={otherVersions} topic={event.dTag} />
+    </div>
+{/if}
 
 {#if $currentUser && $currentUser.pubkey !== event.pubkey}
     <EntryCardSupportFooter {event} />
