@@ -56,8 +56,8 @@
             </div>
         </a>
 
-        <div class="place-self-end flex flex-row flex-nowrap">
-            {#each Array.from(entries) as entry (entry.pubkey)}
+        <div class="place-self-end flex flex-row flex-wrap justify-end">
+            {#each Array.from(entries).slice(0, 100) as entry (entry.pubkey)}
                 <Avatar ndk={$ndk} pubkey={entry.pubkey} class="w-8 h-8 object-cover rounded-full flex-none" />
             {/each}
         </div>

@@ -20,7 +20,7 @@
 </script>
 
 <div class="flex flex-row items-center justify-between w-full">
-    <a href="/{encodeURIComponent(topic)}/{entry.pubkey.slice(0, 18)}" class="grow flex flex-row items-start justify-between">
+    <a href="/{encodeURIComponent(topic)}/{entry.author.npub}" class="grow flex flex-row items-start justify-between">
         <UserName pubkey={entry.pubkey} />
 
         <div class="flex flex-row items-center gap-2 text-sm">
