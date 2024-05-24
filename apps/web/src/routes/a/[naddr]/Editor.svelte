@@ -31,7 +31,7 @@
         // });
 
         let currentUser: NDKUser;
-        $ndk.signer!.user().then((user) => currentUser = user);
+        $ndk.signer?.user().then((user) => currentUser = user);
     })
 
     let timer = 0;
