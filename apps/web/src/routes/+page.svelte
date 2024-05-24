@@ -48,12 +48,18 @@
 
 		categories = derived(entries, ($entries) => {
 			if (!$entries) return [];
-			const cats = new Set<string>();
+			const cats = new Map<string, number>();
 			for (const event of $entries) {
 				const cat = event.tagValue('c');
-				if (cat) cats.add(cat);
+				if (cat) {
+					const count = cats.get(cat) || 0;
+					cats.set(cat, count + 1);
+				}
 			}
-			return Array.from(cats);
+
+			return Array.from(cats.entries())
+				.sort((a, b) => b[1] - a[1]) // sorted by count
+				.map(([cat]) => cat); // only return the category
 		});
 	}
 
@@ -107,10 +113,12 @@
 	</div>
 {:else if $categories && $categories.length > 0}
 	<h3 class="mb-2">Categories</h3>
-	<div class="flex flex-row gap-4 mb-6">
+	<div class="flex flex-row gap-4 mb-6 flex-wrap w-full justify-center items-center">
 
 		{#each $categories as cat}
-			<a class="text-orange-500" href="/?c={cat}">{cat}</a>
+			<Button class="whitespace-nowrap max-w-[10rem] truncate" variant="outline">
+				<a href="/?c={cat}">{cat}</a>
+			</Button>
 		{/each}
 	</div>
 {/if}
