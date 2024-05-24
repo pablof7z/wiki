@@ -114,8 +114,8 @@
 <div class="flex flex-row justify-between gap-6 items-center mb-8 {$maxBodyWidth} mx-auto">
     <h2 class="text-orange-600">
         <a href="/">Wikifreedia</a>
-        <a href="/wikifreedia/fa984bd7dbb282f0" class="text-base font-normal">
-            v0.0.6
+        <a href="/wikifreedia/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft" class="text-base font-normal">
+            v0.0.7
         </a>
     </h2>
 

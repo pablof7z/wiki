@@ -10,6 +10,8 @@
 	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
 	import type { NDKEventStore } from '@nostr-dev-kit/ndk-svelte';
 	import TopicEntriesList from './TopicEntriesList.svelte';
+	import Input from './ui/input/input.svelte';
+	import EntryReactions from './EntryReactions.svelte';
 
 
     export let skipTitle = false;
@@ -20,6 +22,8 @@
     let title = event.tagValue("title") || event.dTag;
     let forkPubkey: string;
     let fork: NDKEvent;
+    let showRaw = false;
+    let reactionCount: number | undefined = undefined;
 
     onMount(() => {
         const forkValue = event.getMatchingTags("a").find(t => t[3] === "fork");
@@ -91,9 +95,11 @@
 
             <span class="opacity-50">{(new Date(event.created_at*1000)).toLocaleDateString()}</span>
 
-            <div class="flex flex-row items-start gap-2 w-full whitespace-nowrap opacity-50">
-                {$reactions.length} reactions
-            </div>
+            {#if reactionCount}
+                <div class="flex flex-row items-start gap-2 w-full whitespace-nowrap opacity-50">
+                    {reactionCount} reactions
+                </div>
+            {/if}
 
             {#if fork}
                 <a href="/a/{fork.encode()}" class="flex flex-row gap-1 whitespace-nowrap max-w-40 text-orange-500">
@@ -107,6 +113,8 @@
                 {/if}
             {/if}
         </div>
+
+        <EntryReactions {event} {reactions} bind:reactionCount />
     </div>
 
     {#if event.pubkey === $currentUser?.pubkey && $incomingPullRequests.length > 0}
@@ -127,6 +135,19 @@
     <div class="p-6 w-full">
         <EventContent {event} />
     </div>
+</div>
+
+<div class="flex flex-col gap-2 items-start bg-white dark:bg-black rounded-xl shadow px-6 py-4 my-8">
+    <h3>About this entry</h3>
+
+    <h4>Event Id</h4>
+    <Input value={event.encode()} readonly />
+
+    <h4>Raw event</h4>
+    <Button on:click={() => showRaw = !showRaw}>Open</Button>
+    {#if showRaw}
+        <pre class="bg-base-300 overflow-auto w-full">{JSON.stringify(event.rawEvent(), null, 4)}</pre>
+    {/if}
 </div>
 
 {#if otherVersions && $otherVersions && $otherVersions.length > 1}

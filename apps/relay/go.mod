@@ -5,7 +5,7 @@ go 1.21.4
 toolchain go1.21.7
 
 require (
-	github.com/fiatjaf/eventstore v0.3.12
+	github.com/fiatjaf/eventstore v0.4.4
 	github.com/fiatjaf/khatru v0.3.1
 )
 
@@ -40,4 +40,5 @@ require (
 )
 
 replace github.com/fiatjaf/khatru => ../../packages/khatru
+
 replace github.com/fiatjaf/eventstore => ../../packages/eventstore

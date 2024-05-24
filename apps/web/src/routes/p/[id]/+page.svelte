@@ -2,21 +2,32 @@
 	import { page } from "$app/stores";
 	import { ndk } from "@/ndk";
     import MergeRequestItem from "./MergeRequestItem.svelte";
-	import type { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
+	import type { Hexpubkey, NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
 	import type { NDKEventStore } from "@nostr-dev-kit/ndk-svelte";
 	import { Name } from "@nostr-dev-kit/ndk-svelte-components";
 	import { onDestroy } from "svelte";
+	import { getPubkeyFromUserId, maybePrettifyUrl } from "@/utils/userId-loader";
 
     let id: string;
     let user: NDKUser | undefined;
+    let error: string;
+    
+    async function preparePage(userId: string) {
+        getPubkeyFromUserId(userId)
+            .then(async (pubkey: Hexpubkey) => {
+                user = $ndk.getUser({pubkey});
+                if (user) loadEventsForUser();
+
+                // if the userId was an npub or a partial pubkey, try to prettify the URL
+                maybePrettifyUrl(userId, pubkey, `/p/<userId>`);
+            })
+            .catch((e) => { error = e; });
+    }
 
     $: if (id !== $page.params.id) {
         id = $page.params.id;
 
-        if (id.startsWith('npub1')) {
-            user = $ndk.getUser({npub: id});
-            if (user) loadEventsForUser();
-        }
+        preparePage(id);
     }
 
     let entries: NDKEventStore<NDKEvent> | undefined;

@@ -74,15 +74,15 @@
   }
 
   h1 {
-    @apply text-4xl font-bold tracking-tight
+    @apply text-3xl font-bold tracking-tight font-sans;
   }
 
   h2 {
-    @apply text-3xl font-bold tracking-tight;
+    @apply text-2xl font-bold tracking-tight font-sans;
   }
 
   h3 {
-    @apply text-xl font-bold tracking-tight
+    @apply text-xl font-bold tracking-tight font-sans;
   }
 }
 
@@ -122,4 +122,11 @@
     @apply bg-black/10 dark:bg-white/10;
   }
 
+  ul {
+    @apply list-disc pl-6;
+  }
+
+  .article .name {
+      @apply text-orange-600 font-medium underline;
+  }
 }

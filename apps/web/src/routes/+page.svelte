@@ -11,11 +11,11 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Button } from '@/components/ui/button';
-	import { derived, type Readable } from 'svelte/store';
 	import { ArrowLeft } from 'radix-icons-svelte';
+	import CategoryList from '@/components/CategoryList.svelte';
 
 	let entries: NDKEventStore<NDKEvent> | undefined;
-	let categories: Readable<string[]> | undefined;
+	
 	let entriesVisible = 0;
 	let entriesNotVisible = 0;
 
@@ -46,21 +46,7 @@
 			entries = $ndk.storeSubscribe([{ kinds: [30818 as number] }], { subId: 'entries' });
 		}
 
-		categories = derived(entries, ($entries) => {
-			if (!$entries) return [];
-			const cats = new Map<string, number>();
-			for (const event of $entries) {
-				const cat = event.tagValue('c');
-				if (cat) {
-					const count = cats.get(cat) || 0;
-					cats.set(cat, count + 1);
-				}
-			}
-
-			return Array.from(cats.entries())
-				.sort((a, b) => b[1] - a[1]) // sorted by count
-				.map(([cat]) => cat); // only return the category
-		});
+		
 	}
 
 	onMount(() => {
@@ -111,17 +97,9 @@
 			All Entries
 		</a>
 	</div>
-{:else if $categories && $categories.length > 0}
-	<h3 class="mb-2">Categories</h3>
-	<div class="flex flex-row gap-4 mb-6 flex-wrap w-full justify-center items-center">
-
-		{#each $categories as cat}
-			<Button class="whitespace-nowrap max-w-[10rem] truncate" variant="outline">
-				<a href="/?c={cat}">{cat}</a>
-			</Button>
-		{/each}
-	</div>
 {/if}
+
+<CategoryList {entries} />
 
 <h3 class="mb-2">Recently Modified Wikis</h3>
 

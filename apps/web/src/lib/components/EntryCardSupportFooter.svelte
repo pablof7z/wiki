@@ -24,7 +24,7 @@
     let userDefersToEntry = false;
 
     // Check if the current user has deferred to this entry
-    $: userDefersToEntry = $currentUserEntry ? $currentUserEntry.getMatchingTags("a").find(t => t[3] === "defer") : false;
+    $: userDefersToEntry = $currentUserEntry ? !!$currentUserEntry.getMatchingTags("a").find(t => t[3] === "defer") : false;
 
     onDestroy(() => {
         currentUserEntries.unsubscribe();
