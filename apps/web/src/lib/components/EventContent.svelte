@@ -32,7 +32,7 @@
     }
 </script>
 
-<div class="prose flex flex-col items-start gap-4 text-zinc-600 dark:text-zinc-400 font-serif text-lg leading-9">
+<div class="prose items-start gap-4 text-zinc-600 dark:text-zinc-400 font-serif text-lg leading-9">
     <EventContent
         ndk={$ndk}
         content={md.render(event.content)}
