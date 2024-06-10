@@ -115,7 +115,7 @@
     <h2 class="text-orange-600">
         <a href="/">Wikifreedia</a>
         <a href="/wikifreedia/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft" class="text-base font-normal">
-            v0.0.7
+            v0.0.8
         </a>
     </h2>
 

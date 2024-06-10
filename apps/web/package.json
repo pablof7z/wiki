@@ -25,6 +25,7 @@
 		"bits-ui": "^0.18.1",
 		"clsx": "^2.1.0",
 		"cmdk-sv": "^0.0.13",
+		"diff": "^5.2.0",
 		"markdown-it": "^14.0.0",
 		"markdown-it-mathjax3": "^4.3.2",
 		"markdown-it-wikicustom": "^0.0.6",

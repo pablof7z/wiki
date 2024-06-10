@@ -17,8 +17,15 @@
 
 <div class="
 ">
-    Merge request of <Name ndk={$ndk} pubkey={pubkey} />'s  <b>{topic}</b>
-    <blockquote class="text-xl p-6">{mergeRequest.content}</blockquote>
+    <a href="/p/{mergeRequest.pubkey}" class="font-bold">
+        <Name ndk={$ndk} pubkey={mergeRequest.pubkey} />
+    </a>
+    sent a merge request of <Name ndk={$ndk} pubkey={pubkey} />'s 
+    <a href="/{topic}/{pubkey}"><b>{topic}</b></a>
+    
+    {#if mergeRequest.content.length > 0}
+        <blockquote class="text-xl p-6">{mergeRequest.content}</blockquote>
+    {/if}
 
     {#each $responses as response, i (response.id)}
         {#if response.kind === 819}

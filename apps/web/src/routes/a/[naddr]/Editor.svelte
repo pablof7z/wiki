@@ -1,11 +1,12 @@
 <script lang="ts">
-    import 'quilljs-markdown/dist/quilljs-markdown-common-style.css';
 	import { NDKEvent, type Hexpubkey, type NDKRelaySet, type NostrEvent, NDKUser } from '@nostr-dev-kit/ndk';
 	import { onMount } from "svelte";
 	import { ndk } from '@/ndk';
 	import Input from '@/components/ui/input/input.svelte';
 	import CategoryDropdown from './CategoryDropdown.svelte';
 	import ContentEditor from '@/components/ContentEditor.svelte';
+	import { Switch } from '@/components/ui/switch';
+	import { wysiwyg } from '@/stores/settings';
 
     export let baseEvent: NDKEvent;
     export let relaySet: NDKRelaySet | undefined = undefined;
@@ -16,20 +17,9 @@
 
     $: if (content && newContent) {
         newContent = false;
-        // const range = quill.getSelection();
-        // quill.setText(content);
-        // quill.setSelection(range);
     }
 
     onMount(()=>{
-		// quill = new Quill('#quill', { theme: 'snow' });
-        // // const quillMarkdown = new QuillMarkdown(quill, markdownOptions)
-		// quill.setText(content);
-        // quill.on('text-change', () => {
-        //     content = quill.getText();
-        //     newContent = true;
-        // });
-
         let currentUser: NDKUser;
         $ndk.signer!.user().then((user) => currentUser = user);
     })
@@ -39,5 +29,13 @@
 </script>
 
 <Input bind:value={title} />
-<ContentEditor bind:content={content} bind:newContent />
+{#if $wysiwyg}
+    <ContentEditor bind:content={content} bind:newContent />
+{:else}
+    <textarea bind:value={content} class="w-full h-[80vh] p-6 font-mono" />
+{/if}
 <CategoryDropdown bind:value={category} />
+<label>
+    <Switch bind:checked={$wysiwyg} />
+    WYSIWYG
+</label>

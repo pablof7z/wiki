@@ -10,11 +10,14 @@
     export let entriesVisible = 0;
 	export let entriesNotVisible = 0;
 
+	const removeFutureEntries = (now: number) => (entry: NDKEvent) => entry.created_at! > now;
+
     const entriesByTopic = derived([entries, wotFilter, minimumScore], ([$entries]) => {
 			entriesVisible = 0;
 			entriesNotVisible = 0;
 
 			const byDtag: Record<string, NDKEvent[]> = {};
+			const now = Math.floor(Date.now() / 1000);
 			$entries.forEach((entry) => {
 				const dTag = entry.dTag;
 				const pubkey = entry.pubkey;

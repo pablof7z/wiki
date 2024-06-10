@@ -13,6 +13,7 @@
 	import Editor from "../../../a/[naddr]/Editor.svelte";
 	import type { NDKEventStore } from "@nostr-dev-kit/ndk-svelte";
 	import RequestAccepted from "./RequestAccepted.svelte";
+    import {diffLines} from "diff";
 
     export let naddr: string;
     export let pr: string;
@@ -21,6 +22,7 @@
     let prEvent: NDKEvent | null | undefined;
     let proposedVersion: NDKEvent | null | undefined;
 
+    let diff: any;
     let results: NDKEventStore<NDKEvent> | undefined;
 
     $: if (originalEvent && prEvent && !results) {
@@ -31,8 +33,15 @@
         });
     }
 
+    $: if (!diff && originalEvent && proposedVersion) {
+        diff = diffLines(originalEvent.content, proposedVersion.content);
+        console.log({diff});
+        if (!diff) diff = null;
+    }
+
     $: if ($page.params.naddr !== naddr || $page.params.pr !== pr) {
         naddr = $page.params.naddr;
+        diff = undefined;
         pr = $page.params.pr;
         originalEvent = undefined;
         prEvent = undefined;
@@ -52,7 +61,6 @@
             if (eTagFork) {
                 console.log('fetching fork', eTagFork);
                 $ndk.fetchEvents({ids: [eTagFork]}, {cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY}).then((event) => {
-                    console.log('received fork', event);
                     proposedVersion = Array.from(event)?.[0];
                 });
             }
@@ -99,11 +107,9 @@
         acceptedEvent.tags.push(["p", prEvent.pubkey]);
         await acceptedEvent.publish();
     }
-</script>
 
-originalEvent = {!!originalEvent}
-prEvent = {!!prEvent}
-proposedVersion = {!!proposedVersion}
+    let showAll = false;
+</script>
 
 {#if originalEvent && prEvent && proposedVersion}
     <h3 class="flex flex-row items-center gap-1 justify-center">
@@ -129,6 +135,26 @@ proposedVersion = {!!proposedVersion}
                 <RequestAccepted event={result} />
             {/if}
         {/each}
+    {/if}
+
+    {#if diff}
+
+        <Button on:click={() => showAll = !showAll}>
+            Show All
+        </Button>
+        <div class="grid grid-cols-2 gap-4">
+            {#each diff as part}
+                <div class="p-4 bg-black/10 flex flex-row" class:col-span-2={!part.added && !part.removed} class:hidden={!part.added && !part.removed && !showAll}>
+                    {#if part.added}
+                        <pre class="text-green-500 whitespace-normal">{part.value}</pre>
+                    {:else if part.removed}
+                        <pre class="text-red-500 whitespace-normal">{part.value}</pre>
+                    {:else if showAll}
+                        <pre class="col-pre-2 overflow-x-auto">{part.value}</pre>
+                    {/if}
+                </div>
+            {/each}
+        </div>
     {/if}
 
     <div class="flex flex-row gap-4 my-4">

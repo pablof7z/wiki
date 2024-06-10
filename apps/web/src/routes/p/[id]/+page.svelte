@@ -40,7 +40,7 @@
         }], { subId: 'entries' });
 
         mergeRequests = $ndk.storeSubscribe([
-            { kinds: [818 as number], authors: [user!.pubkey] },
+            { kinds: [818 as number], "#p": [user!.pubkey] },
         ], { subId: 'mergeRequests' });
     }
 
@@ -74,7 +74,7 @@
             flex flex-row items-start gap-2 w-full p-2
             {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
         ">
-			<a href="/{entry.dTag}/{entry.pubkey.slice(0, 18)}" class="grow flex flex-col items-start">
+			<a href="/{entry.dTag}/{entry.author.npub}" class="grow flex flex-col items-start">
 				{entry.dTag}
 				<div class="text-xs text-neutral-500">
 					{entry.onRelays?.map(r => r.url).join(", ")}

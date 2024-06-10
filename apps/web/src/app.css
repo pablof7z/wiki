@@ -129,4 +129,9 @@
   .article .name {
       @apply text-orange-600 font-medium underline;
   }
+
+  blockquote {
+    @apply border-l-4 border-orange-600 pl-4;
+    @apply bg-orange-600/10;
+  }
 }

@@ -1,6 +1,5 @@
 <script lang="ts">
     import Quill from 'quill';
-	import { type NDKTag } from "@nostr-dev-kit/ndk";
     import 'quilljs-markdown/dist/quilljs-markdown-common-style.css';
     import { createEventDispatcher, onMount } from "svelte";
     import QuillMarkdown from 'quilljs-markdown'
@@ -186,7 +185,7 @@
 
 <div class="flex flex-col border-none border-neutral-800 sm:rounded-xl border grow">
     {#if toolbar}
-        <div bind:this={toolbarEl} class="-mt-4 toolbar sticky z-40 top-16 bg-base-100/80  !backdrop-blur-[50px] !border-b !border-base-200 toolbar-container w-full">
+        <div bind:this={toolbarEl} class="toolbar sticky z-40 top-0 bg-background/80 backdrop-blur-xl !border-b !border-base-200 toolbar-container w-full">
             <span class="ql-formats">
                 <select class="ql-header"></select>
             </span>
@@ -194,6 +193,7 @@
                 <button class="ql-bold"></button>
                 <button class="ql-italic"></button>
                 <button class="ql-link"></button>
+                <button class="ql-blockquote"></button>
                 <button>
                     <!-- <UploadButton class="!p-0" on:uploaded={fileUploaded} bind:blob={uploadBlob}>
                         <Image class="w-full" />
@@ -232,26 +232,6 @@
 
     :global(.ql-editor) {
         @apply p-0 grow focus:!ring-0 focus:!outline-none !border-0;
-    }
-
-    .toolbar button {
-        @apply !border-0 !rounded w-10 h-10 !p-2;
-    }
-
-    .toolbar button:hover, .toolbar .button:hover {
-        /* @apply !bg-base-300; */
-    }
-
-    :global(.ql-snow.ql-toolbar button svg *) {
-        color: #ccc;
-        stroke: #ccc;
-    }
-    :global(.ql-snow.ql-toolbar button:hover svg *) {
-        stroke: white !important;
-    }
-
-    :global(.ql-active) {
-        /* @apply !text-white !bg-base-300; */
     }
 
     :global(.ql-active .ql-stroke) {

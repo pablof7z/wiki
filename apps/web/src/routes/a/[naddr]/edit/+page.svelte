@@ -80,7 +80,7 @@
             event.removeTag("published_at");
             event.tags.push(["published_at", Math.floor(Date.now() / 1000).toString()]);
             await event.publish();
-            goto(`/${event.dTag}/${event.pubkey.slice(0, 18)}`);
+            goto(`/${event.dTag}/${event.author.npub}`);
         } finally {
             saving = false;
         }
