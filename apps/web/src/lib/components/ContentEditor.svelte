@@ -1,12 +1,9 @@
 <script lang="ts">
     import Quill from 'quill';
-    import 'quilljs-markdown/dist/quilljs-markdown-common-style.css';
+    import QuillAsciidoc from 'quill-asciidoc';
     import { createEventDispatcher, onMount } from "svelte";
-    import QuillMarkdown from 'quilljs-markdown'
     import quillEditorMention from "./quill-editor-mention.js";
-	import { getContents } from './quill-editor-contents.js';
     import "quill-mention";
-	import { prettifyNip05 } from '@nostr-dev-kit/ndk-svelte-components';
     import QuillImageDropAndPaste from 'quill-image-drop-and-paste';
     import { ndk } from '@/ndk.js';
 
@@ -14,7 +11,6 @@
     export let placeholder = "";
     export let toolbar = true;
     export let autofocus = false;
-    export let allowMarkdown = true;
     export let enterSubmits = false;
     export let newContent = false;
 
@@ -23,8 +19,7 @@
     let editorEl: HTMLElement;
     let toolbarEl: HTMLElement;
 
-    let quill: Quill;
-
+    let quill: QuillAsciidoc;
     let uploadBlob: Blob;
 
     function enableEditor() {
@@ -101,40 +96,17 @@
                         // },
                     }
                 },
-                mention: {
-                    source: quillEditorMention($ndk),
-                    dataAttributes: ['id', 'value', 'avatar', "followed", "nip05"],
-                    renderItem: (data) => {
-                        const div = document.createElement("div");
-                        div.classList.add("flex", "flex-row", "items-center", "mention", "gap-3", "cursor-pointer");
-                        div.innerHTML = `<img src="${data.avatar}" class="w-7 h-7 rounded-full" />`;
-                        const span = document.createElement("span");
-                        span.classList.add("grow");
-                        span.innerText = data.value;
-                        div.appendChild(span);
-                        if (typeof data.nip05 === "string") {
-                            const nip05Span = document.createElement("span");
-                            nip05Span.innerText = prettifyNip05(data.nip05, 30);
-                            nip05Span.classList.add("text-xs", "opacity-40", "truncate");
-                            div.appendChild(nip05Span);
-                        }
-                        return div;
-                    },
-                }
+                mention: quillEditorMention($ndk)
             }
         };
 
-        if (!allowMarkdown) options.formats = ['mention'];
-
-        quill = new Quill(editorEl, options);
+        quill = new QuillAsciidoc(editorEl, options);
         quill.setText(content)
         quill.on("text-change", () => {
-            content = getContents(quill);
+            content = quill.getAsciidoc();
             newContent = true;
             dispatch("contentChanged");
         });
-
-        new QuillMarkdown(quill, {})
 
         const editorChild = editorEl.firstChild as HTMLElement;
         editorChild.addEventListener("focusin", () => dispatch("focus"));
@@ -194,6 +166,7 @@
                 <button class="ql-italic"></button>
                 <button class="ql-link"></button>
                 <button class="ql-blockquote"></button>
+                <button class="ql-code-block"></button>
                 <button>
                     <!-- <UploadButton class="!p-0" on:uploaded={fileUploaded} bind:blob={uploadBlob}>
                         <Image class="w-full" />
@@ -223,6 +196,10 @@
         @apply p-2;
         @apply !border-t-0 !border-l-0 !border-r-0;
         @apply flex flex-row items-center gap-1;
+    }
+
+    :global(.ql-editor p code) {
+        @apply dark:bg-black;
     }
 
     :global(.ql-editor.ql-blank::before) {
