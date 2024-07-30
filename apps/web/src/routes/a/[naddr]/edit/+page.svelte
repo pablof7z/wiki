@@ -8,7 +8,6 @@
 	import Editor from "../Editor.svelte";
 	import { goto } from "$app/navigation";
 	import type { NDKEventStore } from "@nostr-dev-kit/ndk-svelte";
-    import EventContent from "@/components/EventContent.svelte";
 	import EntryCard from "@/components/EntryCard.svelte";
 
     export let naddr: string;
@@ -74,6 +73,7 @@
             event.pubkey = "";
             event.created_at = undefined;
             event.removeTag("title");
+            event.alt = "This is a wiki article about " + title + "\n\nYou can read it on https://wikifreedia.xyz/a/" + event.encode();
             event.tags.push(["title", title]);
             event.removeTag("c");
             if (category) event.tags.push(["c", category]);

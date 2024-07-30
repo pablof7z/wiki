@@ -32,7 +32,7 @@
 
 {#if renderCategories && $renderCategories && $renderCategories.length > 0}
     <h3 class="mb-2">Categories</h3>
-    <div class="flex flex-row gap-4 mb-6 flex-wrap w-full justify-center items-center">
+    <div class="flex flex-row gap-4 mb-6 flex-wrap w-full justify-center items-center h-64 overflow-y-auto">
 
         {#each $renderCategories as cat}
             <Button class="whitespace-nowrap max-w-[10rem] truncate" variant="outline">
