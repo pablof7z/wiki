@@ -2,7 +2,7 @@
     import Quill from 'quill';
     import QuillAsciidoc from 'quill-asciidoc';
     import { createEventDispatcher, onMount } from "svelte";
-    import quillEditorMention from "./quill-editor-mention.js";
+    import quillEditorMention, { renderItem } from "./quill-editor-mention.js";
     import "quill-mention";
     import QuillImageDropAndPaste from 'quill-image-drop-and-paste';
     import { ndk } from '@/ndk.js';
@@ -24,6 +24,11 @@
 
     function enableEditor() {
         Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
+
+        const MentionBlot = Quill.import("blots/mention") as any;
+        Quill.register('blots/mention', class extends MentionBlot {
+          static render = renderItem
+        });
 
         const options: any = {
             theme: 'snow',
@@ -97,6 +102,12 @@
                     }
                 },
                 mention: quillEditorMention($ndk)
+            },
+            customConverter(insert: any, current: {text: string}) {
+                // converts mentions into raw asciidoc
+                if (insert.mention) {
+                  current.text = current.text + 'nostr:' + insert.mention.id + '[]'
+                }
             }
         };
 
