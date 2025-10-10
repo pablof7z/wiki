@@ -86,7 +86,7 @@
 <h3 class="mb-2">Recently Modified Wikis</h3>
 
 {#key query + category}
-	{#if entries && $entries}
+	{#if entries.events}
 		<div class="flex flex-row justify-between">
 			{#if $networkFollows.size > 1000}
 				<label>

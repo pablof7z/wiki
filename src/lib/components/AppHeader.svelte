@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ndk } from "$lib/ndk.svelte";
-	import Login from "@/routes/Login.svelte";
+	import Login from "../../routes/Login.svelte";
 	import { Avatar } from "@nostr-dev-kit/svelte";
 	import { Button } from "@/components/ui/button";
 	import { Plus } from "radix-icons-svelte";
