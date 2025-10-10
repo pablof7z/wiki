@@ -8,16 +8,27 @@
 	import { Switch } from '@/components/ui/switch';
 	import { wysiwyg } from '@/stores/settings';
 
-    export let baseEvent: NDKEvent;
-    export let relaySet: NDKRelaySet | undefined = undefined;
-    export let content: string;
-    export let newContent = false;
-    export let title: string;
-    export let category: string | undefined;
+    let {
+        baseEvent,
+        relaySet = undefined,
+        content = $bindable(""),
+        newContent = $bindable(false),
+        title = $bindable(""),
+        category = $bindable(undefined)
+    }: {
+        baseEvent: NDKEvent;
+        relaySet?: NDKRelaySet | undefined;
+        content?: string;
+        newContent?: boolean;
+        title?: string;
+        category?: string | undefined;
+    } = $props();
 
-    $: if (content && newContent) {
-        newContent = false;
-    }
+    $effect(() => {
+        if (content && newContent) {
+            newContent = false;
+        }
+    });
 
     onMount(()=>{
         let currentUser: NDKUser;

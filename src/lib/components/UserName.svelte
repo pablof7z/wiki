@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { ndk } from "@/ndk.svelte";
-	import { networkFollows } from "@/stores/session";
-	import { wot } from "@/stores/wot";
+	import { wot, networkFollows } from "@/stores/wot";
 	import type { NDKUser } from "@nostr-dev-kit/ndk";
 	import { Avatar } from "@nostr-dev-kit/svelte";
 	import Name from "@/components/Name.svelte";

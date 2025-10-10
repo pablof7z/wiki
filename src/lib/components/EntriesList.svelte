@@ -6,9 +6,15 @@
     import { Avatar } from "@nostr-dev-kit/svelte";
 	import { derived } from "svelte/store";
 
-    export let entries: Subscription<NDKEvent>;
-    export let entriesVisible = 0;
-	export let entriesNotVisible = 0;
+    let {
+        entries,
+        entriesVisible = $bindable(0),
+        entriesNotVisible = $bindable(0)
+    }: {
+        entries: Subscription<NDKEvent>;
+        entriesVisible?: number;
+        entriesNotVisible?: number;
+    } = $props();
 
 	const removeFutureEntries = (now: number) => (entry: NDKEvent) => entry.created_at! > now;
 

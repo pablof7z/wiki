@@ -4,7 +4,6 @@
 	import { Avatar } from "@nostr-dev-kit/svelte";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
 	import Button from "./ui/button/button.svelte";
-	import { currentUser } from "@/stores/session";
 
     let {
         event,
@@ -16,13 +15,14 @@
         reactionCount?: number | undefined;
     } = $props();
 
+    let currentUser = $derived(ndk.$sessions?.currentUser);
     let deletedId = $state(undefined as NDKEventId | undefined);
 
     const reactionsArray = $derived(Array.from(reactions.events ?? []));
 
     const currentUserHasReacted = $derived.by(() => {
-        if (!$currentUser) return false;
-        return reactionsArray.some(r => r.pubkey === $currentUser.pubkey);
+        if (!currentUser) return false;
+        return reactionsArray.some(r => r.pubkey === currentUser.pubkey);
     });
 
     const grupedReactions = $derived.by(() => {
@@ -61,8 +61,8 @@
     }
 
 	function deleteUserReaction() {
-        if (!$currentUser) return;
-        const reaction = reactionsArray.find(r => r.pubkey === $currentUser.pubkey);
+        if (!currentUser) return;
+        const reaction = reactionsArray.find(r => r.pubkey === currentUser.pubkey);
         if (!reaction) return;
         reaction.delete();
         deletedId = reaction.id;
@@ -82,7 +82,7 @@
             </h2>
             <div class="flex flex-row flex-wrap -space-x-2 hover:space-x-0 transition-all duration-300">
                 {#each Array.from(grupedReactions[type]) as pubkey (pubkey)}
-                    {#if pubkey === $currentUser?.pubkey}
+                    {#if pubkey === currentUser?.pubkey}
                         <button on:click={deleteUserReaction}>
                             <Avatar ndk={ndk} {pubkey} class="w-10 h-10 object-cover rounded-full flex-none border-4 border-orange-600" />
                         </button>

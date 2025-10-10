@@ -4,7 +4,7 @@
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import { EventContent } from '@nostr-dev-kit/svelte';
 
-    export let event: NDKEvent;
+    let { event }: { event: NDKEvent } = $props();
 
     function clicked(e: CustomEvent | MouseEvent) {
         if (e.detail?.type === 'profile') {

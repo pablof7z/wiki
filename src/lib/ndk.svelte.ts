@@ -2,6 +2,8 @@ import NDKCacheSqliteWasm from "@nostr-dev-kit/cache-sqlite-wasm";
 import { NDKSvelte } from '@nostr-dev-kit/svelte';
 import { LocalStorage } from '@nostr-dev-kit/sessions';
 import { browser } from '$app/environment';
+import { derived, writable, type Readable } from 'svelte/store';
+import type { NDKUser, NDKEvent } from '@nostr-dev-kit/ndk';
 
 const DEFAULT_RELAYS = [
     'wss://purplepag.es',
@@ -67,5 +69,15 @@ export const ndkReady = (async () => {
     console.error("❌ Failed to initialize cache:", error);
   }
 })();
+
+/**
+ * Session management - NDK handles this automatically via ndk.$sessions
+ * Access session data directly from ndk.$sessions in components
+ *
+ * Example:
+ *   const currentUser = ndk.$sessions?.currentUser;
+ *   const follows = ndk.$sessions?.follows;
+ *   const relayList = ndk.$sessions?.relayList;
+ */
 
 export default ndk;

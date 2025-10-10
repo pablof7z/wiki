@@ -1,14 +1,12 @@
 <script lang="ts">
-	import { wot, wotFilter } from "@/stores/wot";
+	import { wot, wotFilter, networkFollows } from "@/stores/wot";
 	import { type NDKEventId, type NDKEvent } from "@nostr-dev-kit/ndk";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
 	import { derived } from "svelte/store";
 	import UserName from "./UserName.svelte";
-	import { networkFollows } from "@/stores/session";
 	import TopicEntriesListItem from "./TopicEntriesListItem.svelte";
 
-    export let entries: Subscription<NDKEvent>;
-    export let topic: string;
+    let { entries, topic }: { entries: Subscription<NDKEvent>; topic: string } = $props();
 
     const entriesToRender = derived([entries, wot, wotFilter], ([$entries, $wot, $wotFilter]) => {
         if (!$entries) return [];

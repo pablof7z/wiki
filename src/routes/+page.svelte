@@ -3,9 +3,8 @@
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import { NDKEvent, type Hexpubkey, type NDKSubscription, type NostrEvent, NDKRelay, NDKRelaySet, type NDKFilter } from '@nostr-dev-kit/ndk';
 	import { onDestroy, onMount } from 'svelte';
-	import { minimumScore, wot, wotFilter } from '@/stores/wot';
+	import { minimumScore, wot, wotFilter, networkFollows } from '@/stores/wot';
 	import { Switch } from "$lib/components/ui/switch";
-	import { networkFollows } from '@/stores/session';
 	import EntriesList from '@/components/EntriesList.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import { page } from '$app/stores';
@@ -14,8 +13,6 @@
 	import { ArrowLeft } from 'radix-icons-svelte';
 	import CategoryList from '@/components/CategoryList.svelte';
 
-	let entries: Subscription<NDKEvent> | undefined;
-	
 	let entriesVisible = 0;
 	let entriesNotVisible = 0;
 
@@ -24,44 +21,29 @@
 	let category: string | undefined | null;
 	let mounted = false;
 
-	onDestroy(() => {
-		entries?.stop();
-	});
-
-	$: if (query !== $page.url.searchParams.get('q') && mounted) {
-		query = $page.url.searchParams.get('q') || '';
-		category = $page.url.searchParams.get('c');
-
-		entries?.stop();
-
-		if (query) {
-			const filters: NDKFilter[] = [{ kinds: [30818 as number], search: query }];
-			filters.push({ kinds: [30818 as number], "#d": [query] });
-			const relaySet = NDKRelaySet.fromRelayUrls(["wss://relay.wikifreedia.xyz"], ndk);
-			entries = ndk.subscribe(filters, { subId: 'entries', relaySet });
-		} else if (category) {
-			const filters: NDKFilter[] = [{ kinds: [30818 as number], "#c": [category] }];
-			entries = ndk.subscribe(filters, { subId: 'entries' });
-		} else {
-			entries = ndk.subscribe([{ kinds: [30818 as number] }], { subId: 'entries' });
-		}
-
-		
-	}
-
 	onMount(() => {
-		const filters: NDKFilter[] = [{ kinds: [30818 as number] }];
-
 		query = $page.url.searchParams.get('q') || '';
 		newQuery = query;
-
-		if (query) {
-			filters[0].search = query;
-			filters.push({ kinds: [30818 as number], "#d": [query] });
-		}
-
-		entries = ndk.subscribe(filters, { subId: 'entries' });
+		category = $page.url.searchParams.get('c');
 		mounted = true;
+	})
+
+	const entries = ndk.$subscribe(() => {
+		if (!mounted) return { filters: [] };
+
+		const searchQuery = $page.url.searchParams.get('q') || '';
+		const searchCategory = $page.url.searchParams.get('c');
+
+		if (searchQuery) {
+			const filters: NDKFilter[] = [{ kinds: [30818 as number], search: searchQuery }];
+			filters.push({ kinds: [30818 as number], "#d": [searchQuery] });
+			const relaySet = NDKRelaySet.fromRelayUrls(["wss://relay.wikifreedia.xyz"], ndk);
+			return { filters, subId: 'entries', relaySet };
+		} else if (searchCategory) {
+			return { filters: [{ kinds: [30818 as number], "#c": [searchCategory] }], subId: 'entries' };
+		} else {
+			return { filters: [{ kinds: [30818 as number] }], subId: 'entries' };
+		}
 	})
 
 	function keyup(event: KeyboardEvent) {

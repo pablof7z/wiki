@@ -3,7 +3,6 @@
 	import Login from "./Login.svelte";
     import "../app.css";
     import { ModeWatcher } from "mode-watcher";
-	import { currentUser, followRelays, networkFollows, prepareSession, userFollows, userRelayEvent, userRelays } from "@/stores/session";
 	import { Avatar, RelayList } from "@nostr-dev-kit/svelte";
 	import { NDKEvent, type NDKUser, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { Button } from "@/components/ui/button";
@@ -18,47 +17,46 @@
     import Moon from "svelte-radix/Moon.svelte";
     import { toggleMode } from "mode-watcher";
 
-    let connected = false;
-    let sessionStarted = false;
-    let user: NDKUser | undefined;
+    let connected = $state(false);
+    let sessionStarted = $state(false);
 
-    let connectedUserRelays = 0;
-    let connectedFollowRelays = 0;
+    // NDK's built-in session management
+    let currentUser = $derived(ndk.$sessions?.currentUser);
+    let userFollows = $derived(ndk.$sessions?.follows ?? new Set());
+    let relayListMap = $derived(ndk.$sessions?.relayList ?? new Map());
+    let userRelays = $derived(Array.from(relayListMap.keys()));
+    let userRelayEvent = $derived(ndk.$sessions?.getSessionEvent(10102));
+    let user: NDKUser | undefined = $state(undefined);
 
-    $: if (connectedUserRelays !== $userRelays.length) {
-        connectedUserRelays = $userRelays.length;
+    let connectedUserRelays = $state(0);
 
-        for (const relay of $userRelays) {
-            if (!ndk.pool.relays.has(relay)) {
-                ndk.addExplicitRelay(relay);
+    // Connect user relays to NDK pool
+    $effect(() => {
+        if (userRelays.length > 0 && connectedUserRelays !== userRelays.length) {
+            connectedUserRelays = userRelays.length;
+
+            for (const relay of userRelays) {
+                if (!ndk.pool.relays.has(relay)) {
+                    ndk.addExplicitRelay(relay);
+                }
             }
         }
-    }
+    });
 
-    $: if (connectedFollowRelays !== $followRelays.length) {
-        connectedFollowRelays = $followRelays.length;
-
-        for (const relay of $followRelays) {
-            if (!ndk.pool.relays.has(relay)) {
-                ndk.addExplicitRelay(relay);
-            }
-        }
-    }
-
+    // Initialize connection
     ndk.connect(5000).then(() => {
         connected = true;
     });
 
-    $: if (connected && !sessionStarted && ndk.signer) {
-        ndk.signer.user().then((u) => {
-            $currentUser = u;
-            user = u;
-            prepareSession(ndk, user).then(() => {
+    // Set user when signer is available - NDK handles session automatically
+    $effect(() => {
+        if (connected && !sessionStarted && ndk.signer) {
+            ndk.signer.user().then((u) => {
+                user = u;
                 sessionStarted = true;
             });
-        });
-        sessionStarted = true;
-    }
+        }
+    });
 
     async function newEntry() {
 		const title = prompt('Name of the concept (e.g. second world war)');
@@ -85,25 +83,22 @@
         savingNewRelay = true;
         ndk.addExplicitRelay(newRelay);
 
-        $userRelays.push(newRelay);
+        // Publish updated relay list
+        const e = new NDKEvent(ndk, { kind: 10102 } as NostrEvent);
+        [...userRelays, newRelay].forEach(r => e.tags.push(["relay", r]));
+        await e.publish();
+
         newRelay = '';
-
-        await saveRelayList();
-
         savingNewRelay = false;
     }
 
     function remove(relay: string) {
         ndk.pool.removeRelay(relay);
 
-        $userRelays = $userRelays.filter(r => r !== relay);
-        saveRelayList();
-    }
-
-    async function saveRelayList() {
-        const e = new NDKEvent(ndk, { kind: 10102, } as NostrEvent);
-        $userRelays.forEach(r => e.tags.push(["relay", r]));
-        await e.publish();
+        // Publish updated relay list without this relay
+        const e = new NDKEvent(ndk, { kind: 10102 } as NostrEvent);
+        userRelays.filter(r => r !== relay).forEach(r => e.tags.push(["relay", r]));
+        e.publish();
     }
 
     let showAdd = false;
@@ -154,11 +149,7 @@
                         <tbody>
                             <tr>
                                 <td>Follows</td>
-                                <td>{$userFollows.size}</td>
-                            </tr>
-                            <tr>
-                                <td>Network size</td>
-                                <td>{$networkFollows.size}</td>
+                                <td>{userFollows.size}</td>
                             </tr>
                             <tr>
                                 <td>WOT size</td>
@@ -181,14 +172,14 @@
                             <button class="text-orange-500" on:click={() => showAdd = !showAdd}>
                                 New
                             </button>
-                            {#if $userRelayEvent}
-                                <a href="https://njump.me/{$userRelayEvent.encode()}" target="_blank" class="text-orange-500">
+                            {#if userRelayEvent}
+                                <a href="https://njump.me/{userRelayEvent.encode()}" target="_blank" class="text-orange-500">
                                     View
                                 </a>
                             {/if}
                         </div>
                     </div>
-                    {#if $userRelays.length === 0}
+                    {#if userRelays.length === 0}
                         <div class="opacity-50">No relays</div>
                     {/if}
 
@@ -203,7 +194,7 @@
                         </Button>
                     </div>
 
-                    {#each $userRelays as relay}
+                    {#each userRelays as relay}
                         <div class="flex flex-row gap-2 items-center w-full">
                             <span class="grow">{relay}</span>
                             <Button on:click={() => remove(relay)} variant="outline" size="icon">
@@ -213,21 +204,6 @@
                     {/each}
 
                     <hr class="my-6">
-
-                    {#if $followRelays.length > 0}
-                        <h3>Your follows' Relays</h3>
-
-                        {#each $followRelays as relay}
-                            <div class="flex flex-row gap-2 items-center w-full">
-                                <span class="grow">{relay}</span>
-                                <Button on:click={() => remove(relay)} variant="outline" size="icon">
-                                    <Trash class="w-4 h-4" />
-                                </Button>
-                            </div>
-                        {/each}
-
-                        <hr class="my-6">
-                    {/if}
 
                     <h3>Relays</h3>
                     <div class="flex flex-row gap-2 w-fit">

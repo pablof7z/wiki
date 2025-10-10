@@ -6,12 +6,13 @@
 	import { Avatar } from "@nostr-dev-kit/svelte";
 	import Name from "@/components/Name.svelte";
     import Button from "@/components/ui/button/button.svelte";
-	import { currentUser } from '@/stores/session';
 	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import TopicEntriesList from './TopicEntriesList.svelte';
 	import Input from './ui/input/input.svelte';
 	import EntryReactions from './EntryReactions.svelte';
+
+	let currentUser = $derived(ndk.$sessions?.currentUser);
 
 
     let {
@@ -119,7 +120,7 @@
                     Forked from <Name ndk={ndk} pubkey={forkPubkey} class="inline truncate" />
                 </a>
 
-                {#if $currentUser?.pubkey === event.pubkey}
+                {#if currentUser?.pubkey === event.pubkey}
                     <Button on:click={requestMerge} size="sm">
                         Request merge
                     </Button>
@@ -130,7 +131,7 @@
         <EntryReactions {event} {reactions} bind:reactionCount />
     </div>
 
-    {#if event.pubkey === $currentUser?.pubkey && incomingPullRequests.length > 0}
+    {#if event.pubkey === currentUser?.pubkey && incomingPullRequests.length > 0}
         <div class="px-6 bg-zinc-50 dark:bg-white/20 w-full">
             <div class="text-sm text-orange-500">
                 {incomingPullRequests.length} incoming pull requests
@@ -171,6 +172,6 @@
     </div>
 {/if}
 
-{#if $currentUser && $currentUser.pubkey !== event.pubkey}
+{#if currentUser && currentUser.pubkey !== event.pubkey}
     <EntryCardSupportFooter {event} />
 {/if}

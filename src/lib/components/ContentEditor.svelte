@@ -1,20 +1,39 @@
 <script lang="ts">
     import Quill from 'quill';
     import QuillAsciidoc from 'quill-asciidoc';
-    import { createEventDispatcher, onMount } from "svelte";
+    import { onMount } from "svelte";
     import quillEditorMention, { renderItem } from "./quill-editor-mention.js";
     import "quill-mention";
     import QuillImageDropAndPaste from 'quill-image-drop-and-paste';
     import { ndk } from '@/ndk.svelte';
 
-    export let content: string = "";
-    export let placeholder = "";
-    export let toolbar = true;
-    export let autofocus = false;
-    export let enterSubmits = false;
-    export let newContent = false;
-
-    const dispatch = createEventDispatcher();
+    let {
+        content = $bindable(""),
+        placeholder = "",
+        toolbar = true,
+        autofocus = false,
+        enterSubmits = false,
+        newContent = $bindable(false),
+        class: className = "",
+        onsubmit = () => {},
+        onforceSubmit = () => {},
+        oncontentChanged = () => {},
+        onfocus = () => {},
+        onblur = () => {}
+    }: {
+        content?: string;
+        placeholder?: string;
+        toolbar?: boolean;
+        autofocus?: boolean;
+        enterSubmits?: boolean;
+        newContent?: boolean;
+        class?: string;
+        onsubmit?: () => void;
+        onforceSubmit?: () => void;
+        oncontentChanged?: () => void;
+        onfocus?: () => void;
+        onblur?: () => void;
+    } = $props();
 
     let editorEl: HTMLElement;
     let toolbarEl: HTMLElement;
@@ -49,7 +68,7 @@
                             key: 'Enter',
                             handler: () => {
                                 if (enterSubmits) {
-                                    dispatch("submit");
+                                    onsubmit();
                                 } else {
                                     const range = quill.getSelection();
                                     if (range) quill.insertText(range.index, "\n");
@@ -71,7 +90,7 @@
                             key: 'Enter',
                             metaKey: true,
                             handler: () => {
-                                dispatch("submit");
+                                onsubmit();
                             }
                         },
                         shiftCmdEnter: {
@@ -79,7 +98,7 @@
                             metaKey: true,
                             shiftKey: true,
                             handler: () => {
-                                dispatch("forceSubmit");
+                                onforceSubmit();
                             }
                         }
                         // when the down key is pressed and we are at the last line
@@ -116,12 +135,12 @@
         quill.on("text-change", () => {
             content = quill.getAsciidoc();
             newContent = true;
-            dispatch("contentChanged");
+            oncontentChanged();
         });
 
         const editorChild = editorEl.firstChild as HTMLElement;
-        editorChild.addEventListener("focusin", () => dispatch("focus"));
-        editorChild.addEventListener("focusout", () => dispatch("blur"));
+        editorChild.addEventListener("focusin", () => onfocus());
+        editorChild.addEventListener("focusout", () => onblur());
 
         if (autofocus) quill.focus();
     }
@@ -189,9 +208,9 @@
     {#if $$slots.belowToolbar}
         <slot name="belowToolbar" />
     {/if}
-    <div class="pt-0 flex flex-col gap-4 transition-all duration-100 {$$props.class??""}">
+    <div class="pt-0 flex flex-col gap-4 transition-all duration-100 {className}">
         <div bind:this={editorEl} class="
-            editor h-full {$$props.class??""}
+            editor h-full {className}
         " />
     </div>
 </div>

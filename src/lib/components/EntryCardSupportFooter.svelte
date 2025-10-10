@@ -1,33 +1,37 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { ndk } from '$lib/ndk.svelte';
-	import { currentUser } from '@/stores/session';
     import Button from "@/components/ui/button/button.svelte";
 	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
     import { maxBodyWidth } from '@/stores/layout';
-	import { derived } from 'svelte/store';
 
-    export let event: NDKEvent;
+    let { event }: { event: NDKEvent } = $props();
 
-    // Get entryies written by the current user on this topic
-    const currentUserEntries = ndk.subscribe({
-        kinds: [ 30818 as number],
-        authors: [$currentUser!.pubkey],
-        "#d": [event.dTag!]
-    }, { subId: 'currentUsersEntry' })
+    let currentUser = $derived(ndk.$sessions?.currentUser);
 
-    // Get the most recent entry written by the current user on this topic
-    const currentUserEntry = derived(currentUserEntries, ($currentUserEntries) => {
-        return $currentUserEntries?.sort((a, b) => b.created_at! - a.created_at!)[0];
+    // Get entries written by the current user on this topic
+    const currentUserEntries = ndk.$subscribe(() => {
+        if (!currentUser?.pubkey) return undefined;
+
+        return {
+            filters: [{
+                kinds: [ 30818 as number],
+                authors: [currentUser.pubkey],
+                "#d": [event.dTag!]
+            }],
+            subId: 'currentUsersEntry'
+        };
     });
 
-    let userDefersToEntry = false;
+    // Get the most recent entry written by the current user on this topic
+    let currentUserEntry = $derived.by(() => {
+        const entries = currentUserEntries.events;
+        if (!entries || entries.length === 0) return undefined;
+        return Array.from(entries).sort((a, b) => b.created_at! - a.created_at!)[0];
+    });
 
     // Check if the current user has deferred to this entry
-    $: userDefersToEntry = $currentUserEntry ? !!$currentUserEntry.getMatchingTags("a").find(t => t[3] === "defer") : false;
-
-    onDestroy(() => {
-        currentUserEntries.stop();
+    let userDefersToEntry = $derived.by(() => {
+        return currentUserEntry ? !!currentUserEntry.getMatchingTags("a").find(t => t[3] === "defer") : false;
     });
 
     async function defer() {
@@ -50,7 +54,7 @@
 
 <div class="fixed bottom-0 left-0 right-0 p-4 bg-black/10 dark:bg-white !bg-opacity-10 backdrop-blur-[50px]">
     <div class="mx-auto {$maxBodyWidth}">
-        {#if $currentUserEntry && !userDefersToEntry}
+        {#if currentUserEntry && !userDefersToEntry}
             <div class="flex flex-row gap-2">
                 <Button on:click={defer}>
                     Defer

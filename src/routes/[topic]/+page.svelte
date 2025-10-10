@@ -10,19 +10,23 @@
 	import EntriesList from "@/components/EntriesList.svelte";
 	import TopicEntriesList from "@/components/TopicEntriesList.svelte";
 
-    export let topic: string;
+    let { topic = $bindable("") }: { topic?: string } = $props();
 
-    let mounted = false;
-    onMount(() => mounted = true)
-
-    let entries: Subscription<NDKEvent> | undefined;
-
-    $: if ($page.params.topic !== topic && mounted) {
+    let mounted = $state(false);
+    onMount(() => {
+        mounted = true;
         topic = $page.params.topic;
-        entries = ndk.subscribe([
-            { kinds: [ 30818 as number], "#d": [topic] }
-        ], { subId: 'entries' });
-    }
+    })
+
+    const entries = ndk.$subscribe(() => {
+        if (!mounted) return { filters: [] };
+
+        const currentTopic = $page.params.topic;
+        return {
+            filters: [{ kinds: [ 30818 as number], "#d": [currentTopic] }],
+            subId: 'entries'
+        };
+    });
 
 </script>
 
