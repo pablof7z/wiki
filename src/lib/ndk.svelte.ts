@@ -42,7 +42,7 @@ export const ndk = new NDKSvelte({
     fetches: {
       follows: true,
       mutes: true,
-      wallet: true,
+      wallet: false,
       relayList: true
     }
   }
