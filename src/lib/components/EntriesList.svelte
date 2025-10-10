@@ -4,7 +4,6 @@
 	import type { NDKEvent } from "@nostr-dev-kit/ndk";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
     import { Avatar } from "@nostr-dev-kit/svelte";
-	import { derived } from "svelte/store";
 
     let {
         entries,
@@ -18,13 +17,17 @@
 
 	const removeFutureEntries = (now: number) => (entry: NDKEvent) => entry.created_at! > now;
 
-    const entriesByTopic = derived([entries, wotFilter, minimumScore], ([$entries]) => {
+    const entriesByTopic = $derived.by(() => {
 			entriesVisible = 0;
 			entriesNotVisible = 0;
 
 			const byDtag: Record<string, NDKEvent[]> = {};
 			const now = Math.floor(Date.now() / 1000);
-			$entries.forEach((entry) => {
+			const events = entries.events;
+
+			if (!events) return byDtag;
+
+			events.forEach((entry) => {
 				const dTag = entry.dTag;
 				const pubkey = entry.pubkey;
 				const deferred = entry.getMatchingTags("a").some(t => t[3] === "defer");
@@ -50,7 +53,7 @@
 </script>
 
 <div class="rounded-xl">
-{#each Object.entries($entriesByTopic) as [topic, entries], i (topic)}
+{#each Object.entries(entriesByTopic) as [topic, entries], i (topic)}
     <div class="
 		item
 		flex flex-row items-start gap-2 w-full p-2

@@ -30,23 +30,33 @@
         preparePage(id);
     }
 
-    let entries: Subscription<NDKEvent> | undefined;
-    let mergeRequests: Subscription<NDKEvent> | undefined;
+    let entries = $state<NDKEvent[]>([]);
+    let mergeRequests = $state<NDKEvent[]>([]);
+    let entriesSub: ReturnType<typeof ndk.subscribe> | undefined;
+    let mergeRequestsSub: ReturnType<typeof ndk.subscribe> | undefined;
 
     function loadEventsForUser() {
-        entries = ndk.subscribe([{
+        entriesSub = ndk.subscribe([{
             kinds: [30818 as number],
             authors: [user!.pubkey]
         }], { subId: 'entries' });
 
-        mergeRequests = ndk.subscribe([
+        entriesSub.on('event', (e: NDKEvent) => {
+            entries = [...entries, e];
+        });
+
+        mergeRequestsSub = ndk.subscribe([
             { kinds: [818 as number], "#p": [user!.pubkey] },
         ], { subId: 'mergeRequests' });
+
+        mergeRequestsSub.on('event', (e: NDKEvent) => {
+            mergeRequests = [...mergeRequests, e];
+        });
     }
 
     onDestroy(() => {
-        entries?.stop();
-        mergeRequests?.stop();
+        entriesSub?.stop();
+        mergeRequestsSub?.stop();
     });
 </script>
 
@@ -54,8 +64,8 @@
     <Name {user} />
 </h1>
 
-{#if mergeRequests && $mergeRequests}
-    {#each $mergeRequests as mergeRequest, i (mergeRequest.id)}
+{#if mergeRequests.length > 0}
+    {#each mergeRequests as mergeRequest, i (mergeRequest.id)}
     <div class="
         flex flex-row items-start gap-2 w-full p-2
         {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
@@ -66,10 +76,10 @@
     {/each}
 {/if}
 
-{#if entries && $entries}
-	{$entries.length} entries
+{#if entries.length > 0}
+	{entries.length} entries
 
-	{#each $entries as entry, i (entry.id)}
+	{#each entries as entry, i (entry.id)}
 		<div class="
             flex flex-row items-start gap-2 w-full p-2
             {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}

@@ -32,9 +32,9 @@
 
 <h1>{topic}</h1>
 
-{#if entries && $entries}
+{#if entries.events}
     <h3 class="text-lg text-neutral-500 font-medium">
-        There are {$entries.length} entries for this topic
+        There are {entries.events.length} entries for this topic
     </h3>
 
     <TopicEntriesList {topic} {entries} />

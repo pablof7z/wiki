@@ -2,16 +2,16 @@
 	import { wot, wotFilter, networkFollows } from "@/stores/wot";
 	import { type NDKEventId, type NDKEvent } from "@nostr-dev-kit/ndk";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
-	import { derived } from "svelte/store";
 	import UserName from "./UserName.svelte";
 	import TopicEntriesListItem from "./TopicEntriesListItem.svelte";
 
     let { entries, topic }: { entries: Subscription<NDKEvent>; topic: string } = $props();
 
-    const entriesToRender = derived([entries, wot, wotFilter], ([$entries, $wot, $wotFilter]) => {
-        if (!$entries) return [];
+    const entriesToRender = $derived.by(() => {
+        const events = entries.events;
+        if (!events) return [];
 
-        return $entries.filter((entry) => {
+        return Array.from(events).filter((entry) => {
             const isDefered = entry.getMatchingTags("a").some(t => t[3] === "defer");
 
             // Don't list the entries that have been defered
@@ -34,7 +34,7 @@
 </script>
 
 <div class="rounded-xl">
-{#each $entriesToRender as entry, i (entry.id)}
+{#each entriesToRender as entry, i (entry.id)}
     <div class="
         flex flex-row items-start gap-2 w-full p-2
         {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}

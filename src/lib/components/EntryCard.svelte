@@ -164,10 +164,10 @@
     {/if}
 </div>
 
-{#if otherVersions && $otherVersions && $otherVersions.length > 1}
+{#if otherVersions?.events && otherVersions.events.length > 1}
     <div class="my-8">
         <h2>Other versions</h2>
-    
+
         <TopicEntriesList entries={otherVersions} topic={event.dTag} />
     </div>
 {/if}
