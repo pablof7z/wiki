@@ -28,13 +28,13 @@
 
 <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 	<div class="container flex h-16 items-center justify-between">
-		<div class="flex items-center gap-6">
-			<a href="/" class="flex items-center gap-2">
+		<div class="flex items-center gap-2">
+			<a href="/" class="flex items-center">
 				<h2 class="text-xl font-bold text-orange-600">Wikifreedia</h2>
-				<a href="/wikifreedia/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft"
-					class="text-xs text-muted-foreground hover:text-foreground transition-colors">
-					v0.0.8
-				</a>
+			</a>
+			<a href="/wikifreedia/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft"
+				class="text-xs text-muted-foreground hover:text-foreground transition-colors">
+				v0.0.8
 			</a>
 		</div>
 

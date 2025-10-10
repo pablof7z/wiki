@@ -1,14 +1,12 @@
-import { userFollows } from '$stores/session';
 import { searchUser } from '$lib/utils/search/user';
-import { get } from 'svelte/store';
-import type NDK from '@nostr-dev-kit/ndk';
+import type { NDKSvelte } from '@nostr-dev-kit/svelte';
 import { prettifyNip05 } from '@/utils/nip05';
 
-export default function (ndk: NDK) {
+export default function (ndk: NDKSvelte) {
   return {
     source: async (searchTerm: any, renderList: any) => {
-      const $userFollows = get(userFollows);
-      const result = await searchUser(searchTerm, ndk, $userFollows);
+      const userFollows = ndk.$sessions?.follows ?? new Set();
+      const result = await searchUser(searchTerm, ndk, userFollows);
       renderList(result);
     },
     showDenotationChar: false,
