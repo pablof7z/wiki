@@ -4,7 +4,7 @@
 	import { ndk } from '@/ndk.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import CategoryDropdown from './CategoryDropdown.svelte';
-	import ContentEditor from '@/components/ContentEditor.svelte';
+	import TiptapEditor from '@/components/TiptapEditor.svelte';
 	import { Switch } from '@/components/ui/switch';
 	import { wysiwyg } from '@/stores/settings';
 
@@ -41,12 +41,12 @@
 
 <Input bind:value={title} />
 {#if $wysiwyg}
-    <ContentEditor bind:content={content} bind:newContent />
+    <TiptapEditor bind:content={content} bind:newContent />
 {:else}
-    <textarea bind:value={content} class="w-full h-[80vh] p-6 font-mono" />
+    <textarea bind:value={content} class="w-full h-[80vh] p-6 font-mono" placeholder="Write in Djot format..." />
 {/if}
 <CategoryDropdown bind:value={category} />
 <label>
     <Switch bind:checked={$wysiwyg} />
-    WYSIWYG
+    WYSIWYG Editor
 </label>

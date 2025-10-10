@@ -4,11 +4,23 @@
 	import { ModeWatcher } from "mode-watcher";
 	import { maxBodyWidth } from "@/stores/layout";
 	import AppHeader from "@/components/AppHeader.svelte";
+	import { networkFollows } from "@/stores/wot";
 
 	let connected = $state(false);
 	let sessionStarted = $state(false);
 	let userRelays = $derived(Array.from(ndk.$sessions?.relayList?.keys() ?? []));
 	let connectedUserRelays = $state(0);
+
+	// Sync networkFollows with NDK session follows
+	$effect(() => {
+		const follows = ndk.$sessions?.follows;
+		if (follows) {
+			// For now, just map follows to score 1
+			// In the future, we could fetch kind:3 for each follow to build a real WoT graph
+			const followsMap = new Map(Array.from(follows).map(f => [f, 1]));
+			networkFollows.set(followsMap);
+		}
+	});
 
 	// Connect user relays to NDK pool
 	$effect(() => {

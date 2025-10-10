@@ -41,11 +41,11 @@
 </script>
 
 <Sheet.Root>
-	<Sheet.Trigger asChild let:builder>
-		<Button builders={[builder]} variant="ghost" size="icon">
+	<Sheet.Trigger>
+		<button class="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
 			<Gear class="h-5 w-5" />
 			<span class="sr-only">Settings</span>
-		</Button>
+		</button>
 	</Sheet.Trigger>
 	<Sheet.Content class="w-full sm:max-w-md overflow-y-auto">
 		<Sheet.Header>
