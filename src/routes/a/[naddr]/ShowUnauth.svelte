@@ -3,16 +3,18 @@
     import { Label } from "$lib/components/ui/label";
     import { createEventDispatcher } from "svelte";
 
-    export let value = false;
+    let { value = $bindable(false) }: { value?: boolean } = $props();
 
     let prevVal = value;
 
     const dispatch = createEventDispatcher();
 
-    $: if (prevVal !== value) {
-        prevVal = value;
-        dispatch("change", value);
-    }
+    $effect(() => {
+        if (prevVal !== value) {
+            prevVal = value;
+            dispatch("change", value);
+        }
+    });
 </script>
 
 <div class="items-top flex space-x-2">

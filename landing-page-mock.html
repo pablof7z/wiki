@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia - Landing Page Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            color: #202122;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #ffffff;
+            border-bottom: 1px solid #a2a9b1;
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #202122;
+            letter-spacing: -0.02em;
+        }
+
+        .version {
+            font-size: 0.7rem;
+            color: #72777d;
+            margin-left: 0.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.4rem 0.9rem;
+            border-radius: 2px;
+            border: 1px solid #a2a9b1;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 400;
+            transition: background 0.1s;
+            background: #f8f9fa;
+            color: #202122;
+        }
+
+        .btn:hover {
+            background: #ffffff;
+            border-color: #72777d;
+        }
+
+        .btn-primary {
+            background: #36c;
+            color: white;
+            border-color: #36c;
+        }
+
+        .btn-primary:hover {
+            background: #447ff5;
+            border-color: #447ff5;
+        }
+
+        .hero {
+            background: #f8f9fa;
+            border-bottom: 1px solid #a2a9b1;
+            padding: 3rem 2rem 2.5rem;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            color: #202122;
+            font-family: 'Linux Libertine', Georgia, Times, serif;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            color: #54595d;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            display: flex;
+            border: 1px solid #a2a9b1;
+            background: white;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 0.6rem 0.8rem;
+            border: none;
+            font-size: 0.9rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-box button {
+            padding: 0.6rem 1.2rem;
+            background: #f8f9fa;
+            color: #202122;
+            border: none;
+            border-left: 1px solid #a2a9b1;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .search-box button:hover {
+            background: #ffffff;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.85rem;
+            color: #54595d;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #202122;
+            border-bottom: 1px solid #a2a9b1;
+            padding-bottom: 0.25rem;
+            font-family: 'Linux Libertine', Georgia, Times, serif;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .entry-list {
+            border: 1px solid #a2a9b1;
+            background: white;
+        }
+
+        .entry-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #eaecf0;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            transition: background 0.1s;
+        }
+
+        .entry-item:last-child {
+            border-bottom: none;
+        }
+
+        .entry-item:hover {
+            background: #f8f9fa;
+        }
+
+        .entry-main {
+            flex: 1;
+        }
+
+        .entry-title {
+            font-size: 1rem;
+            color: #36c;
+            text-decoration: none;
+            font-weight: 400;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .entry-title:hover {
+            text-decoration: underline;
+        }
+
+        .entry-excerpt {
+            font-size: 0.85rem;
+            color: #54595d;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .entry-meta {
+            font-size: 0.75rem;
+            color: #72777d;
+        }
+
+        .entry-contributors {
+            display: flex;
+            gap: 0.25rem;
+            margin-left: 1rem;
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 2px;
+            background: #eaecf0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #54595d;
+            border: 1px solid #a2a9b1;
+        }
+
+        .sidebar {
+            border: 1px solid #a2a9b1;
+            background: #f8f9fa;
+        }
+
+        .sidebar-section {
+            padding: 1rem;
+            border-bottom: 1px solid #a2a9b1;
+        }
+
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #202122;
+        }
+
+        .category-list {
+            list-style: none;
+        }
+
+        .category-item {
+            padding: 0.4rem 0;
+        }
+
+        .category-link {
+            color: #36c;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .category-link:hover {
+            text-decoration: underline;
+        }
+
+        .category-count {
+            color: #72777d;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+
+        .activity-list {
+            font-size: 0.85rem;
+        }
+
+        .activity-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eaecf0;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-user {
+            color: #36c;
+            text-decoration: none;
+        }
+
+        .activity-user:hover {
+            text-decoration: underline;
+        }
+
+        .activity-entry {
+            color: #36c;
+            text-decoration: none;
+        }
+
+        .activity-entry:hover {
+            text-decoration: underline;
+        }
+
+        .activity-time {
+            color: #72777d;
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 0.125rem;
+        }
+
+        .contributors-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        .contributor {
+            text-align: center;
+        }
+
+        .contributor-avatar {
+            width: 48px;
+            height: 48px;
+            background: #eaecf0;
+            border: 1px solid #a2a9b1;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #54595d;
+            font-size: 1rem;
+            margin: 0 auto 0.25rem;
+        }
+
+        .contributor-name {
+            font-size: 0.75rem;
+            color: #54595d;
+        }
+
+        .stats-box {
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #202122;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #54595d;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <span class="logo">Wikifreedia</span>
+            <span class="version">v0.0.8</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn">All Entries</button>
+            <button class="btn btn-primary">+ New Entry</button>
+            <button class="btn">Sign In</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Wikifreedia</h1>
+            <p class="hero-subtitle">The free encyclopedia that anyone can edit, built on Nostr</p>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" placeholder="Search Wikifreedia">
+                    <button>Search</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <span>940,707 articles</span>
+                <span>·</span>
+                <span>150+ active contributors</span>
+                <span>·</span>
+                <span>23 edits today</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="stats-box">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">940,707</span>
+                    <span class="stat-label">Articles</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">150+</span>
+                    <span class="stat-label">Contributors</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">23</span>
+                    <span class="stat-label">Edits Today</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Uncensorable</span>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Featured Articles</h2>
+
+        <div class="two-column">
+            <div>
+                <div class="entry-list">
+                    <div class="entry-item">
+                        <div class="entry-main">
+                            <a href="#" class="entry-title">Bitcoin</a>
+                            <p class="entry-excerpt">A decentralized digital currency, without a central bank or single administrator, that can be sent from user to user on the peer-to-peer bitcoin network without the need for intermediaries.</p>
+                            <div class="entry-meta">234 edits · 12 contributors · Last edited 2 minutes ago</div>
+                        </div>
+                        <div class="entry-contributors">
+                            <div class="avatar">A</div>
+                            <div class="avatar">B</div>
+                            <div class="avatar">C</div>
+                        </div>
+                    </div>
+
+                    <div class="entry-item">
+                        <div class="entry-main">
+                            <a href="#" class="entry-title">Nostr</a>
+                            <p class="entry-excerpt">A simple, open protocol that enables truly censorship-resistant and global value-for-value publishing on the web. The protocol is based on very simple and flexible event objects and uses standard public-key cryptography.</p>
+                            <div class="entry-meta">156 edits · 8 contributors · Last edited 1 hour ago</div>
+                        </div>
+                        <div class="entry-contributors">
+                            <div class="avatar">D</div>
+                            <div class="avatar">E</div>
+                            <div class="avatar">F</div>
+                        </div>
+                    </div>
+
+                    <div class="entry-item">
+                        <div class="entry-main">
+                            <a href="#" class="entry-title">Monazite</a>
+                            <p class="entry-excerpt">A phosphate mineral containing rare-earth elements. Due to variability in composition, monazite is considered a group of minerals. The most common species is monazite-(Ce), the cerium-dominant member.</p>
+                            <div class="entry-meta">89 edits · 5 contributors · Last edited 3 hours ago</div>
+                        </div>
+                        <div class="entry-contributors">
+                            <div class="avatar">G</div>
+                            <div class="avatar">H</div>
+                        </div>
+                    </div>
+
+                    <div class="entry-item">
+                        <div class="entry-main">
+                            <a href="#" class="entry-title">Islamic Calendar</a>
+                            <p class="entry-excerpt">A lunar calendar consisting of 12 lunar months in a year of 354 or 355 days. It is used to determine the proper days of Islamic holidays and rituals, such as the annual period of fasting and the pilgrimage to Mecca.</p>
+                            <div class="entry-meta">67 edits · 4 contributors · Last edited 5 hours ago</div>
+                        </div>
+                        <div class="entry-contributors">
+                            <div class="avatar">I</div>
+                            <div class="avatar">J</div>
+                        </div>
+                    </div>
+
+                    <div class="entry-item">
+                        <div class="entry-main">
+                            <a href="#" class="entry-title">Web of Trust</a>
+                            <p class="entry-excerpt">A concept used in PGP, GnuPGP, and other OpenPGP-compatible systems to establish the authenticity of the binding between a public key and its owner. Its decentralized trust model is an alternative to the centralized trust model of public key infrastructure.</p>
+                            <div class="entry-meta">112 edits · 9 contributors · Last edited 1 day ago</div>
+                        </div>
+                        <div class="entry-contributors">
+                            <div class="avatar">K</div>
+                            <div class="avatar">L</div>
+                        </div>
+                    </div>
+
+                    <div class="entry-item">
+                        <div class="entry-main">
+                            <a href="#" class="entry-title">House of Wisdom</a>
+                            <p class="entry-excerpt">A major intellectual center during the Islamic Golden Age, the House of Wisdom was founded in Baghdad by the Abbasid caliph Harun al-Rashid and culminated under his son al-Ma'mun. It hosted scholars who translated ancient texts.</p>
+                            <div class="entry-meta">78 edits · 6 contributors · Last edited 2 days ago</div>
+                        </div>
+                        <div class="entry-contributors">
+                            <div class="avatar">M</div>
+                            <div class="avatar">N</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="sidebar">
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Browse by Category</h3>
+                        <ul class="category-list">
+                            <li class="category-item">
+                                <a href="#" class="category-link">Nostr</a>
+                                <span class="category-count">(342)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">People</a>
+                                <span class="category-count">(8,234)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">Knowledge</a>
+                                <span class="category-count">(12,456)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">Technology</a>
+                                <span class="category-count">(5,678)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">History</a>
+                                <span class="category-count">(9,123)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">Philosophy</a>
+                                <span class="category-count">(3,456)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">Cryptocurrency</a>
+                                <span class="category-count">(1,234)</span>
+                            </li>
+                            <li class="category-item">
+                                <a href="#" class="category-link">Mathematics</a>
+                                <span class="category-count">(4,567)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Recent Activity</h3>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <a href="#" class="activity-user">Pablo</a> edited <a href="#" class="activity-entry">Bitcoin</a>
+                                <span class="activity-time">2 minutes ago</span>
+                            </div>
+                            <div class="activity-item">
+                                <a href="#" class="activity-user">Satoshi</a> created <a href="#" class="activity-entry">Islamic Calendar</a>
+                                <span class="activity-time">15 minutes ago</span>
+                            </div>
+                            <div class="activity-item">
+                                <a href="#" class="activity-user">Vitor</a> updated <a href="#" class="activity-entry">Nostr</a>
+                                <span class="activity-time">1 hour ago</span>
+                            </div>
+                            <div class="activity-item">
+                                <a href="#" class="activity-user">Fiatjaf</a> edited <a href="#" class="activity-entry">Web of Trust</a>
+                                <span class="activity-time">2 hours ago</span>
+                            </div>
+                            <div class="activity-item">
+                                <a href="#" class="activity-user">Jack</a> created <a href="#" class="activity-entry">Charlie Kirk</a>
+                                <span class="activity-time">3 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Top Contributors</h3>
+                        <div class="contributors-grid">
+                            <div class="contributor">
+                                <div class="contributor-avatar">P</div>
+                                <div class="contributor-name">Pablo</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">S</div>
+                                <div class="contributor-name">Satoshi</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">V</div>
+                                <div class="contributor-name">Vitor</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">F</div>
+                                <div class="contributor-name">Fiatjaf</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">J</div>
+                                <div class="contributor-name">Jack</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">E</div>
+                                <div class="contributor-name">Edward</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">M</div>
+                                <div class="contributor-name">Mike</div>
+                            </div>
+                            <div class="contributor">
+                                <div class="contributor-avatar">A</div>
+                                <div class="contributor-name">Alice</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

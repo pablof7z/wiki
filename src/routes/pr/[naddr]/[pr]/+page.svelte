@@ -6,7 +6,6 @@
 	import { page } from "$app/stores";
 	import { ndk } from "@/ndk.svelte";
 	import { NDKEvent, NDKSubscriptionCacheUsage, type NostrEvent } from "@nostr-dev-kit/ndk";
-	import { onDestroy, onMount } from "svelte";
 	import { maxBodyWidth } from "@/stores/layout";
 	import Button from "@/components/ui/button/button.svelte";
     import * as Card from "@/components/ui/card";
@@ -16,8 +15,7 @@
 	import RequestAccepted from "./RequestAccepted.svelte";
     import {diffLines} from "diff";
 
-    export let naddr: string;
-    export let pr: string;
+    let { naddr, pr }: { naddr: string; pr: string } = $props();
 
     let originalEvent: NDKEvent | null | undefined;
     let prEvent: NDKEvent | null | undefined;
@@ -26,53 +24,63 @@
     let diff: any;
     let results: Subscription<NDKEvent> | undefined;
 
-    $: if (originalEvent && prEvent && !results) {
-        results = ndk.subscribe({
-            kinds: [7, 819 as number],
-            authors: [originalEvent.pubkey],
-            ...prEvent.filter()
-        });
-    }
+    $effect(() => {
+        if (originalEvent && prEvent && !results) {
+            results = ndk.$subscribe(() => ({
+                filters: [{
+                    kinds: [7, 819 as number],
+                    authors: [originalEvent.pubkey],
+                    ...prEvent.filter()
+                }]
+            }));
+        }
+    });
 
-    $: if (!diff && originalEvent && proposedVersion) {
-        diff = diffLines(originalEvent.content, proposedVersion.content);
-        console.log({diff});
-        if (!diff) diff = null;
-    }
+    $effect(() => {
+        if (!diff && originalEvent && proposedVersion) {
+            diff = diffLines(originalEvent.content, proposedVersion.content);
+            console.log({diff});
+            if (!diff) diff = null;
+        }
+    });
 
-    $: if ($page.params.naddr !== naddr || $page.params.pr !== pr) {
-        naddr = $page.params.naddr;
-        diff = undefined;
-        pr = $page.params.pr;
-        originalEvent = undefined;
-        prEvent = undefined;
-        proposedVersion = undefined;
-        results?.stop(); results = undefined;
+    $effect(() => {
+        if ($page.params.naddr !== naddr || $page.params.pr !== pr) {
+            naddr = $page.params.naddr;
+            diff = undefined;
+            pr = $page.params.pr;
+            originalEvent = undefined;
+            prEvent = undefined;
+            proposedVersion = undefined;
+            results?.stop(); results = undefined;
 
-        ndk.fetchEvent(naddr).then((event) => {
-            originalEvent = event;
-        });
+            ndk.fetchEvent(naddr).then((event) => {
+                originalEvent = event;
+            });
 
-        ndk.fetchEvent(pr).then((event) => {
-            prEvent = event;
+            ndk.fetchEvent(pr).then((event) => {
+                prEvent = event;
 
-            console.log(event.rawEvent());
-            const eTagFork = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
-            console.log('asking for fork version', eTagFork);
-            if (eTagFork) {
-                console.log('fetching fork', eTagFork);
-                ndk.fetchEvents({ids: [eTagFork]}, {cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY}).then((event) => {
-                    proposedVersion = Array.from(event)?.[0];
-                });
-            }
-        });
-    }
+                console.log(event.rawEvent());
+                const eTagFork = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
+                console.log('asking for fork version', eTagFork);
+                if (eTagFork) {
+                    console.log('fetching fork', eTagFork);
+                    ndk.fetchEvents({ids: [eTagFork]}, {cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY}).then((event) => {
+                        proposedVersion = Array.from(event)?.[0];
+                    });
+                }
+            });
+        }
+    });
 
-    onMount(() => { $maxBodyWidth = "max-w-7xl"; })
-    onDestroy(() => {
-        $maxBodyWidth = "max-w-3xl";
-        results?.stop();
-    })
+    $effect(() => {
+        $maxBodyWidth = "max-w-7xl";
+        return () => {
+            $maxBodyWidth = "max-w-3xl";
+            results?.stop();
+        };
+    });
 
     let editView = false;
     let content: string;

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia - Knowledge Without Gatekeepers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fff;
+            color: #000;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: -0.02em;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .header-nav a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover {
+            color: #000;
+        }
+
+        .hero {
+            min-height: 100vh;
+            padding: 8rem 2rem 4rem;
+            background: #fff;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-headline {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 300;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            color: #000;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-subtext {
+            font-size: 1.25rem;
+            color: #444;
+            max-width: 700px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .concept-demo {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .demo-title {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        .perspectives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .perspective-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .perspective-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: #000;
+            transform: scaleY(0);
+            transition: transform 0.2s;
+        }
+
+        .perspective-card:hover {
+            border-color: #000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .perspective-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .author-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            color: #000;
+            font-size: 0.95rem;
+        }
+
+        .author-trust {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .trust-indicator {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: #000;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .perspective-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #000;
+        }
+
+        .perspective-excerpt {
+            font-size: 0.9rem;
+            color: #444;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .perspective-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+            color: #666;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .fork-visualization {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .fork-tree {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .fork-node {
+            text-align: center;
+        }
+
+        .fork-circle {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.25rem;
+            background: #fff;
+        }
+
+        .fork-circle.original {
+            background: #000;
+            color: #fff;
+        }
+
+        .fork-arrow {
+            font-size: 1.5rem;
+            color: #666;
+            margin: 0 -1rem;
+        }
+
+        .fork-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .fork-explanation {
+            color: #444;
+            font-size: 0.9rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1px;
+            margin-bottom: 3rem;
+            background: #ddd;
+            border: 1px solid #ddd;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 200;
+            color: #000;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        .quote-block {
+            background: #f8f8f8;
+            border-left: 3px solid #000;
+            padding: 2rem 2rem 2rem 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .quote-text {
+            font-size: 1.5rem;
+            font-style: italic;
+            color: #000;
+            margin-bottom: 1rem;
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        .quote-attribution {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: inline-block;
+            border: 2px solid #000;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-secondary:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .problem-section {
+            background: #f8f8f8;
+            padding: 4rem 2rem;
+            border-top: 1px solid #ddd;
+        }
+
+        .section-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            color: #000;
+            letter-spacing: -0.02em;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1px;
+            margin-top: 2rem;
+            background: #ddd;
+            border: 1px solid #ddd;
+        }
+
+        .problem-card {
+            padding: 2rem 1.5rem;
+            background: #fff;
+        }
+
+        .problem-icon {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            padding: 0.5rem;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+        }
+
+        .problem-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #000;
+        }
+
+        .problem-text {
+            font-size: 0.9rem;
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .philosophy-section {
+            padding: 4rem 2rem;
+            background: #fff;
+            border-top: 1px solid #ddd;
+        }
+
+        .philosophy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .philosophy-point {
+            padding: 2rem;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+        }
+
+        .philosophy-number {
+            font-size: 3rem;
+            font-weight: 200;
+            color: #000;
+            margin-bottom: 1rem;
+        }
+
+        .philosophy-text {
+            font-size: 1.1rem;
+            color: #000;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .philosophy-explanation {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .hero-headline {
+                font-size: 2rem;
+            }
+
+            .hero-subtext {
+                font-size: 1.1rem;
+            }
+
+            .perspectives-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .fork-tree {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .fork-arrow {
+                transform: rotate(90deg);
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .philosophy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">Wikifreedia</div>
+            <nav class="header-nav">
+                <a href="#">Explore</a>
+                <a href="#">Philosophy</a>
+                <a href="#">GitHub</a>
+                <a href="#">Sign In</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-headline">What if knowledge had no gatekeepers?</h1>
+            <p class="hero-subtext">
+                Every Wikipedia article has one "official" version. One truth. One perspective.
+                But who decides what's true? A handful of anonymous admins? Consensus by committee?
+            </p>
+
+            <div class="concept-demo">
+                <div class="demo-title">The same topic • Different truths • You choose your lens</div>
+
+                <div class="perspectives-grid">
+                    <div class="perspective-card">
+                        <div class="author-row">
+                            <div class="author-avatar">LS</div>
+                            <div class="author-info">
+                                <div class="author-name">Larry Sanger</div>
+                                <div class="author-trust">Co-founder of Wikipedia</div>
+                            </div>
+                            <span class="trust-indicator">Trusted</span>
+                        </div>
+                        <div class="perspective-title">Bitcoin: A Monetary Revolution</div>
+                        <div class="perspective-excerpt">
+                            Bitcoin represents the most significant innovation in monetary technology since the invention of paper money.
+                            It's a peaceful revolution against central banking, returning monetary sovereignty to individuals...
+                        </div>
+                        <div class="perspective-meta">
+                            <span class="meta-item">⚡ 1,234 zaps</span>
+                            <span class="meta-item">🔀 89 forks</span>
+                            <span class="meta-item">✏️ 45 edits</span>
+                        </div>
+                    </div>
+
+                    <div class="perspective-card">
+                        <div class="author-row">
+                            <div class="author-avatar">PK</div>
+                            <div class="author-info">
+                                <div class="author-name">Paul Krugman</div>
+                                <div class="author-trust">Nobel Laureate, Economist</div>
+                            </div>
+                        </div>
+                        <div class="perspective-title">Bitcoin: Digital Gold or Digital Fool's Gold?</div>
+                        <div class="perspective-excerpt">
+                            While Bitcoin has captured imaginations, its volatility, energy consumption, and limited transaction capacity
+                            raise serious questions about its viability as a currency. The blockchain technology may prove useful, but...
+                        </div>
+                        <div class="perspective-meta">
+                            <span class="meta-item">⚡ 567 zaps</span>
+                            <span class="meta-item">🔀 34 forks</span>
+                            <span class="meta-item">✏️ 78 edits</span>
+                        </div>
+                    </div>
+
+                    <div class="perspective-card">
+                        <div class="author-row">
+                            <div class="author-avatar">AC</div>
+                            <div class="author-info">
+                                <div class="author-name">AnarchoCapitalist</div>
+                                <div class="author-trust">Cypherpunk collective</div>
+                            </div>
+                        </div>
+                        <div class="perspective-title">Bitcoin: The State's Worst Nightmare</div>
+                        <div class="perspective-excerpt">
+                            Bitcoin isn't just money—it's a weapon against tyranny. Every transaction outside the banking system is an act
+                            of rebellion. This is about dismantling the surveillance state one block at a time...
+                        </div>
+                        <div class="perspective-meta">
+                            <span class="meta-item">⚡ 2,456 zaps</span>
+                            <span class="meta-item">🔀 156 forks</span>
+                            <span class="meta-item">✏️ 234 edits</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fork-visualization">
+                    <div class="fork-tree">
+                        <div class="fork-node">
+                            <div class="fork-circle original">1</div>
+                            <div class="fork-label">Original</div>
+                        </div>
+                        <span class="fork-arrow">→</span>
+                        <div class="fork-node">
+                            <div class="fork-circle">2</div>
+                            <div class="fork-label">Fork</div>
+                        </div>
+                        <span class="fork-arrow">→</span>
+                        <div class="fork-node">
+                            <div class="fork-circle">3</div>
+                            <div class="fork-label">Fork</div>
+                        </div>
+                        <span class="fork-arrow">→</span>
+                        <div class="fork-node">
+                            <div class="fork-circle">∞</div>
+                            <div class="fork-label">Fork</div>
+                        </div>
+                    </div>
+                    <div class="fork-explanation">
+                        Every article can be forked, edited, and evolved. No central authority decides which version is "correct".
+                        Your web of trust—the people you follow and respect—becomes your editorial filter.
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">940,707</div>
+                    <div class="stat-label">Total Articles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">Possible Versions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Central Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Uncensorable</div>
+                </div>
+            </div>
+
+            <div class="quote-block">
+                <div class="quote-text">
+                    "The path to truth is in the integration of opposites."
+                </div>
+                <div class="quote-attribution">
+                    — Stuart Bowman, on embracing multiple perspectives
+                </div>
+            </div>
+
+            <p class="hero-subtext" style="font-size: 1.1rem; margin-bottom: 2rem;">
+                Wikifreedia is a forkable, censorship-resistant encyclopedia built on Nostr.
+                There's no single version of the truth—just overlapping perspectives shaped by the people you trust.
+                Think an entry is missing something? Fork it. Edit it. Share your version. No permission needed.
+            </p>
+
+            <div class="cta-buttons">
+                <a href="#" class="btn btn-primary">Start Exploring</a>
+                <a href="#" class="btn btn-secondary">Read the Philosophy</a>
+                <a href="#" class="btn btn-secondary">Fork on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="problem-section">
+        <div class="section-content">
+            <h2 class="section-title">Wikipedia has been captured</h2>
+
+            <div class="quote-block">
+                <div class="quote-text">
+                    "There is no real guarantee that Wikipedia is not entirely controlled by the CIA."
+                </div>
+                <div class="quote-attribution">
+                    — Larry Sanger, Wikipedia co-founder, on Tucker Carlson
+                </div>
+            </div>
+
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">🕵️</div>
+                    <div class="problem-title">Shadow Admins</div>
+                    <div class="problem-text">
+                        Anonymous editors with hidden identities make irreversible decisions.
+                        Who are they? What are their biases? Nobody knows.
+                    </div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">🚫</div>
+                    <div class="problem-title">Blacklisted Sources</div>
+                    <div class="problem-text">
+                        Conservative outlets, alternative media, and dissenting voices are systematically
+                        excluded. One perspective enforced as "neutral."
+                    </div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">🔒</div>
+                    <div class="problem-title">Forced Consensus</div>
+                    <div class="problem-text">
+                        Complex topics reduced to a single "approved" narrative.
+                        Nuance is eliminated. Disagreement is deleted.
+                    </div>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">🎭</div>
+                    <div class="problem-title">Fake Neutrality</div>
+                    <div class="problem-text">
+                        "Neutral Point of View" is a myth. Every edit, every source selection,
+                        every word choice reflects bias. Wikipedia just hides it.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="philosophy-section">
+        <div class="section-content">
+            <h2 class="section-title">Two core principles</h2>
+
+            <div class="philosophy-grid">
+                <div class="philosophy-point">
+                    <div class="philosophy-number">1.</div>
+                    <div class="philosophy-text">There is a reality, but we can't fully grasp it.</div>
+                    <div class="philosophy-explanation">
+                        Truth exists, but our perception is always filtered through experience, culture, and belief.
+                        Instead of pretending we can achieve perfect objectivity, we should embrace our limitations.
+                    </div>
+                </div>
+
+                <div class="philosophy-point">
+                    <div class="philosophy-number">2.</div>
+                    <div class="philosophy-text">In knowledge, consensus is tyranny.</div>
+                    <div class="philosophy-explanation">
+                        Forcing agreement on complex topics destroys nuance. The richness of human understanding comes
+                        from integrating multiple perspectives, not reducing them to a single approved narrative.
+                    </div>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 3rem; color: #666; font-size: 1.1rem;">
+                Wikipedia is broken. Wikifreedia is the fix.
+            </p>
+        </div>
+    </section>
+</body>
+</html>

@@ -3,32 +3,41 @@
 	import Login from "../../routes/Login.svelte";
 	import { Avatar } from "@nostr-dev-kit/svelte";
 	import { Button } from "@/components/ui/button";
+	import Input from "@/components/ui/input/input.svelte";
 	import { Plus } from "radix-icons-svelte";
 	import Sun from "svelte-radix/Sun.svelte";
 	import Moon from "svelte-radix/Moon.svelte";
 	import { toggleMode } from "mode-watcher";
-	import { NDKEvent, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { goto } from "$app/navigation";
+	import { page } from "$app/stores";
 	import SettingsSheet from "./SettingsSheet.svelte";
 
 	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let searchQuery = $state("");
 
-	async function newEntry() {
-		const title = prompt('Name of the concept (e.g. second world war)');
-		if (!title) return;
-		const dTag = title?.toLowerCase().trim().replace(/ /g, '-')!;
-		const event = new NDKEvent(ndk, {
-			kind: 30818,
-			tags: [["d", dTag]]
-		} as NostrEvent);
-		await event.publish();
-		goto(`/a/${event.encode()}/edit`);
+	function newEntry() {
+		goto('/new');
+	}
+
+	function handleSearchKeyup(event: KeyboardEvent) {
+		if (event.key === 'Enter') search();
+	}
+
+	function search() {
+		if (!searchQuery.trim()) {
+			goto('/');
+			return;
+		}
+		const url = new URL($page.url);
+		url.pathname = '/';
+		url.searchParams.set('q', searchQuery);
+		goto(url.toString());
 	}
 </script>
 
 <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-	<div class="container flex h-16 items-center justify-between">
-		<div class="flex items-center gap-2">
+	<div class="container flex h-16 items-center gap-4">
+		<div class="flex items-center gap-2 flex-shrink-0">
 			<a href="/" class="flex items-center">
 				<h2 class="text-xl font-bold text-orange-600">Wikifreedia</h2>
 			</a>
@@ -38,7 +47,23 @@
 			</a>
 		</div>
 
-		<nav class="flex items-center gap-2">
+		<div class="flex-1 max-w-md hidden md:flex">
+			<div class="flex flex-row gap-2 w-full">
+				<Input
+					bind:value={searchQuery}
+					on:keyup={handleSearchKeyup}
+					placeholder="Search..."
+					class="h-9"
+				/>
+				<Button
+					class="h-9"
+					variant="outline"
+					on:click={search}
+				>Go</Button>
+			</div>
+		</div>
+
+		<nav class="flex items-center gap-2 flex-shrink-0">
 			<Button href="/" variant="ghost" class="hidden sm:flex">
 				All Entries
 			</Button>

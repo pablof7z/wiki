@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Crimson+Text:ital@0;1&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: #fefefe;
+            color: #111;
+            line-height: 1.6;
+            font-size: 19px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #111;
+        }
+
+        .logo {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #111;
+        }
+
+        h1 {
+            font-size: 42px;
+            font-weight: 400;
+            line-height: 1.2;
+            margin: 3rem 0 2rem;
+            color: #111;
+        }
+
+        .lead {
+            font-size: 24px;
+            line-height: 1.5;
+            color: #444;
+            margin-bottom: 2rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: #111;
+            margin: 3rem 0;
+        }
+
+        .example-block {
+            margin: 5rem -2rem 4rem -2rem;
+            padding: 4rem 2rem;
+            background: #fafafa;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .example-block {
+                margin: 5rem 0 4rem 0;
+                padding: 4rem;
+            }
+        }
+
+        .example-header {
+            margin-bottom: 3rem;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .example-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-subtitle {
+            font-size: 32px;
+            font-weight: 400;
+            color: #111;
+            margin-bottom: 1rem;
+        }
+
+        .example-description {
+            font-size: 19px;
+            color: #666;
+            max-width: 500px;
+        }
+
+        .versions-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 968px) {
+            .versions-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
+            }
+        }
+
+        .article-version {
+            background: #fff;
+            border: 2px solid;
+            position: relative;
+            transition: all 0.3s;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 968px) {
+            .article-version {
+                margin-bottom: 0;
+            }
+        }
+
+        .article-version.version-optimist {
+            border-color: #2a5934;
+        }
+
+        .article-version.version-skeptic {
+            border-color: #8b4513;
+        }
+
+        .article-version.version-activist {
+            border-color: #1a4d7a;
+        }
+
+        .article-version:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .article-version::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            height: 6px;
+            transition: opacity 0.3s;
+        }
+
+        .article-version.version-optimist::before {
+            background: #2a5934;
+        }
+
+        .article-version.version-skeptic::before {
+            background: #8b4513;
+        }
+
+        .article-version.version-activist::before {
+            background: #1a4d7a;
+        }
+
+        .stance-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 12px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .stance-optimist {
+            background: #2a5934;
+        }
+
+        .stance-skeptic {
+            background: #8b4513;
+        }
+
+        .stance-activist {
+            background: #1a4d7a;
+        }
+
+        .article-author {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: #111;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .article-credential {
+            font-size: 13px;
+            color: #666;
+            font-weight: 400;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .article-title {
+            font-size: 22px;
+            font-weight: 400;
+            margin-bottom: 1rem;
+            color: #111;
+            line-height: 1.3;
+        }
+
+        .article-excerpt {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 1.25rem;
+        }
+
+        .article-meta {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            color: #999;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .trust-badge {
+            background: #111;
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .visual-separator {
+            max-width: 1200px;
+            margin: 3rem auto;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 48px;
+            color: #ddd;
+            font-weight: 300;
+        }
+
+        @media (min-width: 968px) {
+            .visual-separator {
+                display: none;
+            }
+        }
+
+        blockquote {
+            margin: 3rem 0;
+            padding-left: 2rem;
+            border-left: 2px solid #111;
+            font-style: italic;
+            font-size: 24px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .attribution {
+            font-style: normal;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat {
+            padding: 1.5rem 0;
+            border-top: 1px solid #111;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 400;
+            color: #111;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+        }
+
+        .principle {
+            margin: 2rem 0;
+            padding: 2rem 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .principle-number {
+            font-family: 'Inter', sans-serif;
+            font-size: 48px;
+            font-weight: 600;
+            color: #f0f0f0;
+            margin-bottom: 1rem;
+        }
+
+        .principle-text {
+            font-size: 22px;
+            color: #111;
+            margin-bottom: 1rem;
+        }
+
+        .principle-explanation {
+            font-size: 17px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 1px solid #111;
+        }
+
+        .button {
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 12px 24px;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .button-primary {
+            background: #111;
+            color: #fff;
+        }
+
+        .button-primary:hover {
+            background: #333;
+        }
+
+        .button-secondary {
+            background: #fff;
+            color: #111;
+            border: 1px solid #111;
+        }
+
+        .button-secondary:hover {
+            background: #f9f9f9;
+        }
+
+        .section {
+            margin: 4rem 0;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            color: #111;
+        }
+
+        .problem-list {
+            list-style: none;
+        }
+
+        .problem-item {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .problem-item:last-child {
+            border-bottom: none;
+        }
+
+        .problem-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #111;
+        }
+
+        .problem-description {
+            font-size: 17px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .footer-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #999;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .lead {
+                font-size: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Wikifreedia</div>
+        </header>
+
+        <h1>Knowledge without consensus</h1>
+
+        <p class="lead">
+            Every Wikipedia article converges to a single version. But who decides what stays and what gets deleted?
+            A handful of anonymous administrators operating behind usernames, enforcing a "neutral point of view" that is anything but neutral.
+        </p>
+
+        <p>
+            Larry Sanger, Wikipedia's co-founder, now warns that the platform he helped create may be "entirely controlled by the CIA."
+            Conservative sources are blacklisted. Dissenting views are systematically removed. The promise of a democratic encyclopedia
+            has become a carefully managed narrative.
+        </p>
+
+        <div class="divider"></div>
+
+        <p>
+            Wikifreedia takes a different approach. Built on Nostr, every article exists as a cryptographically signed event.
+            There is no canonical version. No central authority. No deletion.
+        </p>
+
+        <p>
+            Instead of forcing consensus, we embrace plurality. Every perspective can coexist. Your social graph becomes your
+            editorial filter. The people you trust shape what you see.
+        </p>
+
+        <div class="example-block">
+            <div class="example-header">
+                <div class="example-title">Live example</div>
+                <h3 class="example-subtitle">Three perspectives on Bitcoin</h3>
+                <p class="example-description">
+                    On Wikipedia, editors battle to control a single article. Here, all three coexist.
+                    Your web of trust determines which you see first.
+                </p>
+            </div>
+
+            <div class="versions-container">
+                <div class="article-version version-optimist">
+                    <div class="stance-label stance-optimist">Revolutionary</div>
+                    <div class="article-author">Satoshi Nakamoto</div>
+                    <span class="trust-badge">TRUSTED BY YOUR NETWORK</span>
+                    <h3 class="article-title">Bitcoin: A Peer-to-Peer Electronic Cash System</h3>
+                    <p class="article-excerpt">
+                        Commerce on the Internet has come to rely almost exclusively on financial institutions serving as
+                        trusted third parties. While the system works well enough for most transactions, it still suffers
+                        from the inherent weaknesses of the trust based model. What is needed is an electronic payment
+                        system based on cryptographic proof instead of trust...
+                    </p>
+                    <div class="article-meta">1,847 forks • 23,450 zaps • Last edited 2 hours ago</div>
+                </div>
+
+                <div class="article-version version-skeptic">
+                    <div class="stance-label stance-skeptic">Critical</div>
+                    <div class="article-author">Paul Krugman</div>
+                    <span class="article-credential">Nobel Laureate, Economist</span>
+                    <h3 class="article-title">Bitcoin: The Long Crypto Winter</h3>
+                    <p class="article-excerpt">
+                        Bitcoin was supposed to replace fiat currency. More than a decade later, it remains too volatile
+                        for everyday transactions, too slow for payments, and too energy-intensive to scale. The blockchain
+                        may find uses, but as currency, Bitcoin has failed its central promise...
+                    </p>
+                    <div class="article-meta">342 forks • 5,670 zaps • Last edited yesterday</div>
+                </div>
+
+                <div class="article-version version-activist">
+                    <div class="stance-label stance-activist">Activist</div>
+                    <div class="article-author">Human Rights Foundation</div>
+                    <span class="article-credential">Global advocacy organization</span>
+                    <h3 class="article-title">Bitcoin: A Tool for Freedom</h3>
+                    <p class="article-excerpt">
+                        In authoritarian regimes where bank accounts can be frozen and assets seized, Bitcoin provides an
+                        uncensorable alternative. From protesters in Nigeria to dissidents in Russia, cryptocurrency has
+                        become a lifeline for those fighting oppression. This isn't about speculation—it's about survival...
+                    </p>
+                    <div class="article-meta">892 forks • 45,230 zaps • Last edited 6 hours ago</div>
+                </div>
+            </div>
+        </div>
+
+        <blockquote>
+            "The path to truth is in the integration of opposites."
+            <div class="attribution">— Stuart Bowman</div>
+        </blockquote>
+
+        <div class="section">
+            <h2 class="section-title">Two principles</h2>
+
+            <div class="principle">
+                <div class="principle-number">01</div>
+                <div class="principle-text">Reality exists, but our grasp of it is always partial.</div>
+                <p class="principle-explanation">
+                    We each see the world through our own lens—shaped by culture, experience, and belief.
+                    Instead of pretending we can achieve perfect objectivity, we should acknowledge these limitations
+                    and learn from contrasting perspectives.
+                </p>
+            </div>
+
+            <div class="principle">
+                <div class="principle-number">02</div>
+                <div class="principle-text">In the realm of knowledge, consensus is unnecessary.</div>
+                <p class="principle-explanation">
+                    Physical communities need shared rules to function. But knowledge thrives on disagreement.
+                    Forcing a single narrative destroys nuance and eliminates the very debates that advance understanding.
+                </p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat">
+                <div class="stat-number">940,707</div>
+                <div class="stat-label">Articles</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Possible versions</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Central authority</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Forkable</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Wikipedia's problems</h2>
+
+            <ul class="problem-list">
+                <li class="problem-item">
+                    <div class="problem-title">Anonymous control</div>
+                    <p class="problem-description">
+                        High-level editors hide behind usernames. Their real identities, affiliations, and motivations remain unknown.
+                        Yet they decide what millions read as "truth."
+                    </p>
+                </li>
+                <li class="problem-item">
+                    <div class="problem-title">Systematic bias</div>
+                    <p class="problem-description">
+                        Entire categories of sources are blacklisted. Alternative media, conservative outlets, and independent
+                        journalists are deemed "unreliable" by anonymous administrators.
+                    </p>
+                </li>
+                <li class="problem-item">
+                    <div class="problem-title">Forced neutrality</div>
+                    <p class="problem-description">
+                        Complex topics are reduced to a single approved narrative. The "Neutral Point of View" policy
+                        becomes a tool for enforcing conformity rather than presenting multiple perspectives.
+                    </p>
+                </li>
+                <li class="problem-item">
+                    <div class="problem-title">Deletion as censorship</div>
+                    <p class="problem-description">
+                        Inconvenient information doesn't just get edited—it gets erased. Once deleted, there's no way
+                        for readers to even know what was removed or why.
+                    </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">How Wikifreedia works</h2>
+
+            <p>
+                Every article is a Nostr event—cryptographically signed and distributed across relays.
+                No server to shut down. No database to corrupt. No admin panel to capture.
+            </p>
+
+            <p>
+                When you disagree with an article, you don't edit it—you fork it. Your version exists alongside
+                the original. Readers see the version created by people they trust, or they can explore all perspectives.
+            </p>
+
+            <p>
+                This isn't chaos. It's how knowledge actually works. Scientists publish competing theories.
+                Historians offer different interpretations. Philosophers debate fundamental questions.
+                Wikifreedia simply makes these natural disagreements visible rather than hiding them behind forced consensus.
+            </p>
+        </div>
+
+        <div class="cta-section">
+            <p style="margin-bottom: 2rem;">
+                Wikifreedia is alpha software. It breaks. It evolves. It needs contributors who understand that
+                the path forward isn't through better gatekeeping but through radical transparency.
+            </p>
+
+            <a href="#" class="button button-primary">Enter Wikifreedia</a>
+            <a href="#" class="button button-secondary">Read the docs</a>
+            <a href="#" class="button button-secondary">View source</a>
+        </div>
+
+        <p class="footer-text">
+            Built on Nostr. No tokens. No blockchain. Just cryptographic signatures and relay networks.
+        </p>
+    </div>
+</body>
+</html>

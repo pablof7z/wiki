@@ -1,0 +1,1535 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where empty lines have been removed.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/lib/components/CategoryList.svelte, src/lib/components/TopicEntriesListItem.svelte, src/routes/[topic]/[pubkey]/+page.svelte, src/routes/a/[naddr]/edit/+page.svelte, src/routes/a/[naddr]/AlternativeVersions.svelte, src/routes/a/[naddr]/Viewers.svelte, src/routes/p/[id]/MergeRequestItem.svelte, src/routes/pr/[naddr]/[pr]/+page.svelte, src/routes/ListDocuments.svelte, src/routes/p/[id]/+page.svelte, src/lib/ndk.svelte.ts, src/routes/a/[naddr]/CategoryDropdown.svelte, src/lib/components/EntryCardSupportFooter.svelte, src/lib/components/EntryReactions.svelte, src/lib/components/EntriesList.svelte, src/lib/components/EntryCard.svelte, src/lib/components/TopicEntriesList.svelte, src/routes/[topic]/+page.svelte, src/routes/+page.svelte
+- Files matching these patterns are excluded: .*.*, **/*.pbxproj, **/node_modules/**, **/dist/**, **/build/**, **/compile/**, **/*.spec.*, **/*.pyc, **/.env, **/.env.*, **/*.env, **/*.env.*, **/*.lock, **/*.lockb, **/package-lock.*, **/pnpm-lock.*, **/*.tsbuildinfo, **/certdata.txt
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Empty lines have been removed from all files
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  lib/
+    components/
+      CategoryList.svelte
+      EntriesList.svelte
+      EntryCard.svelte
+      EntryCardSupportFooter.svelte
+      EntryReactions.svelte
+      TopicEntriesList.svelte
+      TopicEntriesListItem.svelte
+    ndk.svelte.ts
+  routes/
+    [topic]/
+      [pubkey]/
+        +page.svelte
+      +page.svelte
+    a/
+      [naddr]/
+        edit/
+          +page.svelte
+        AlternativeVersions.svelte
+        CategoryDropdown.svelte
+        Viewers.svelte
+    p/
+      [id]/
+        +page.svelte
+        MergeRequestItem.svelte
+    pr/
+      [naddr]/
+        [pr]/
+          +page.svelte
+    +page.svelte
+    ListDocuments.svelte
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/lib/components/CategoryList.svelte">
+<script lang="ts">
+	import { NDKEvent } from '@nostr-dev-kit/ndk';
+	import type { Subscription } from '@nostr-dev-kit/svelte';
+    import { Button } from '@/components/ui/button';
+    let { entries = undefined }: { entries?: Subscription<NDKEvent> } = $props();
+    function computeCategories(events: NDKEvent[]): string[] {
+        const cats = new Map();
+        for (const event of events) {
+            const cat = event.tagValue('c');
+            if (cat) {
+                const count = cats.get(cat) || 0;
+                cats.set(cat, count + 1);
+            }
+        }
+        return Array.from(cats.entries())
+            .sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+            .map(([cat]) => cat);
+    }
+    const categories = $derived(entries?.events ? computeCategories(entries.events) : []);
+</script>
+{#if categories && categories.length > 0}
+    <h3 class="mb-2">Categories</h3>
+    <div class="flex flex-row gap-4 mb-6 flex-wrap w-full justify-center items-center h-64 overflow-y-auto">
+        {#each categories as cat}
+            <Button class="whitespace-nowrap max-w-[10rem] truncate" variant="outline">
+                <a href="/?c={cat}">{cat}</a>
+            </Button>
+        {/each}
+    </div>
+{/if}
+</file>
+
+<file path="src/lib/components/TopicEntriesListItem.svelte">
+<script lang="ts">
+	import { derived } from 'svelte/store';
+	import type { NDKEvent } from "@nostr-dev-kit/ndk";
+	import UserName from "./UserName.svelte";
+	import { ndk } from "@/ndk.svelte";
+	import { Avatar } from '@nostr-dev-kit/svelte';
+    export let entry: NDKEvent;
+    console.log(entry)
+    const topic = entry.dTag!;
+    const taggedByEvents = ndk.subscribe({
+        kinds: [30818 as number],
+        ...entry.filter()
+    });
+    const deferedToBy = derived(taggedByEvents, ($taggedByEvents) => {
+        return Array.from($taggedByEvents).filter((e) => e.getMatchingTags("a").find(t => t[3] === "defer"));
+    });
+</script>
+<div class="flex flex-row items-center justify-between w-full">
+    <a href="/{encodeURIComponent(topic)}/{entry.author.npub}" class="grow flex flex-row items-start justify-between">
+        <UserName pubkey={entry.pubkey} />
+        <div class="flex flex-row items-center gap-2 text-sm">
+        {#if deferedToBy.length > 0}
+            <span class="opacity-50">Supported by</span>
+            {#each deferedToBy as defer (defer.pubkey)}
+                <!-- <Avatar ndk={ndk} pubkey={defer.pubkey} class="w-6 h-6 object-cover rounded-full flex-none" /> -->
+            {/each}
+        {/if}
+        </div>
+    </a>
+    <a href="/a/{entry.encode()}" class="text-xs opacity-50 shrink">Perma-link</a>
+</div>
+</file>
+
+<file path="src/routes/[topic]/[pubkey]/+page.svelte">
+<script lang="ts">
+    import { page } from "$app/stores";
+    import { ndk } from "$lib/ndk.svelte";
+	import type { NDKEvent } from "@nostr-dev-kit/ndk";
+	import EntryCard from "@/components/EntryCard.svelte";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+    export let topic: string;
+    export let userId: string;
+    let error: string;
+    let event: NDKEvent | undefined;
+    let otherVersions: Subscription<NDKEvent> | undefined;
+    let mounted = $state(true);
+    async function preparePage(userId: string) {
+        try {
+            const user = await ndk.$fetchUser(userId);
+            if (!user) {
+                error = "Unable to find user: " + userId;
+                return;
+            }
+            const events = await ndk.fetchEvents({
+                kinds: [30818 as number],
+                "#d": [topic],
+                authors: [user.pubkey],
+            });
+            if (events.size === 0) return;
+            event = Array.from(events).sort((a, b) => b.created_at! - a.created_at!)[0];
+            otherVersions = ndk.subscribe({
+                kinds: [30818 as number],
+                "#d": [topic],
+            });
+        } catch (e) {
+            error = String(e);
+        }
+    }
+    $: if ($page.params.topic !== topic || $page.params.pubkey !== userId && mounted) {
+        topic = $page.params.topic;
+        userId = $page.params.pubkey;
+        event = undefined;
+        otherVersions = undefined;
+        preparePage(userId);
+    }
+</script>
+{#if event}
+    {#key event.id}
+        <EntryCard {event} {otherVersions} />
+    {/key}
+{:else if error}
+    <div>{error}</div>
+{:else}
+    <div>Loading...</div>
+{/if}
+</file>
+
+<file path="src/routes/a/[naddr]/edit/+page.svelte">
+<script lang="ts">
+	import { page } from "$app/stores";
+	import { ndk } from "$lib/ndk.svelte";
+    import {type AddressPointer, decode} from "nostr-tools/nip19";
+	import Button from "@/components/ui/button/button.svelte";
+	import { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
+	import Editor from "../Editor.svelte";
+	import { goto } from "$app/navigation";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+	import EntryCard from "@/components/EntryCard.svelte";
+    export let naddr: string;
+    let events: Subscription<NDKEvent> | undefined;
+    let event: NDKEvent;
+    let newContent = false;
+    let title: string;
+    let category: string | undefined;
+    let saving = false;
+    let currentUser: NDKUser;
+    ndk.signer?.user().then((user) => {
+        currentUser = user;
+    });
+    let mounted = $state(true);
+    $: if ($page.params.naddr !== naddr && mounted) {
+        naddr = $page.params.naddr;
+        const data = decode(naddr).data as AddressPointer;
+        const filter = {
+            kinds: [data.kind],
+            "#d": [data.identifier],
+            authors: [data.pubkey],
+        };
+        if (events) events.stop();
+        events = ndk.subscribe(filter);
+    }
+    $: if ($events) {
+        let _ = Array.from($events)
+            .sort((a, b) => {
+                const time = b.created_at! - a.created_at!
+                if (time !== 0) return time
+                return b.content.length - a.content.length
+            })[0];
+        if (_ && event?.id !== _.id) {
+            event = _;
+            content = event.content;
+            title = event.tagValue("title") || event.dTag!;
+            category = event.tagValue("c");
+        }
+    }
+    async function save() {
+        saving = true;
+        const prevKey = event.pubkey;
+        if (prevKey !== currentUser.pubkey) {
+            event.removeTag("e");
+            event.removeTag("a");
+            event.tag(event, "fork");
+        }
+        try {
+            event.id = "";
+            event.sig = "";
+            event.pubkey = "";
+            event.created_at = undefined;
+            event.removeTag("title");
+            event.alt = "This is a wiki article about " + title + "\n\nYou can read it on https://wikifreedia.xyz/a/" + event.encode();
+            event.tags.push(["title", title]);
+            event.removeTag("c");
+            if (category) event.tags.push(["c", category]);
+            event.removeTag("published_at");
+            event.tags.push(["published_at", Math.floor(Date.now() / 1000).toString()]);
+            await event.publish();
+            goto(`/${event.dTag}/${event.author.npub}`);
+        } finally {
+            saving = false;
+        }
+    }
+    let content: string;
+    let preview = false;
+    function togglePreview() {
+        preview = !preview;
+    }
+</script>
+{#if event}
+    <div class="grid w-full items-center gap-4">
+        {#key content}
+            {#if !preview}
+                <Editor bind:content={event.content} baseEvent={event} bind:newContent bind:title bind:category />
+            {:else}
+                <EntryCard {event} skipEdit={true} />
+            {/if}
+            <div class="flex flex-row gap-4">
+                <Button class="w-fit px-10" on:click={() => save()}>
+                    {#if saving}
+                        Saving...
+                    {:else}
+                        Save
+                    {/if}
+                </Button>
+                <Button variant="ghost" on:click={togglePreview}>
+                    Preview
+                </Button>
+            </div>
+        {/key}
+    </div>
+{:else}
+    Looking for event
+{/if}
+</file>
+
+<file path="src/routes/a/[naddr]/AlternativeVersions.svelte">
+<script lang="ts">
+	import AlternativeVersions from './AlternativeVersions.svelte';
+	import { ndk } from "@/ndk.svelte";
+	import type { NDKEvent, NDKRelaySet, NDKUser } from "@nostr-dev-kit/ndk";
+	import { Avatar } from "@nostr-dev-kit/svelte";
+	import Name from "@/components/Name.svelte";
+	import { derived } from "svelte/store";
+    export let baseEvent: NDKEvent;
+    export let activeEvent: NDKEvent;
+    export let relaySet: NDKRelaySet;
+    export let currentUser: NDKUser;
+    const sub = ndk.subscribe({
+        "#d": [baseEvent.dTag!],
+        kinds: [baseEvent.kind!],
+    }, { subId: 'alternativeVersions', relaySet});
+    const authorizedPubkeys = baseEvent.getMatchingTags("p").map((t) => t[1]);
+    const authorizedVersions = derived(sub, ($sub) => {
+        return $sub.filter(e => authorizedPubkeys.includes(e.pubkey));
+    });
+    const unauthorizedVersions = derived(sub, ($sub) => {
+        return $sub.filter(e => e.pubkey !== baseEvent.pubkey && !authorizedPubkeys.includes(e.pubkey));
+    });
+</script>
+{#if $authorizedVersions.length > 0}
+    <h3>Alternative Versions</h3>
+    {#each $authorizedVersions as version}
+        {#if currentUser.pubkey !== version.pubkey && (!activeEvent || version.id !== activeEvent.id)}
+            <button class="flex flex-row items-center gap-2">
+                <Avatar ndk={ndk} pubkey={version.pubkey} class="w-8 h-8 object-cover rounded-full" />
+                <Name ndk={ndk} pubkey={version.pubkey} />'s version
+                {#if version.created_at > baseEvent.created_at}
+                    <span class="text-xs text-gray-500">edited {version.created_at}</span>
+                {/if}
+            </button>
+        {/if}
+    {/each}
+{/if}
+{#if $unauthorizedVersions.length > 0}
+    <h3>Unauthed Versions</h3>
+    {#each $unauthorizedVersions as version}
+        <button class="flex flex-row items-center gap-2">
+            <Avatar ndk={ndk} pubkey={version.pubkey} class="w-8 h-8 object-cover rounded-full" />
+            <Name ndk={ndk} pubkey={version.pubkey} />'s version
+            {#if version.created_at > baseEvent.created_at}
+                <span class="text-xs text-gray-500">edited {version.created_at}</span>
+            {/if}
+        </button>
+    {/each}
+{/if}
+</file>
+
+<file path="src/routes/a/[naddr]/CategoryDropdown.svelte">
+<script lang="ts">
+    import * as Command from "@components/ui/command";
+    import * as Popover from "@components/ui/popover";
+    import { cn } from "$lib/utils.js";
+    import { tick } from "svelte";
+	import { Button } from "@/components/ui/button";
+	import { Check, ChevronUp } from "radix-icons-svelte";
+	import { ChevronDown } from "svelte-radix";
+	import { ndk } from "@/ndk.svelte";
+	import { wotFilterEvents } from "@/stores/wot";
+    const events = ndk.$subscribe(() => ({
+        filters: [{ kinds: [30818 as number] }],
+        closeOnEose: true
+    }));
+    function computeCategories(eventsList: typeof events.events): string[] {
+        if (!eventsList) return ["Philosophy"];
+        const cats = new Set();
+        const filteredEvents = wotFilterEvents(eventsList);
+        for (const event of filteredEvents) {
+            const cat = event.tagValue("c");
+            if (cat) cats.add(cat);
+        }
+        if (cats.size === 0) cats.add("Philosophy");
+        return Array.from(cats);
+    }
+    const categories = $derived(computeCategories(events.events));
+    let open = $state(false);
+    let { value = $bindable("") } = $props();
+    let entry: string;
+    let selectedValue = value;
+    // $: selectedValue =
+    //   frameworks.find((f) => f.value === value)?.label ??
+    //   "Category";
+    // We want to refocus the trigger button when the user selects
+    // an item from the list so users can continue navigating the
+    // rest of the form with the keyboard.
+    function closeAndFocusTrigger(triggerId: string) {
+        open = false;
+        tick().then(() => {
+            document.getElementById(triggerId)?.focus();
+        });
+    }
+</script>
+<Popover.Root bind:open let:ids>
+    <Popover.Trigger asChild let:builder>
+        <Button
+            builders={[builder]}
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            class="w-[200px] justify-between"
+        >
+            {value||"Enter a Category"}
+            <ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+    </Popover.Trigger>
+    <Popover.Content class="w-[200px] p-0">
+        <Command.Root>
+            <Command.Input
+                bind:value={value}
+                placeholder="Type a category"
+            />
+            <Command.Group>
+                {#if categories}
+                    {#each categories as category}
+                        <Command.Item
+                            value={category}
+                            onSelect={(currentValue) => {
+                                value = currentValue;
+                                closeAndFocusTrigger(ids.trigger);
+                            }}
+                        >
+                            <Check
+                                class={cn(
+                                "mr-2 h-4 w-4",
+                                value !== category && "text-transparent"
+                                )}
+                            />
+                            {category}
+                        </Command.Item>
+                    {/each}
+                {/if}
+            </Command.Group>
+        </Command.Root>
+    </Popover.Content>
+</Popover.Root>
+</file>
+
+<file path="src/routes/a/[naddr]/Viewers.svelte">
+<script lang="ts">
+	import { ndk } from "@/ndk.svelte";
+	import { NDKEvent, NDKPrivateKeySigner, NDKRelay, NDKRelaySet, type NDKSigner, type NostrEvent } from "@nostr-dev-kit/ndk";
+	import { type Subscription } from "@nostr-dev-kit/svelte";
+	import { Avatar } from "@nostr-dev-kit/svelte";
+	import { derived, type Readable } from "svelte/store";
+    export let aTag: string;
+    export let relaySet: NDKRelaySet;
+    let viewers: Subscription<NDKEvent>;
+    let viewingPubkeys: Readable<string[]>;
+    let signer: NDKSigner | undefined;
+    let interval: ReturnType<typeof setInterval>;
+    $effect(() => {
+        const ago = Math.floor(Date.now() / 1000) - 15;
+        viewers = ndk.subscribe({
+            "#a": [aTag],
+            since: ago
+        }, { groupable: false, subId: 'viewers', relaySet });
+        console.log({viewers});
+        viewingPubkeys = derived(viewers, ($viewers) => {
+            const pubkeys = new Set<string>();
+            for (const e of $viewers) {
+                // only if the event is within the last 15 seconds
+                if (Date.now() - e.timestamp > 15000) continue;
+                pubkeys.add(e.pubkey);
+            }
+            return Array.from(pubkeys);
+        });
+        signer = ndk.signer;
+        sendViewing();
+        interval = setInterval(sendViewing, 15000);
+        return () => {
+            clearInterval(interval);
+        };
+    });
+    async function sendViewing() {
+        if (!signer) {
+            signer = NDKPrivateKeySigner.generate();
+        }
+        const e = new NDKEvent(ndk, {
+            kind: 24135,
+            tags: [
+                ["a", aTag]
+            ]
+        } as NostrEvent);
+        try {
+            await e.sign(signer);
+        } catch (e) {
+            signer = NDKPrivateKeySigner.generate();
+        }
+        await e.publish();
+    }
+</script>
+{#if viewers}
+<div class="flex flex-col items-start gap-2">
+    {$viewingPubkeys.length} viewers
+    <div class="flex -space-x-4">
+        {#each $viewingPubkeys as pubkey (pubkey)}
+            <Avatar ndk={ndk} pubkey={pubkey} class="rounded-full w-8 h-8 object-cover" />
+        {/each}
+    </div>
+</div>
+{/if}
+</file>
+
+<file path="src/routes/p/[id]/MergeRequestItem.svelte">
+<script lang="ts">
+	import { ndk } from "@/ndk.svelte";
+	import type { NDKEvent } from "@nostr-dev-kit/ndk";
+	import Name from "@/components/Name.svelte";
+	import RequestAccepted from "../../pr/[naddr]/[pr]/RequestAccepted.svelte";
+	import { Button } from "@/components/ui/button";
+	import { nip19 } from "nostr-tools";
+    export let mergeRequest: NDKEvent;
+    const aTag = mergeRequest.tagValue("a");
+    const [kind, pubkey, topic] = aTag.split(":") ?? [];
+    const naddr = nip19.naddrEncode({
+        pubkey,
+        kind: parseInt(kind),
+        identifier: topic
+    })
+    const responses = ndk.subscribe({
+        kinds: [7, 819 as number], ...mergeRequest.filter()
+    });
+</script>
+<div class="
+">
+    <a href="/p/{mergeRequest.pubkey}" class="font-bold">
+        <Name ndk={ndk} pubkey={mergeRequest.pubkey} />
+    </a>
+    sent a merge request of <Name ndk={ndk} pubkey={pubkey} />'s 
+    <a href="/{topic}/{pubkey}"><b>{topic}</b></a>
+    <Button class="link"
+        href={"/pr/" + naddr + "/" + mergeRequest.id}
+    >
+        View
+    </Button>
+    {#if mergeRequest.content.length > 0}
+        <blockquote class="text-xl p-6">{mergeRequest.content}</blockquote>
+    {/if}
+    {#each $responses as response, i (response.id)}
+        {#if response.kind === 819}
+            <RequestAccepted event={response} />
+        {/if}
+    {/each}
+</div>
+</file>
+
+<file path="src/routes/pr/[naddr]/[pr]/+page.svelte">
+<script lang="ts">
+    import EventContent from "@/components/EventContent.svelte";
+	import EntryCard from '@/components/EntryCard.svelte';
+	import { Avatar } from '@nostr-dev-kit/svelte';
+	import Name from '@/components/Name.svelte';
+	import { page } from "$app/stores";
+	import { ndk } from "@/ndk.svelte";
+	import { NDKEvent, NDKSubscriptionCacheUsage, type NostrEvent } from "@nostr-dev-kit/ndk";
+	import { maxBodyWidth } from "@/stores/layout";
+	import Button from "@/components/ui/button/button.svelte";
+    import * as Card from "@/components/ui/card";
+    import * as Alert from "$lib/components/ui/alert";
+	import Editor from "../../../a/[naddr]/Editor.svelte";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+	import RequestAccepted from "./RequestAccepted.svelte";
+    import {diffLines} from "diff";
+    export let naddr: string;
+    export let pr: string;
+    let originalEvent: NDKEvent | null | undefined;
+    let prEvent: NDKEvent | null | undefined;
+    let proposedVersion: NDKEvent | null | undefined;
+    let diff: any;
+    let results: Subscription<NDKEvent> | undefined;
+    $: if (originalEvent && prEvent && !results) {
+        results = ndk.subscribe({
+            kinds: [7, 819 as number],
+            authors: [originalEvent.pubkey],
+            ...prEvent.filter()
+        });
+    }
+    $: if (!diff && originalEvent && proposedVersion) {
+        diff = diffLines(originalEvent.content, proposedVersion.content);
+        console.log({diff});
+        if (!diff) diff = null;
+    }
+    $: if ($page.params.naddr !== naddr || $page.params.pr !== pr) {
+        naddr = $page.params.naddr;
+        diff = undefined;
+        pr = $page.params.pr;
+        originalEvent = undefined;
+        prEvent = undefined;
+        proposedVersion = undefined;
+        results?.stop(); results = undefined;
+        ndk.fetchEvent(naddr).then((event) => {
+            originalEvent = event;
+        });
+        ndk.fetchEvent(pr).then((event) => {
+            prEvent = event;
+            console.log(event.rawEvent());
+            const eTagFork = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
+            console.log('asking for fork version', eTagFork);
+            if (eTagFork) {
+                console.log('fetching fork', eTagFork);
+                ndk.fetchEvents({ids: [eTagFork]}, {cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY}).then((event) => {
+                    proposedVersion = Array.from(event)?.[0];
+                });
+            }
+        });
+    }
+    $effect(() => {
+        $maxBodyWidth = "max-w-7xl";
+        return () => {
+            $maxBodyWidth = "max-w-3xl";
+            results?.stop();
+        };
+    });
+    let editView = false;
+    let content: string;
+    let title: string;
+    function approve() {
+        if (!proposedVersion) return;
+        editView = true;
+        content = proposedVersion.content;
+        title = proposedVersion.tagValue("title") || proposedVersion.dTag!;
+    }
+    async function save() {
+        console.log(originalEvent, prEvent, content, title);
+        if (!originalEvent || !prEvent || !content || !title) return;
+        originalEvent.id = "";
+        originalEvent.sig = "";
+        originalEvent.pubkey = "";
+        originalEvent.created_at = undefined;
+        originalEvent.content = content;
+        originalEvent.removeTag("title");
+        originalEvent.tags.push(["title", title]);
+        originalEvent.removeTag("published_at");
+        originalEvent.tags.push(["published_at", Math.floor(Date.now() / 1000).toString()]);
+        await originalEvent.publish();
+        const acceptedEvent = new NDKEvent(ndk, {
+            kind: 819,
+        } as NostrEvent);
+        acceptedEvent.tags.push(["e", originalEvent.id, originalEvent.relay?.url ?? "", "result"]);
+        acceptedEvent.tags.push(["e", prEvent.id, prEvent.relay?.url ?? "", "request"]);
+        acceptedEvent.tags.push(["p", prEvent.pubkey]);
+        await acceptedEvent.publish();
+    }
+    let showAll = false;
+</script>
+{#if originalEvent && prEvent && proposedVersion}
+    <h3 class="flex flex-row items-center gap-1 justify-center">
+        <Avatar ndk={ndk} pubkey={prEvent.pubkey} class="w-10 h-10 rounded-full object-cover" />
+        <Name ndk={ndk} pubkey={prEvent.pubkey} />
+        proposing a change to your
+        {originalEvent.dTag}
+    </h3>
+    {#if prEvent.content.length > 0}
+        <Alert.Root class="max-w-prose mx-auto p-8 my-4">
+            <Alert.Description>
+                <blockquote class="italic text-xl text-muted-foreground">
+                    {prEvent.content}
+                </blockquote>
+            </Alert.Description>
+        </Alert.Root>
+    {/if}
+    {#if $results}
+        {#each $results as result}
+            {#if result.kind === 819}
+                <RequestAccepted event={result} />
+            {/if}
+        {/each}
+    {/if}
+    {#if diff}
+        <Button on:click={() => showAll = !showAll}>
+            Show All
+        </Button>
+        <div class="grid grid-cols-2 gap-4">
+            {#each diff as part}
+                <div class="p-4 bg-black/10 flex flex-row" class:col-span-2={!part.added && !part.removed} class:hidden={!part.added && !part.removed && !showAll}>
+                    {#if part.added}
+                        <pre class="text-green-500 whitespace-normal">{part.value}</pre>
+                    {:else if part.removed}
+                        <pre class="text-red-500 whitespace-normal">{part.value}</pre>
+                    {:else if showAll}
+                        <pre class="col-pre-2 overflow-x-auto">{part.value}</pre>
+                    {/if}
+                </div>
+            {/each}
+        </div>
+    {/if}
+    <div class="flex flex-row gap-4 my-4">
+        <Card.Root class="w-1/2">
+            <Card.Header>
+                <Card.Title>
+                    Your Version
+                </Card.Title>
+            </Card.Header>
+            <Card.Content>
+                {#if !editView}
+                    <EventContent event={originalEvent} />
+                {:else}
+                    <div class="grid w-full items-center gap-4">
+                        <Editor bind:content={content} baseEvent={originalEvent} bind:title />
+                        <Button class="w-fit px-10" on:click={save}>
+                            Save
+                        </Button>
+                    </div>
+                {/if}
+            </Card.Content>
+        </Card.Root>
+        <Card.Root class="w-1/2">
+            <Card.Header>
+                <Card.Title>
+                    <Name ndk={ndk} pubkey={proposedVersion.pubkey} />'s
+                    Version
+                </Card.Title>
+            </Card.Header>
+            <Card.Content>
+                <EventContent event={proposedVersion} />
+            </Card.Content>
+            <Card.Footer>
+                <div class="flex flex-row gap-4">
+                    <div class="w-1/2">
+                        <Button on:click={approve}>Edit / Approve</Button>
+                    </div>
+                    <div class="w-1/2">
+                        <Button on:click={() => {}} variant="secondary" class="w-full">Reject</Button>
+                    </div>
+                </div>
+            </Card.Footer>
+        </Card.Root>
+    </div>
+{:else}
+    Loading....
+{/if}
+</file>
+
+<file path="src/routes/ListDocuments.svelte">
+<script lang="ts">
+	import { ndk } from "@/ndk.svelte";
+	import type { NDKUser } from "@nostr-dev-kit/ndk";
+    import * as Card from "$lib/components/ui/card";
+	import { Avatar } from "@nostr-dev-kit/svelte";
+    export let currentUser: NDKUser;
+    const docs = ndk.subscribe([
+        { kinds: [31111 as number], "#p": [currentUser.pubkey] },
+        { kinds: [31111 as number], authors: [currentUser.pubkey] }
+    ], { groupable: false });
+</script>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>Documents</Card.Title>
+		<Card.Description>Documents you are involved with</Card.Description>
+	</Card.Header>
+	<Card.Content>
+		<div class="flex flex-col w-full">
+            {#each $docs as doc, i (doc.tagId())}
+                <a
+                    class="
+                        flex flex-row items-center gap-4 w-full p-2 rounded-lg
+                        hover:bg-zinc-200
+                        transition-colors duration-200 ease-in-out
+                    "
+                    class:bg-zinc-100={i%2===0}
+                    href="/a/{doc.encode()}"
+                >
+                    <Avatar ndk={ndk} user={doc.author} class="rounded-full w-10 h-10 object-cover" />
+                    <div class="flex flex-col items-start grow">
+                        <div class="font-semibold">
+                            {doc.tagValue("title")??"Untitled"}
+                        </div>
+                        <div class="text-xs text-neutral-500">
+                            Last edited {new Date(doc.created_at*1000).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div class="flex -space-x-4  place-self-end">
+                        {#each doc.getMatchingTags("p") as pubkey}
+                            <Avatar ndk={ndk} pubkey={pubkey[1]} class="rounded-full w-8 h-8 object-cover" />
+                        {/each}
+                    </div>
+                </a>
+            {/each}
+		</div>
+	</Card.Content>
+</Card.Root>
+</file>
+
+<file path="src/lib/components/EntryCardSupportFooter.svelte">
+<script lang="ts">
+	import { ndk } from '$lib/ndk.svelte';
+    import Button from "@/components/ui/button/button.svelte";
+	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
+    import { maxBodyWidth } from '@/stores/layout';
+    let { event }: { event: NDKEvent } = $props();
+    let currentUser = $derived(ndk.$sessions?.currentUser);
+    // Get entries written by the current user on this topic
+    const currentUserEntries = ndk.$subscribe(() => {
+        if (!currentUser?.pubkey) return undefined;
+        return {
+            filters: [{
+                kinds: [ 30818 as number],
+                authors: [currentUser.pubkey],
+                "#d": [event.dTag!]
+            }],
+            subId: 'currentUsersEntry'
+        };
+    });
+    // Get the most recent entry written by the current user on this topic
+    let currentUserEntry = $derived.by(() => {
+        const entries = currentUserEntries.events;
+        if (!entries || entries.length === 0) return undefined;
+        return Array.from(entries).sort((a, b) => b.created_at! - a.created_at!)[0];
+    });
+    // Check if the current user has deferred to this entry
+    let userDefersToEntry = $derived.by(() => {
+        return currentUserEntry ? !!currentUserEntry.getMatchingTags("a").find(t => t[3] === "defer") : false;
+    });
+    async function defer() {
+        if (!confirm("Are you sure you want to defer to this entry? This will remove your current entry of this topic and support this one instead")) return;
+        const defer = new NDKEvent(ndk, {
+            kind: 30818,
+            content: `Read ${event.encode()} instead.`,
+            tags: [
+                ["d", event.dTag!],
+                ["a", event.tagAddress(), event.relay?.url ?? "", "defer"],
+                ["e", event.id, event.relay?.url ?? "", "defer"]
+            ]
+        } as NostrEvent);
+        await defer.publish();
+    }
+</script>
+<div class="h-[5rem] w-full"></div>
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-black/10 dark:bg-white !bg-opacity-10 backdrop-blur-[50px]">
+    <div class="mx-auto {$maxBodyWidth}">
+        {#if currentUserEntry && !userDefersToEntry}
+            <div class="flex flex-row gap-2">
+                <Button on:click={defer}>
+                    Defer
+                </Button>
+                <div class="flex flex-col items-start">
+                    <span class="font-medium">Do you consider this version to be better than yours for <i>{event.dTag}</i>?</span>
+                    <span class="text-xs opacity-70">
+                        You can remove your entry and defer to this one as the correct one
+                    </span>
+                </div>
+            </div>
+        {:else if userDefersToEntry}
+            <div class="flex flex-row gap-2">
+                <Button>
+                    Defer
+                </Button>
+                <div class="flex flex-col items-start">
+                    <span class="font-medium">You have deferred to this entry for <i>{event.dTag}</i></span>
+                    <span class="text-xs opacity-70">
+                        This helps your network to find the correct information
+                    </span>
+                </div>
+            </div>
+        {:else}
+            <div class="flex flex-row gap-2">
+                <Button>
+                    Recommend
+                </Button>
+                <div class="flex flex-col items-start">
+                    <span class="font-medium">Is this the right entry for <i>{event.dTag}</i>?</span>
+                    <span class="text-xs opacity-70">
+                        This helps your network to find the correct information
+                    </span>
+                </div>
+            </div>
+        {/if}
+    </div>
+</div>
+</file>
+
+<file path="src/lib/components/EntryReactions.svelte">
+<script lang="ts">
+	import { ndk } from "@/ndk.svelte";
+	import { NDKEvent, type Hexpubkey, type NDKEventId, type NostrEvent } from "@nostr-dev-kit/ndk";
+	import { Avatar } from "@nostr-dev-kit/svelte";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+	import Button from "./ui/button/button.svelte";
+    let {
+        event,
+        reactions,
+        reactionCount = $bindable(undefined)
+    }: {
+        event: NDKEvent;
+        reactions: Subscription<NDKEvent>;
+        reactionCount?: number | undefined;
+    } = $props();
+    let currentUser = $derived(ndk.$sessions?.currentUser);
+    let deletedId = $state(undefined as NDKEventId | undefined);
+    const reactionsArray = $derived(Array.from(reactions.events ?? []));
+    const currentUserHasReacted = $derived.by(() => {
+        if (!currentUser) return false;
+        return reactionsArray.some(r => r.pubkey === currentUser.pubkey);
+    });
+    const grupedReactions = $derived.by(() => {
+        const map: Record<string, Set<Hexpubkey>> = {
+            "+": new Set(),
+            "-": new Set(),
+        };
+        for (const reaction of reactionsArray) {
+            if (reaction.id === deletedId) continue;
+            const type = reaction.content;
+            if (!map[type]) map[type] = new Set();
+            map[type].add(reaction.pubkey);
+        }
+        return map;
+    });
+    $effect(() => {
+        reactionCount = new Set(reactionsArray.map(r => r.pubkey)).size;
+    });
+    function prettifyReaction(r: string) {
+        if (r === "+") return "👍";
+        if (r === "-") return "👎";
+        return r;
+    }
+    async function react(type: string) {
+        const r = new NDKEvent(ndk, {
+            kind: 7,
+            content: type,
+        } as NostrEvent);
+        r.tag(event);
+        r.publish();
+    }
+	function deleteUserReaction() {
+        if (!currentUser) return;
+        const reaction = reactionsArray.find(r => r.pubkey === currentUser.pubkey);
+        if (!reaction) return;
+        reaction.delete();
+        deletedId = reaction.id;
+	}
+</script>
+<div class="flex flex-col gap-1">
+    {#each Object.keys(grupedReactions) as type}
+        <div class="flex flex-row items-center gap-2">
+            <h2 class="flex-none">
+                {#if !currentUserHasReacted}
+                    <Button on:click={() => react(type)}>{prettifyReaction(type)}</Button>
+                {:else}
+                    {prettifyReaction(type)}
+                {/if}
+            </h2>
+            <div class="flex flex-row flex-wrap -space-x-2 hover:space-x-0 transition-all duration-300">
+                {#each Array.from(grupedReactions[type]) as pubkey (pubkey)}
+                    {#if pubkey === currentUser?.pubkey}
+                        <button on:click={deleteUserReaction}>
+                            <Avatar ndk={ndk} {pubkey} class="w-10 h-10 object-cover rounded-full flex-none border-4 border-orange-600" />
+                        </button>
+                    {:else}
+                        <Avatar ndk={ndk} {pubkey} class="w-10 h-10 object-cover rounded-full flex-none border-4 border-orange-600" />
+                    {/if}
+                {/each}
+            </div>
+        </div>
+    {/each}
+</div>
+</file>
+
+<file path="src/routes/p/[id]/+page.svelte">
+<script lang="ts">
+	import { page } from "$app/stores";
+	import { ndk } from "@/ndk.svelte";
+    import MergeRequestItem from "./MergeRequestItem.svelte";
+	import type { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
+	import Name from "@/components/Name.svelte";
+    let id: string;
+    let user: NDKUser | undefined;
+    let error: string;
+    async function preparePage(userId: string) {
+        try {
+            user = await ndk.$fetchUser(userId);
+            if (!user) {
+                error = "Unable to find user: " + userId;
+                return;
+            }
+            loadEventsForUser();
+        } catch (e) {
+            error = String(e);
+        }
+    }
+    $: if (id !== $page.params.id) {
+        id = $page.params.id;
+        preparePage(id);
+    }
+    let entries = $state<NDKEvent[]>([]);
+    let mergeRequests = $state<NDKEvent[]>([]);
+    let entriesSub: ReturnType<typeof ndk.subscribe> | undefined;
+    let mergeRequestsSub: ReturnType<typeof ndk.subscribe> | undefined;
+    function loadEventsForUser() {
+        entriesSub = ndk.subscribe([{
+            kinds: [30818 as number],
+            authors: [user!.pubkey]
+        }], { subId: 'entries' });
+        entriesSub.on('event', (e: NDKEvent) => {
+            entries = [...entries, e];
+        });
+        mergeRequestsSub = ndk.subscribe([
+            { kinds: [818 as number], "#p": [user!.pubkey] },
+        ], { subId: 'mergeRequests' });
+        mergeRequestsSub.on('event', (e: NDKEvent) => {
+            mergeRequests = [...mergeRequests, e];
+        });
+    }
+    $effect(() => {
+        return () => {
+            entriesSub?.stop();
+            mergeRequestsSub?.stop();
+        };
+    });
+</script>
+<h1>
+    <Name {user} />
+</h1>
+{#if mergeRequests.length > 0}
+    {#each mergeRequests as mergeRequest, i (mergeRequest.id)}
+    <div class="
+        flex flex-row items-start gap-2 w-full p-2
+        {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
+    ">
+        <MergeRequestItem {mergeRequest} />
+    </div>
+    {/each}
+{/if}
+{#if entries.length > 0}
+	{entries.length} entries
+	{#each entries as entry, i (entry.id)}
+		<div class="
+            flex flex-row items-start gap-2 w-full p-2
+            {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
+        ">
+			<a href="/{entry.dTag}/{entry.author.npub}" class="grow flex flex-col items-start">
+				{entry.dTag}
+				<div class="text-xs text-neutral-500">
+					{entry.onRelays?.map(r => r.url).join(", ")}
+				</div>
+			</a>
+            {#if entry.getMatchingTags("a").find(t => t[3] === "defer")}
+                <div class="text-xs text-orange-500 font-medium">
+                    Defered
+                </div>
+            {:else}
+                <div class="text-sm text-neutral-500 flex flex-col justify-end text-right">
+                    <span>{entry.created_at}</span>
+                    <span>{entry.content.split(" ").length} words</span>
+                </div>
+            {/if}
+		</div>
+	{/each}
+{/if}
+</file>
+
+<file path="src/lib/components/EntriesList.svelte">
+<script lang="ts">
+	import { ndk } from "@/ndk.svelte";
+	import { wotEnabled, isInWoT } from "@/stores/wot";
+	import type { NDKEvent } from "@nostr-dev-kit/ndk";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+    import { Avatar } from "@nostr-dev-kit/svelte";
+    let {
+        entries,
+        entriesVisible = $bindable(0),
+        entriesNotVisible = $bindable(0)
+    }: {
+        entries: Subscription<NDKEvent>;
+        entriesVisible?: number;
+        entriesNotVisible?: number;
+    } = $props();
+	const removeFutureEntries = (now: number) => (entry: NDKEvent) => entry.created_at! > now;
+    const entriesByTopic = $derived.by(() => {
+			const byDtag: Record<string, NDKEvent[]> = {};
+			const now = Math.floor(Date.now() / 1000);
+			const events = entries.events;
+			if (!events) return byDtag;
+			events.forEach((entry) => {
+				const dTag = entry.dTag;
+				const pubkey = entry.pubkey;
+				const deferred = entry.getMatchingTags("a").some(t => t[3] === "defer");
+				if (!dTag) return;
+				if (deferred) return;
+				// if we are filtering by wot, we need to check if the pubkey is in the wot
+				if ($wotEnabled && !isInWoT(pubkey)) {
+					return;
+				}
+				if (!byDtag[dTag]) byDtag[dTag] = [];
+				byDtag[dTag].push(entry);
+			});
+			return byDtag;
+		});
+	$effect(() => {
+		let visible = 0;
+		let notVisible = 0;
+		const events = entries.events;
+		if (events) {
+			events.forEach((entry) => {
+				const dTag = entry.dTag;
+				const pubkey = entry.pubkey;
+				const deferred = entry.getMatchingTags("a").some(t => t[3] === "defer");
+				if (!dTag || deferred) return;
+				if ($wotEnabled && !isInWoT(pubkey)) {
+					notVisible++;
+				} else {
+					visible++;
+				}
+			});
+		}
+		entriesVisible = visible;
+		entriesNotVisible = notVisible;
+	});
+</script>
+<div class="rounded-xl">
+{#each Object.entries(entriesByTopic) as [topic, entries], i (topic)}
+    <div class="
+		item
+		flex flex-row items-start gap-2 w-full p-2
+		{i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
+	">
+        <a href="/{encodeURIComponent(topic)}" class="grow flex flex-col items-start">
+            {topic}
+            <div class="text-xs text-neutral-500">
+                {Array.from(new Set(
+                    entries.map((entry) => entry.relay?.url).filter(r => r)
+                )).join(", ")}
+            </div>
+        </a>
+        <div class="place-self-end flex flex-row flex-wrap justify-end">
+            {#each Array.from(entries).slice(0, 100) as entry (entry.pubkey)}
+                <Avatar ndk={ndk} pubkey={entry.pubkey} class="w-8 h-8 object-cover rounded-full flex-none" />
+            {/each}
+        </div>
+    </div>
+{/each}
+</div>
+<style lang="postcss">
+	.item:first-of-type {
+		@apply rounded-t-xl;
+	}
+</style>
+</file>
+
+<file path="src/lib/components/EntryCard.svelte">
+<script lang="ts">
+	import { ndk } from "@/ndk.svelte";
+	import { NDKEvent, type NostrEvent } from "@nostr-dev-kit/ndk";
+    import EventContent from "@/components/EventContent.svelte";
+	import { Avatar } from "@nostr-dev-kit/svelte";
+	import Name from "@/components/Name.svelte";
+    import Button from "@/components/ui/button/button.svelte";
+	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
+	import type { Subscription } from '@nostr-dev-kit/svelte';
+	import TopicEntriesList from './TopicEntriesList.svelte';
+	import Input from './ui/input/input.svelte';
+	import EntryReactions from './EntryReactions.svelte';
+	let currentUser = $derived(ndk.$sessions?.currentUser);
+    let {
+        skipTitle = false,
+        event,
+        skipEdit = false,
+        otherVersions = undefined
+    }: {
+        skipTitle?: boolean;
+        event: NDKEvent;
+        skipEdit?: boolean;
+        otherVersions?: Subscription<NDKEvent>;
+    } = $props();
+    let title = event.tagValue("title") || event.dTag;
+    let forkPubkey = $state<string | undefined>(undefined);
+    let fork = $state<NDKEvent | undefined>(undefined);
+    let showRaw = $state(false);
+    let reactionCount = $state<number | undefined>(undefined);
+    $effect(() => {
+        const forkValue = event.getMatchingTags("a").find(t => t[3] === "fork");
+        if (forkValue) {
+            const forkId = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
+            if (forkId) {
+                ndk.fetchEvents({ids: [forkId]}).then((f) => {
+                    if (f.size === 0) return;
+                    fork = Array.from(f)[0];
+                    forkPubkey = fork.pubkey;
+                });
+            }
+        }
+    });
+    async function requestMerge() {
+        const content = prompt("Optionally provide a message to the author of the original entry on what was changed");
+        const merge = new NDKEvent(ndk, {
+            content,
+            kind: 818,
+        } as NostrEvent);
+        merge.tag(fork);
+        merge.tags.push(["e", event.id, event.relay?.url ?? "", "fork"]);
+        await merge.publish();
+    }
+    const reactions = ndk.$subscribe(() => ({
+        filters: [{ kinds: [7], ...event.filter() }],
+        subId: 'entry-reactions'
+    }));
+    const pullRequests = ndk.$subscribe(() => ({
+        filters: [{ kinds: [818 as number], ...event.filter(), "#e": [event.id] }],
+        subId: 'entry-pull-requests'
+    }));
+    /**
+     * Find all pull requests that are a-tagging this event and are not marked as a fork
+     */
+    const incomingPullRequests = $derived.by(() => {
+        const aTag = event.tagAddress();
+        return Array.from(pullRequests.events ?? []).filter((pr) =>
+            pr.getMatchingTags("a").find(t => t[1] === aTag && t[3] !== "fork")
+        );
+    });
+    /**
+     * Find all pull requests that are e-tagging this event and are marked as a fork
+     */
+    const outgoingPullRequests = $derived.by(() => {
+        return Array.from(pullRequests.events ?? []).filter((pr) =>
+            pr.getMatchingTags("e").find(t => t[1] === event.id && t[3] === "fork")
+        );
+    });
+</script>
+<div class="flex flex-col gap-2 items-start bg-white dark:bg-black rounded-xl shadow">
+    <div class="flex flex-col px-6 pt-4 w-full">
+        {#if !skipTitle}
+            <div class="flex flex-row justify-between">
+                <h1 class="grow">{title}</h1>
+                <div class:hidden={skipEdit}>
+                    <Button href="/a/{event.encode()}/edit" size="sm">
+                        Edit
+                    </Button>
+                </div>
+            </div>
+        {/if}
+        <div class="flex flex-row gap-4 items-center text-base w-full mt-1">
+            <a href="/p/{event.author.npub}" class="flex flex-row items-center gap-2 w-56">
+                <Avatar ndk={ndk} pubkey={event.pubkey} class="w-5 h-5 object-cover rounded-full flex-none" />
+                <Name ndk={ndk} pubkey={event.pubkey} class="inline-block truncate" />
+            </a>
+            <span class="opacity-50">{(new Date(event.created_at*1000)).toLocaleDateString()}</span>
+            {#if reactionCount}
+                <div class="flex flex-row items-start gap-2 w-full whitespace-nowrap opacity-50">
+                    {reactionCount} reactions
+                </div>
+            {/if}
+            {#if fork}
+                <a href="/a/{fork.encode()}" class="flex flex-row gap-1 whitespace-nowrap max-w-40 text-orange-500">
+                    Forked from <Name ndk={ndk} pubkey={forkPubkey} class="inline truncate" />
+                </a>
+                {#if currentUser?.pubkey === event.pubkey}
+                    <Button on:click={requestMerge} size="sm">
+                        Request merge
+                    </Button>
+                {/if}
+            {/if}
+        </div>
+        <EntryReactions {event} {reactions} bind:reactionCount />
+    </div>
+    {#if event.pubkey === currentUser?.pubkey && incomingPullRequests.length > 0}
+        <div class="px-6 bg-zinc-50 dark:bg-white/20 w-full">
+            <div class="text-sm text-orange-500">
+                {incomingPullRequests.length} incoming pull requests
+            </div>
+            {#each incomingPullRequests as pr}
+                <a href="/pr/{event.encode()}/{pr.id}" class="flex flex-row gap-2 items-center">
+                    <Avatar ndk={ndk} pubkey={pr.pubkey} class="w-8 h-8 rounded-full object-cover" />
+                    <Name ndk={ndk} pubkey={pr.pubkey} class="inline-block" />
+                </a>
+            {/each}
+        </div>
+    {/if}
+    <div class="p-6 w-full">
+        <EventContent {event} />
+    </div>
+</div>
+<div class="flex flex-col gap-2 items-start bg-white dark:bg-black rounded-xl shadow px-6 py-4 my-8">
+    <h3>About this entry</h3>
+    <h4>Event Id</h4>
+    <Input value={event.encode()} readonly />
+    <h4>Raw event</h4>
+    <Button on:click={() => showRaw = !showRaw}>Open</Button>
+    {#if showRaw}
+        <pre class="bg-base-300 overflow-auto w-full">{JSON.stringify(event.rawEvent(), null, 4)}</pre>
+    {/if}
+</div>
+{#if otherVersions?.events && otherVersions.events.length > 1}
+    <div class="my-8">
+        <h2>Other versions</h2>
+        <TopicEntriesList entries={otherVersions} topic={event.dTag} />
+    </div>
+{/if}
+{#if currentUser && currentUser.pubkey !== event.pubkey}
+    <EntryCardSupportFooter {event} />
+{/if}
+</file>
+
+<file path="src/lib/components/TopicEntriesList.svelte">
+<script lang="ts">
+	import { wotEnabled, wotFilterEvents, wotRankEvents } from "@/stores/wot";
+	import { type NDKEventId, type NDKEvent } from "@nostr-dev-kit/ndk";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+	import UserName from "./UserName.svelte";
+	import TopicEntriesListItem from "./TopicEntriesListItem.svelte";
+    let { entries, topic }: { entries: Subscription<NDKEvent>; topic: string } = $props();
+    const entriesToRender = $derived.by(() => {
+        const events = entries.events;
+        if (!events) return [];
+        // Filter out deferred entries
+        const nonDeferred = Array.from(events).filter((entry) => {
+            const isDeferred = entry.getMatchingTags("a").some(t => t[3] === "defer");
+            return !isDeferred;
+        });
+        // Apply WoT filtering if enabled, then rank by WoT
+        return wotRankEvents(wotFilterEvents(nonDeferred));
+    });
+</script>
+<div class="rounded-xl">
+{#each entriesToRender as entry, i (entry.id)}
+    <div class="
+        flex flex-row items-start gap-2 w-full p-2
+        {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
+    ">
+        <TopicEntriesListItem {entry} {topic} />
+    </div>
+{/each}
+</div>
+</file>
+
+<file path="src/lib/ndk.svelte.ts">
+import NDKCacheSqliteWasm from "@nostr-dev-kit/cache-sqlite-wasm";
+import { NDKSvelte } from '@nostr-dev-kit/svelte';
+import { LocalStorage } from '@nostr-dev-kit/sessions';
+import { browser } from '$app/environment';
+import { derived, writable, type Readable } from 'svelte/store';
+import type { NDKUser, NDKEvent } from '@nostr-dev-kit/ndk';
+const DEFAULT_RELAYS = [
+    'wss://purplepag.es',
+    'wss://relay.nostr.band',
+    'wss://nos.lol',
+    'wss://relay.wikifreedia.xyz',
+];
+// Initialize SQLite WASM cache with worker mode (browser only)
+const cacheAdapter = browser ? new NDKCacheSqliteWasm({
+  dbName: "wikifreedia-cache",
+  useWorker: true,
+  workerUrl: "/worker.js",
+  wasmUrl: "/sql-wasm.wasm",
+}) : undefined;
+// Initialize signature verification worker (only in browser)
+let sigVerifyWorker: Worker | undefined;
+console.log('[NDK] Creating NDK instance with relays:', DEFAULT_RELAYS);
+export const ndk = new NDKSvelte({
+  explicitRelayUrls: DEFAULT_RELAYS,
+  autoConnectUserRelays: true,
+  enableOutboxModel: false,
+  clientName: "wikifreedia",
+  clientNip89: "31990:fa984bd7dbb282f07e16e7ae87b26a2a7b9b90b7246a44771f0cf5ae58018f52:1716498133442",
+  cacheAdapter,
+  signatureVerificationWorker: sigVerifyWorker,
+  initialValidationRatio: 1.0,
+  lowestValidationRatio: 0.1,
+  aiGuardrails: true,
+  session: {
+    storage: new LocalStorage(),
+    autoSave: true,
+    fetches: {
+      follows: true,
+      mutes: true,
+      wallet: false,
+      relayList: true
+    }
+  }
+});
+// Initialize the cache and connect
+export const ndkReady = (async () => {
+  if (!browser) return;
+  try {
+    // Initialize worker
+    const SigVerifyWorker = (await import('./sig-verify.worker.ts?worker')).default;
+    sigVerifyWorker = new SigVerifyWorker();
+    ndk.signatureVerificationWorker = sigVerifyWorker;
+    // Initialize cache
+    if (cacheAdapter) {
+      await cacheAdapter.initializeAsync(ndk);
+      console.log("✅ SQLite WASM cache initialized");
+    }
+    ndk.connect();
+  } catch (error) {
+    console.error("❌ Failed to initialize cache:", error);
+  }
+})();
+/**
+ * Session management - NDK handles this automatically via ndk.$sessions
+ * Access session data directly from ndk.$sessions in components
+ *
+ * Example:
+ *   const currentUser = ndk.$sessions?.currentUser;
+ *   const follows = ndk.$sessions?.follows;
+ *   const relayList = ndk.$sessions?.relayList;
+ */
+export default ndk;
+</file>
+
+<file path="src/routes/[topic]/+page.svelte">
+<script lang="ts">
+	import { page } from "$app/stores";
+	import { ndk } from "$lib/ndk.svelte";
+	import { NDKArticle, NDKEvent } from "@nostr-dev-kit/ndk";
+	import type { Subscription } from "@nostr-dev-kit/svelte";
+	import { Avatar, EventContent } from "@nostr-dev-kit/svelte";
+	import Name from "@/components/Name.svelte";
+	import TopicEntry from "./TopicEntry.svelte";
+	import EntriesList from "@/components/EntriesList.svelte";
+	import TopicEntriesList from "@/components/TopicEntriesList.svelte";
+    let { topic = $bindable($page.params.topic) }: { topic?: string } = $props();
+    let mounted = $state(true);
+    const entries = ndk.$subscribe(() => {
+        if (!mounted) return { filters: [] };
+        const currentTopic = $page.params.topic;
+        return {
+            filters: [{ kinds: [ 30818 as number], "#d": [currentTopic] }],
+            subId: 'entries'
+        };
+    });
+</script>
+<h1>{topic}</h1>
+{#if entries.events}
+    <h3 class="text-lg text-neutral-500 font-medium">
+        There are {entries.events.length} entries for this topic
+    </h3>
+    <TopicEntriesList {topic} {entries} />
+{/if}
+</file>
+
+<file path="src/routes/+page.svelte">
+<script lang="ts">
+	import { ndk } from '$lib/ndk.svelte';
+	import type { Subscription } from '@nostr-dev-kit/svelte';
+	import { NDKEvent, type Hexpubkey, type NDKSubscription, type NostrEvent, NDKRelay, NDKRelaySet, type NDKFilter, NDKWiki } from '@nostr-dev-kit/ndk';
+	import { wotEnabled, wotSize } from '@/stores/wot';
+	import { Switch } from "$lib/components/ui/switch";
+	import EntriesList from '@/components/EntriesList.svelte';
+	import Input from '@/components/ui/input/input.svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import { Button } from '@/components/ui/button';
+	import { ArrowLeft } from 'radix-icons-svelte';
+	import CategoryList from '@/components/CategoryList.svelte';
+	let entriesVisible = 0;
+	let entriesNotVisible = 0;
+	let newQuery = $state($page.url.searchParams.get('q') || '');
+	let query = $state($page.url.searchParams.get('q') || '');
+	let category = $state<string | undefined | null>($page.url.searchParams.get('c'));
+	let mounted = $state(true);
+	const entries = ndk.$subscribe(() => {
+		if (!mounted) return { filters: [] };
+		const searchQuery = $page.url.searchParams.get('q') || '';
+		const searchCategory = $page.url.searchParams.get('c');
+		if (searchQuery) {
+			const filters: NDKFilter[] = [{ kinds: [30818 as number], search: searchQuery }];
+			filters.push({ kinds: [30818 as number], "#d": [searchQuery] });
+			const relaySet = NDKRelaySet.fromRelayUrls(["wss://relay.wikifreedia.xyz"], ndk);
+			return { filters, subId: 'entries', relaySet };
+		} else if (searchCategory) {
+			return { filters: [{ kinds: [30818 as number], "#c": [searchCategory] }], subId: 'entries' };
+		} else {
+			return { filters: [{ kinds: NDKWiki.kinds }], subId: 'entries' };
+		}
+	})
+	function keyup(event: KeyboardEvent) {
+		if (event.key === 'Enter') search();
+	}
+	function search() {
+		const url = new URL($page.url);
+		url.searchParams.set('q', newQuery);
+		goto(url.toString());
+	}
+</script>
+<div class="my-10 flex flex-row">
+	<Input
+		bind:value={newQuery}
+		on:keyup={keyup}
+		placeholder="Search"
+		class="text-lg md:text-2xl sm:!p-8 grow"
+	/>
+	<Button
+		class="md:!p-8"
+		variant="outline"
+		on:click={search}
+	>Go</Button>
+</div>
+{#if category}
+	<div class="flex flex-col mb-6">
+		<h1>{category}</h1>
+		<a class="text-orange-500" href="/">
+			<ArrowLeft class="h-4 w-4 inline" />
+			All Entries
+		</a>
+	</div>
+{/if}
+<CategoryList {entries} />
+<h3 class="mb-2">Recently Modified Wikis</h3>
+{#key query + category}
+	{#if entries.events}
+		<div class="flex flex-row justify-between">
+			{#if $wotSize > 1000}
+				<label class="flex items-center gap-2">
+					<Switch bind:checked={$wotEnabled} />
+					<span>Web-of-trust filter</span>
+				</label>
+			{/if}
+			<div>
+				{entriesVisible} entries
+				{#if entriesNotVisible > 0}
+					({entriesNotVisible} not visible)
+				{/if}
+			</div>
+		</div>
+		<EntriesList {entries} bind:entriesVisible bind:entriesNotVisible />
+	{/if}
+{/key}
+</file>
+
+</files>

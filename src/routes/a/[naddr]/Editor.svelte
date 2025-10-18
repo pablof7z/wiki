@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { NDKEvent, type Hexpubkey, type NDKRelaySet, type NostrEvent, NDKUser } from '@nostr-dev-kit/ndk';
-	import { onMount } from "svelte";
 	import { ndk } from '@/ndk.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import CategoryDropdown from './CategoryDropdown.svelte';
@@ -30,10 +29,10 @@
         }
     });
 
-    onMount(()=>{
+    $effect(() => {
         let currentUser: NDKUser;
         ndk.signer!.user().then((user) => currentUser = user);
-    })
+    });
 
     let timer = 0;
     setInterval(() => { timer++; }, 1000);

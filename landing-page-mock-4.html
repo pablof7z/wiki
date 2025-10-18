@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia - Clean Columns</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .version {
+            font-size: 0.7rem;
+            color: #999;
+            margin-left: 0.5rem;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .header-nav a {
+            color: #1a1a1a;
+            text-decoration: none;
+        }
+
+        .header-nav a:hover {
+            color: #0066cc;
+        }
+
+        .hero {
+            background: #fff;
+            padding: 3rem 2rem 2rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .hero-content {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.25rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .search-container {
+            max-width: 650px;
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .search-box button {
+            padding: 0.75rem 1.5rem;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .search-box button:hover {
+            background: #333;
+        }
+
+        .hero-stats {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: #1a1a1a;
+        }
+
+        .article-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .article-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #0066cc;
+        }
+
+        .article-excerpt {
+            color: #444;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .sidebar-section {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .category-link {
+            display: block;
+            padding: 0.5rem 0;
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .category-link:last-child {
+            border-bottom: none;
+        }
+
+        .category-link:hover {
+            color: #004499;
+        }
+
+        .category-count {
+            color: #999;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .activity-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-user {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="logo">Wikifreedia</span>
+                <span class="version">v0.0.8</span>
+            </div>
+            <nav class="header-nav">
+                <a href="#">All Entries</a>
+                <a href="#">New Entry</a>
+                <a href="#">Sign In</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Wikifreedia</h1>
+            <p class="hero-subtitle">The free encyclopedia built on Nostr</p>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" placeholder="Search articles">
+                    <button>Search</button>
+                </div>
+            </div>
+
+            <div class="hero-stats">
+                940,707 articles · 150+ contributors · 23 edits today
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="main-grid">
+            <div>
+                <h2 class="section-title">Featured Articles</h2>
+
+                <div class="article-card">
+                    <div class="article-title">Bitcoin</div>
+                    <div class="article-excerpt">A decentralized digital currency, without a central bank or single administrator, that can be sent from user to user on the peer-to-peer bitcoin network without the need for intermediaries.</div>
+                    <div class="article-meta">
+                        <span>234 edits · 12 contributors</span>
+                        <span>Last edited 2 minutes ago</span>
+                    </div>
+                </div>
+
+                <div class="article-card">
+                    <div class="article-title">Nostr</div>
+                    <div class="article-excerpt">A simple, open protocol that enables truly censorship-resistant and global value-for-value publishing on the web. The protocol is based on very simple and flexible event objects and uses standard public-key cryptography.</div>
+                    <div class="article-meta">
+                        <span>156 edits · 8 contributors</span>
+                        <span>Last edited 1 hour ago</span>
+                    </div>
+                </div>
+
+                <div class="article-card">
+                    <div class="article-title">Monazite</div>
+                    <div class="article-excerpt">A phosphate mineral containing rare-earth elements. Due to variability in composition, monazite is considered a group of minerals. The most common species is monazite-(Ce), the cerium-dominant member.</div>
+                    <div class="article-meta">
+                        <span>89 edits · 5 contributors</span>
+                        <span>Last edited 3 hours ago</span>
+                    </div>
+                </div>
+
+                <div class="article-card">
+                    <div class="article-title">Islamic Calendar</div>
+                    <div class="article-excerpt">A lunar calendar consisting of 12 lunar months in a year of 354 or 355 days. It is used to determine the proper days of Islamic holidays and rituals, such as the annual period of fasting and the pilgrimage to Mecca.</div>
+                    <div class="article-meta">
+                        <span>67 edits · 4 contributors</span>
+                        <span>Last edited 5 hours ago</span>
+                    </div>
+                </div>
+
+                <div class="article-card">
+                    <div class="article-title">Web of Trust</div>
+                    <div class="article-excerpt">A concept used in PGP, GnuPGP, and other OpenPGP-compatible systems to establish the authenticity of the binding between a public key and its owner. Its decentralized trust model is an alternative to centralized PKI.</div>
+                    <div class="article-meta">
+                        <span>112 edits · 9 contributors</span>
+                        <span>Last edited 1 day ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <aside>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Quick Stats</div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-value">940K</span>
+                            <span class="stat-label">Articles</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value">150+</span>
+                            <span class="stat-label">Contributors</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value">23</span>
+                            <span class="stat-label">Edits Today</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value">100%</span>
+                            <span class="stat-label">Decentralized</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Browse Categories</div>
+                    <a href="#" class="category-link">Nostr <span class="category-count">342</span></a>
+                    <a href="#" class="category-link">People <span class="category-count">8,234</span></a>
+                    <a href="#" class="category-link">Knowledge <span class="category-count">12,456</span></a>
+                    <a href="#" class="category-link">Technology <span class="category-count">5,678</span></a>
+                    <a href="#" class="category-link">History <span class="category-count">9,123</span></a>
+                    <a href="#" class="category-link">Philosophy <span class="category-count">3,456</span></a>
+                    <a href="#" class="category-link">Cryptocurrency <span class="category-count">1,234</span></a>
+                    <a href="#" class="category-link">Mathematics <span class="category-count">4,567</span></a>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Recent Activity</div>
+                    <div class="activity-item">
+                        <div><span class="activity-user">Pablo</span> edited Bitcoin</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div><span class="activity-user">Satoshi</span> created Islamic Calendar</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div><span class="activity-user">Vitor</span> updated Nostr</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div><span class="activity-user">Fiatjaf</span> edited Web of Trust</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                    <div class="activity-item">
+                        <div><span class="activity-user">Jack</span> created Charlie Kirk</div>
+                        <div class="activity-time">3 hours ago</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</body>
+</html>

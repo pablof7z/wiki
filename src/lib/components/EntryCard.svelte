@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { ndk } from "@/ndk.svelte";
 	import { NDKEvent, type NostrEvent } from "@nostr-dev-kit/ndk";
     import EventContent from "@/components/EventContent.svelte";
@@ -33,7 +32,7 @@
     let showRaw = $state(false);
     let reactionCount = $state<number | undefined>(undefined);
 
-    onMount(() => {
+    $effect(() => {
         const forkValue = event.getMatchingTags("a").find(t => t[3] === "fork");
         if (forkValue) {
             const forkId = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
@@ -45,7 +44,7 @@
                 });
             }
         }
-    })
+    });
 
     async function requestMerge() {
         const content = prompt("Optionally provide a message to the author of the original entry on what was changed");

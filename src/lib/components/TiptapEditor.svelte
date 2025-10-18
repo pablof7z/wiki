@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
 	import { Editor } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import Link from '@tiptap/extension-link';
@@ -38,7 +37,7 @@
 	let editor: Editor | null = null;
 	let editorElement: HTMLDivElement;
 
-	onMount(() => {
+	$effect(() => {
 		editor = new Editor({
 			element: editorElement,
 			extensions: [
@@ -116,12 +115,12 @@
 				onblur();
 			}
 		});
-	});
 
-	onDestroy(() => {
-		if (editor) {
-			editor.destroy();
-		}
+		return () => {
+			if (editor) {
+				editor.destroy();
+			}
+		};
 	});
 
 	// Helper functions for toolbar actions

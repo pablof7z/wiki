@@ -1,59 +1,56 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { ndk } from "$lib/ndk.svelte";
-	import { NDKUser, type Hexpubkey, type NDKEvent } from "@nostr-dev-kit/ndk";
-	import { onMount } from "svelte";
+	import type { NDKEvent } from "@nostr-dev-kit/ndk";
 	import EntryCard from "@/components/EntryCard.svelte";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
-	import { pushState, replaceState } from "$app/navigation";
-	import { attemptToGetNip05, getPubkeyFromUserId, maybePrettifyUrl } from "@/utils/userId-loader";
+	import { nip19 } from "nostr-tools";
 
-    export let topic: string;
-    export let userId: string;
+    const topic = $derived($page.params.topic);
+    const userId = $derived($page.params.pubkey);
 
-    let error: string;
+    let error = $state<string | undefined>(undefined);
 
-    let event: NDKEvent | undefined;
-    let otherVersions: Subscription<NDKEvent> | undefined;
+    let event = $state<NDKEvent | undefined>(undefined);
+    let otherVersions = $state<Subscription<NDKEvent> | undefined>(undefined);
 
-    let mounted = false;
-    onMount(() => mounted = true)
+    const user = ndk.$fetchUser(() => userId);
 
-    async function loadEventsWithUserPubkey(pubkey: Hexpubkey) {
-        const events = await ndk.fetchEvents({
-            kinds: [ 30818 as number],
-            "#d": [topic],
-            authors: [pubkey],
-        });
-        if (events.size === 0) return;
-
-        event = Array.from(events).sort((a, b) => b.created_at! - a.created_at!)[0];
-
-        otherVersions = ndk.subscribe({
-            kinds: [ 30818 as number],
-            "#d": [topic],
-        });
-    }
-
-    async function preparePage(userId: string) {
-        getPubkeyFromUserId(userId)
-            .then(async (pubkey: Hexpubkey) => {
-                loadEventsWithUserPubkey(pubkey);
-
-                // if the userId was an npub or a partial pubkey, try to prettify the URL
-                maybePrettifyUrl(userId, pubkey, `/${encodeURIComponent(topic)}/<userId>`);
-            })
-            .catch((e) => { error = e; });
-    }
-
-    $: if ($page.params.topic !== topic || $page.params.pubkey !== userId && mounted) {
-        topic = $page.params.topic;
-        userId = $page.params.pubkey;
+    $effect(() => {
         event = undefined;
         otherVersions = undefined;
+        error = undefined;
 
-        preparePage(userId);
-    }
+        if (!user) return;
+
+        try {
+            const naddr = nip19.naddrEncode({
+                kind: 30818,
+                pubkey: user.pubkey,
+                identifier: topic
+            });
+
+            ndk.fetchEvent(naddr).then(fetchedEvent => {
+                if (!fetchedEvent) {
+                    error = "Entry not found";
+                    return;
+                }
+
+                event = fetchedEvent;
+
+                otherVersions = ndk.$subscribe(() => ({
+                    filters: [{
+                        kinds: [30818 as number],
+                        "#d": [topic]
+                    }]
+                }));
+            }).catch(e => {
+                error = String(e);
+            });
+        } catch (e) {
+            error = String(e);
+        }
+    });
 </script>
 
 {#if event}

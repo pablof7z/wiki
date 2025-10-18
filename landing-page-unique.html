@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            line-height: 1.4;
+            cursor: crosshair;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: #0f0;
+            color: #000;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 255, 0, 0.03) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .terminal {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .blink {
+            animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .header {
+            border-bottom: 1px solid #0f0;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .ascii-art {
+            font-size: 0.7rem;
+            line-height: 1;
+            color: #0f0;
+            margin-bottom: 1rem;
+            white-space: pre;
+            letter-spacing: 0;
+        }
+
+        .prompt {
+            color: #0f0;
+            margin: 1rem 0;
+        }
+
+        .prompt::before {
+            content: "> ";
+            color: #0f0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin: 2rem 0 1rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin: 2rem 0 1rem;
+            color: #0f0;
+        }
+
+        h2::before {
+            content: "## ";
+            color: #080;
+        }
+
+        p {
+            margin: 1rem 0;
+            color: #0a0;
+        }
+
+        .warning {
+            border: 1px solid #ff0;
+            padding: 1rem;
+            margin: 2rem 0;
+            color: #ff0;
+            background: rgba(255, 255, 0, 0.05);
+        }
+
+        .warning::before {
+            content: "[WARNING] ";
+            font-weight: 700;
+        }
+
+        .truth-table {
+            margin: 2rem 0;
+            border: 1px solid #0f0;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .truth-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #080;
+        }
+
+        .truth-row:last-child {
+            border-bottom: none;
+        }
+
+        .truth-label {
+            color: #080;
+            text-transform: uppercase;
+        }
+
+        .truth-value {
+            color: #0f0;
+        }
+
+        .fork-demo {
+            margin: 3rem 0;
+            padding: 1.5rem;
+            border: 1px solid #0f0;
+            position: relative;
+        }
+
+        .fork-demo::before {
+            content: "[LIVE DEMO]";
+            position: absolute;
+            top: -0.7rem;
+            left: 1rem;
+            background: #000;
+            padding: 0 0.5rem;
+            color: #0f0;
+            font-weight: 700;
+        }
+
+        .version-block {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-left: 3px solid #080;
+            background: rgba(0, 255, 0, 0.02);
+        }
+
+        .version-author {
+            color: #0f0;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .version-title {
+            color: #0a0;
+            margin-bottom: 0.5rem;
+            text-decoration: underline;
+        }
+
+        .version-content {
+            color: #080;
+            font-size: 0.85rem;
+        }
+
+        .version-meta {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: #060;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat {
+            border: 1px solid #0f0;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f0;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #080;
+            text-transform: uppercase;
+        }
+
+        .quote {
+            margin: 3rem 0;
+            padding: 1rem;
+            border: 1px dashed #0f0;
+            font-style: italic;
+            color: #0a0;
+            position: relative;
+        }
+
+        .quote::before {
+            content: '"';
+            font-size: 3rem;
+            position: absolute;
+            top: -1rem;
+            left: 0.5rem;
+            color: #080;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            border: 1px solid #0f0;
+            background: #000;
+            color: #0f0;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .button:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .button.secondary {
+            border-color: #080;
+            color: #080;
+        }
+
+        .button.secondary:hover {
+            background: #080;
+            color: #000;
+            box-shadow: 0 0 20px #080;
+        }
+
+        .glitch {
+            position: relative;
+            color: #0f0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            color: #f00;
+            animation: glitch1 0.3s infinite;
+            z-index: -1;
+        }
+
+        .glitch::after {
+            color: #00f;
+            animation: glitch2 0.3s infinite;
+            z-index: -2;
+        }
+
+        @keyframes glitch1 {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+            60% { transform: translateX(-1px); }
+            80% { transform: translateX(1px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes glitch2 {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(1px); }
+            40% { transform: translateX(-1px); }
+            60% { transform: translateX(2px); }
+            80% { transform: translateX(-2px); }
+            100% { transform: translateX(0); }
+        }
+
+        .corrupt {
+            display: inline-block;
+            transform: skew(-5deg);
+            color: #ff0;
+        }
+
+        .system-msg {
+            background: #000;
+            border: 1px solid #f00;
+            color: #f00;
+            padding: 1rem;
+            margin: 2rem 0;
+            font-weight: 700;
+        }
+
+        .system-msg::before {
+            content: "[SYSTEM] ";
+        }
+
+        .manifesto {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #0f0;
+        }
+
+        .manifesto h3 {
+            color: #0f0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        .manifesto ul {
+            list-style: none;
+            margin-left: 1rem;
+        }
+
+        .manifesto li {
+            margin: 0.5rem 0;
+            color: #0a0;
+        }
+
+        .manifesto li::before {
+            content: "* ";
+            color: #0f0;
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .truth-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+
+    <div class="terminal">
+        <div class="header">
+            <pre class="ascii-art">
+╦ ╦╦╦╔═╦╔═╗╦═╗╔═╗╔═╗╔╦╗╦╔═╗
+║║║║╠╩╗║╠╣ ╠╦╝║╣ ║╣  ║║║╠═╣
+╚╩╝╩╩ ╩╩╚  ╩╚═╚═╝╚═╝═╩╝╩╩ ╩
+            </pre>
+            <div class="prompt">v0.0.8 [UNCENSORABLE] [FORKABLE] [NOSTR-POWERED]</div>
+        </div>
+
+        <h1 class="glitch" data-text="REALITY CHECK">REALITY CHECK</h1>
+
+        <div class="system-msg">
+            Wikipedia claims neutrality while shadow admins delete inconvenient truths.
+            Larry Sanger says it might be "entirely controlled by the CIA."
+            Every article = one approved narrative.
+            Dissent = deletion.
+        </div>
+
+        <h2>The Problem</h2>
+
+        <div class="truth-table">
+            <div class="truth-row">
+                <div class="truth-label">Wikipedia Articles:</div>
+                <div class="truth-value">1 version per topic</div>
+            </div>
+            <div class="truth-row">
+                <div class="truth-label">Who Controls:</div>
+                <div class="truth-value">Anonymous admins</div>
+            </div>
+            <div class="truth-row">
+                <div class="truth-label">Their Identity:</div>
+                <div class="truth-value">UNKNOWN</div>
+            </div>
+            <div class="truth-row">
+                <div class="truth-label">Accountability:</div>
+                <div class="truth-value">ZERO</div>
+            </div>
+            <div class="truth-row">
+                <div class="truth-label">Consensus Model:</div>
+                <div class="truth-value">Forced conformity</div>
+            </div>
+        </div>
+
+        <h2>Enter Wikifreedia</h2>
+
+        <p>
+            Every topic. Infinite versions. No gatekeepers.
+        </p>
+
+        <p>
+            Built on Nostr. Every article is a cryptographically signed event.
+            Fork anything. Trust who you want. Filter how you want.
+        </p>
+
+        <div class="fork-demo">
+            <div class="prompt">SELECT * FROM articles WHERE topic='Bitcoin' ORDER BY trust_score DESC;</div>
+
+            <div class="version-block">
+                <div class="version-author">@satoshi [TRUSTED BY YOUR NETWORK]</div>
+                <div class="version-title">Bitcoin: Peer-to-Peer Electronic Cash</div>
+                <div class="version-content">
+                    A purely peer-to-peer version of electronic cash that allows online payments
+                    to be sent directly from one party to another without going through a financial institution...
+                </div>
+                <div class="version-meta">
+                    FORKS: 234 | ZAPS: 10,450 | LAST_EDIT: 2hrs ago
+                </div>
+            </div>
+
+            <div class="version-block">
+                <div class="version-author">@krugman</div>
+                <div class="version-title">Bitcoin: A Bubble Analysis</div>
+                <div class="version-content">
+                    While blockchain technology has potential applications, Bitcoin itself exhibits
+                    classic bubble characteristics with no intrinsic value backing...
+                </div>
+                <div class="version-meta">
+                    FORKS: 89 | ZAPS: 3,210 | LAST_EDIT: 1day ago
+                </div>
+            </div>
+
+            <div class="version-block">
+                <div class="version-author">@cypherpunk_collective</div>
+                <div class="version-title">Bitcoin: Financial Sovereignty Weapon</div>
+                <div class="version-content">
+                    Every transaction is an act of rebellion. Every node is a fortress.
+                    This isn't about money—it's about dismantling the surveillance state...
+                </div>
+                <div class="version-meta">
+                    FORKS: 567 | ZAPS: 45,230 | LAST_EDIT: 10min ago
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-num">940,707</div>
+                <div class="stat-label">Articles</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">∞</div>
+                <div class="stat-label">Versions</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">0</div>
+                <div class="stat-label">Censors</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">100%</div>
+                <div class="stat-label">Forkable</div>
+            </div>
+        </div>
+
+        <div class="quote">
+            The path to truth is in the integration of opposites.
+            <div style="text-align: right; margin-top: 1rem; color: #060;">— Stuart Bowman</div>
+        </div>
+
+        <div class="manifesto">
+            <h3>Core Protocol</h3>
+            <ul>
+                <li>There is reality, but we can't fully grasp it</li>
+                <li>Every perspective is biased—that's the feature, not the bug</li>
+                <li>Consensus in knowledge = tyranny</li>
+                <li>Your follows = your editorial board</li>
+                <li>Fork first, ask permission never</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            No canonical truth. No approved narrative. No central control.
+            If you need someone to tell you what's true, stay on Wikipedia.
+        </div>
+
+        <h2>How It Works</h2>
+
+        <p>1. Every article = Nostr event (kind 30023)</p>
+        <p>2. Your client filters by your web of trust</p>
+        <p>3. Fork any version → becomes yours to evolve</p>
+        <p>4. Zap good content, ignore bad</p>
+        <p>5. No deletion possible—only filtering</p>
+
+        <div class="system-msg">
+            Wikipedia: One truth, many editors
+            Wikifreedia: Many truths, you decide
+        </div>
+
+        <h2>Status</h2>
+
+        <p>
+            <span class="corrupt">ALPHA SOFTWARE.</span> Breaks often.
+            Needs builders, writers, critics, anarchists.
+        </p>
+
+        <div style="margin-top: 3rem;">
+            <a href="#" class="button">ENTER THE CHAOS</a>
+            <a href="#" class="button secondary">READ MANIFESTO</a>
+            <a href="#" class="button secondary">FORK ON GITHUB</a>
+        </div>
+
+        <div class="prompt" style="margin-top: 3rem;">
+            EOF<span class="blink">_</span>
+        </div>
+    </div>
+
+    <script>
+        // Random glitch effect on page load
+        setTimeout(() => {
+            document.body.style.filter = 'hue-rotate(180deg)';
+            setTimeout(() => {
+                document.body.style.filter = 'none';
+            }, 50);
+        }, Math.random() * 5000);
+
+        // Cursor trail effect
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.98) {
+                const trail = document.createElement('div');
+                trail.style.position = 'fixed';
+                trail.style.left = e.clientX + 'px';
+                trail.style.top = e.clientY + 'px';
+                trail.style.color = '#0f0';
+                trail.style.pointerEvents = 'none';
+                trail.style.zIndex = '9999';
+                trail.innerHTML = Math.random() > 0.5 ? '1' : '0';
+                document.body.appendChild(trail);
+                setTimeout(() => trail.remove(), 500);
+            }
+        });
+    </script>
+</body>
+</html>

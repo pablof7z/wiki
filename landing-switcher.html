@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia - Perspective Switcher</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Crimson+Text:ital@0;1&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: #fefefe;
+            color: #111;
+            line-height: 1.6;
+            font-size: 19px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #111;
+        }
+
+        .logo {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #111;
+        }
+
+        h1 {
+            font-size: 42px;
+            font-weight: 400;
+            line-height: 1.2;
+            margin: 3rem 0 2rem;
+            color: #111;
+        }
+
+        .lead {
+            font-size: 24px;
+            line-height: 1.5;
+            color: #444;
+            margin-bottom: 2rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: #111;
+            margin: 3rem 0;
+        }
+
+        .demo-section {
+            margin: 5rem -1.5rem 4rem;
+            padding: 3rem 1.5rem;
+            background: #fafafa;
+        }
+
+        @media (min-width: 768px) {
+            .demo-section {
+                margin: 5rem 0 4rem;
+                padding: 3rem;
+            }
+        }
+
+        .demo-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .demo-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #666;
+            margin-bottom: 0.75rem;
+        }
+
+        .demo-title {
+            font-size: 28px;
+            font-weight: 400;
+            color: #111;
+            margin-bottom: 1rem;
+        }
+
+        .demo-description {
+            font-size: 17px;
+            color: #666;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .perspective-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin: 3rem auto 2rem;
+            border: 2px solid #111;
+            width: fit-content;
+            background: #fff;
+        }
+
+        .perspective-tab {
+            font-family: 'Inter', sans-serif;
+            padding: 0.75rem 1.5rem;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: #fff;
+            color: #666;
+            position: relative;
+        }
+
+        .perspective-tab:not(:last-child) {
+            border-right: 1px solid #ddd;
+        }
+
+        .perspective-tab:hover {
+            background: #f9f9f9;
+        }
+
+        .perspective-tab.active {
+            background: #111;
+            color: #fff;
+        }
+
+        .article-container {
+            position: relative;
+            min-height: 500px;
+        }
+
+        .article-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            background: #fff;
+            padding: 2rem;
+            border: 2px solid;
+        }
+
+        .article-view.active {
+            opacity: 1;
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .article-view.view-satoshi {
+            border-color: #2a5934;
+        }
+
+        .article-view.view-krugman {
+            border-color: #8b4513;
+        }
+
+        .article-view.view-hrf {
+            border-color: #1a4d7a;
+        }
+
+        .article-view::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .article-view.view-satoshi::before {
+            background: #2a5934;
+        }
+
+        .article-view.view-krugman::before {
+            background: #8b4513;
+        }
+
+        .article-view.view-hrf::before {
+            background: #1a4d7a;
+        }
+
+        .article-stance {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 12px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .stance-satoshi {
+            background: #2a5934;
+        }
+
+        .stance-krugman {
+            background: #8b4513;
+        }
+
+        .stance-hrf {
+            background: #1a4d7a;
+        }
+
+        .article-author {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-credential {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #666;
+            display: block;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-title {
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            color: #111;
+            line-height: 1.3;
+        }
+
+        .article-body {
+            font-size: 19px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-meta {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: #999;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .insight-box {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: #fff;
+            border-left: 3px solid #111;
+        }
+
+        .insight-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #111;
+        }
+
+        .insight-text {
+            font-size: 17px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .lead {
+                font-size: 20px;
+            }
+
+            .perspective-tab {
+                padding: 0.6rem 1rem;
+                font-size: 12px;
+            }
+
+            .article-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Wikifreedia</div>
+        </header>
+
+        <h1>Knowledge without consensus</h1>
+
+        <p class="lead">
+            Every Wikipedia article converges to a single version. But who decides what stays and what gets deleted?
+        </p>
+
+        <p>
+            Larry Sanger, Wikipedia's co-founder, now warns that the platform he helped create may be "entirely controlled by the CIA."
+            Conservative sources are blacklisted. Dissenting views are systematically removed.
+        </p>
+
+        <div class="divider"></div>
+
+        <p>
+            Wikifreedia takes a different approach. Built on Nostr, every article exists as a cryptographically signed event.
+            There is no canonical version. No central authority.
+        </p>
+
+        <p>
+            Instead of forcing consensus, we embrace plurality. Your social graph becomes your editorial filter.
+        </p>
+
+        <div class="demo-section">
+            <div class="demo-header">
+                <div class="demo-label">Interactive Demo</div>
+                <h2 class="demo-title">The same article, different truths</h2>
+                <p class="demo-description">
+                    Click each perspective to see how the "truth" about Bitcoin changes based on who you trust.
+                    On Wikipedia, only one version survives.
+                </p>
+            </div>
+
+            <div class="perspective-switcher">
+                <button class="perspective-tab active" data-view="satoshi">Satoshi Nakamoto</button>
+                <button class="perspective-tab" data-view="krugman">Paul Krugman</button>
+                <button class="perspective-tab" data-view="hrf">Human Rights Foundation</button>
+            </div>
+
+            <div class="article-container">
+                <div class="article-view view-satoshi active">
+                    <div class="article-stance stance-satoshi">Revolutionary</div>
+                    <div class="article-author">Satoshi Nakamoto</div>
+                    <h3 class="article-title">Bitcoin: A Peer-to-Peer Electronic Cash System</h3>
+                    <div class="article-body">
+                        Commerce on the Internet has come to rely almost exclusively on financial institutions serving as
+                        trusted third parties to process electronic payments. While the system works well enough for most
+                        transactions, it still suffers from the inherent weaknesses of the trust based model.
+                    </div>
+                    <div class="article-body">
+                        What is needed is an electronic payment system based on cryptographic proof instead of trust,
+                        allowing any two willing parties to transact directly with each other without the need for a
+                        trusted third party. Transactions that are computationally impractical to reverse would protect
+                        sellers from fraud, and routine escrow mechanisms could easily be implemented to protect buyers.
+                    </div>
+                    <div class="article-meta">1,847 forks • 23,450 zaps • Last edited 2 hours ago</div>
+                </div>
+
+                <div class="article-view view-krugman">
+                    <div class="article-stance stance-krugman">Critical</div>
+                    <div class="article-author">Paul Krugman</div>
+                    <span class="article-credential">Nobel Laureate, Economist</span>
+                    <h3 class="article-title">Bitcoin: The Long Crypto Winter</h3>
+                    <div class="article-body">
+                        Bitcoin was supposed to replace fiat currency, freeing us from the tyranny of central banks.
+                        More than a decade later, it remains too volatile for everyday transactions, too slow for actual
+                        payments, and too energy-intensive to scale globally.
+                    </div>
+                    <div class="article-body">
+                        The blockchain technology underlying Bitcoin may find legitimate uses in supply chain management
+                        or digital rights. But as currency—Bitcoin's original and central promise—it has failed. The dream
+                        of a decentralized monetary system has given way to speculative mania and environmental destruction.
+                    </div>
+                    <div class="article-meta">342 forks • 5,670 zaps • Last edited yesterday</div>
+                </div>
+
+                <div class="article-view view-hrf">
+                    <div class="article-stance stance-hrf">Activist</div>
+                    <div class="article-author">Human Rights Foundation</div>
+                    <span class="article-credential">Global advocacy organization</span>
+                    <h3 class="article-title">Bitcoin: A Tool for Freedom</h3>
+                    <div class="article-body">
+                        In authoritarian regimes where bank accounts can be frozen on government whim and assets seized
+                        without due process, Bitcoin provides an uncensorable alternative. From protesters in Nigeria
+                        being cut off from the banking system to dissidents in Russia watching their accounts disappear,
+                        cryptocurrency has become more than investment—it's survival.
+                    </div>
+                    <div class="article-body">
+                        This isn't about speculation or getting rich. It's about maintaining financial autonomy when
+                        your government turns against you. Bitcoin gives people a lifeline when traditional institutions
+                        become tools of oppression. Critics who dismiss it as a failed currency miss the point entirely.
+                    </div>
+                    <div class="article-meta">892 forks • 45,230 zaps • Last edited 6 hours ago</div>
+                </div>
+            </div>
+
+            <div class="insight-box">
+                <div class="insight-title">What just happened?</div>
+                <div class="insight-text">
+                    The same topic. Three completely different narratives. On Wikipedia, editors would fight until one
+                    version "wins." Here, all three coexist. Your web of trust determines which version appears first
+                    when you search for "Bitcoin."
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabs = document.querySelectorAll('.perspective-tab');
+        const views = document.querySelectorAll('.article-view');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const viewName = tab.dataset.view;
+
+                // Update tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Update views
+                views.forEach(v => v.classList.remove('active'));
+                document.querySelector(`.view-${viewName}`).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

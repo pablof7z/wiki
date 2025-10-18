@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { wot, wotFilter, networkFollows } from "@/stores/wot";
+	import { wotEnabled, wotFilterEvents, wotRankEvents } from "@/stores/wot";
 	import { type NDKEventId, type NDKEvent } from "@nostr-dev-kit/ndk";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
 	import UserName from "./UserName.svelte";
@@ -11,25 +11,14 @@
         const events = entries.events;
         if (!events) return [];
 
-        return Array.from(events).filter((entry) => {
-            const isDefered = entry.getMatchingTags("a").some(t => t[3] === "defer");
-
-            // Don't list the entries that have been defered
-            if (isDefered) return false;
-
-            if ($wotFilter) {
-                return $wot.has(entry.pubkey);
-            } else {
-                return true;
-            }
-        })
-
-        .sort((a, b) => {
-            const aScore = $networkFollows.get(a.pubkey) ?? 0;
-            const bScore = $networkFollows.get(b.pubkey) ?? 0;
-
-            return bScore - aScore;
+        // Filter out deferred entries
+        const nonDeferred = Array.from(events).filter((entry) => {
+            const isDeferred = entry.getMatchingTags("a").some(t => t[3] === "defer");
+            return !isDeferred;
         });
+
+        // Apply WoT filtering if enabled, then rank by WoT
+        return wotRankEvents(wotFilterEvents(nonDeferred));
     });
 </script>
 

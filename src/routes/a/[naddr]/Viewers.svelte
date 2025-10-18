@@ -3,23 +3,27 @@
 	import { NDKEvent, NDKPrivateKeySigner, NDKRelay, NDKRelaySet, type NDKSigner, type NostrEvent } from "@nostr-dev-kit/ndk";
 	import { type Subscription } from "@nostr-dev-kit/svelte";
 	import { Avatar } from "@nostr-dev-kit/svelte";
-	import { onDestroy, onMount } from "svelte";
 	import { derived, type Readable } from "svelte/store";
 
-    export let aTag: string;
-    export let relaySet: NDKRelaySet;
+    let { aTag, relaySet }: { aTag: string; relaySet: NDKRelaySet } = $props();
 
     let viewers: Subscription<NDKEvent>;
     let viewingPubkeys: Readable<string[]>;
 
     let signer: NDKSigner | undefined;
+    let interval: ReturnType<typeof setInterval>;
 
-    onMount(() => {
+    $effect(() => {
         const ago = Math.floor(Date.now() / 1000) - 15;
-        viewers = ndk.subscribe({
-            "#a": [aTag],
-            since: ago
-        }, { groupable: false, subId: 'viewers', relaySet });
+        viewers = ndk.$subscribe(() => ({
+            filters: [{
+                "#a": [aTag],
+                since: ago
+            }],
+            groupable: false,
+            subId: 'viewers',
+            relaySet
+        }));
         console.log({viewers});
 
         viewingPubkeys = derived(viewers, ($viewers) => {
@@ -35,6 +39,12 @@
 
         signer = ndk.signer;
         sendViewing();
+
+        interval = setInterval(sendViewing, 15000);
+
+        return () => {
+            clearInterval(interval);
+        };
     });
 
     async function sendViewing() {
@@ -55,12 +65,6 @@
         }
         await e.publish();
     }
-
-    const interval = setInterval(sendViewing, 15000);
-
-    onDestroy(() => {
-        clearInterval(interval);
-    });
 
 </script>
 

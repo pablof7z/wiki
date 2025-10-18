@@ -6,7 +6,7 @@
 	import { Button } from "@/components/ui/button";
 	import { nip19 } from "nostr-tools";
 
-    export let mergeRequest: NDKEvent;
+    let { mergeRequest }: { mergeRequest: NDKEvent } = $props();
 
     const aTag = mergeRequest.tagValue("a");
     const [kind, pubkey, topic] = aTag.split(":") ?? [];
@@ -17,9 +17,12 @@
         identifier: topic
     })
 
-    const responses = ndk.subscribe({
-        kinds: [7, 819 as number], ...mergeRequest.filter()
-    });
+    const responses = ndk.$subscribe(() => ({
+        filters: [{
+            kinds: [7, 819 as number],
+            ...mergeRequest.filter()
+        }]
+    }));
 </script>
 
 <div class="

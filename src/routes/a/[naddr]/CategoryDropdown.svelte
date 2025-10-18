@@ -2,20 +2,24 @@
     import * as Command from "@components/ui/command";
     import * as Popover from "@components/ui/popover";
     import { cn } from "$lib/utils.js";
-    import { onMount, tick } from "svelte";
+    import { tick } from "svelte";
 	import { Button } from "@/components/ui/button";
 	import { Check, ChevronUp } from "radix-icons-svelte";
 	import { ChevronDown } from "svelte-radix";
 	import { ndk } from "@/ndk.svelte";
-	import type { Subscription } from "@nostr-dev-kit/svelte";
-	import type { NDKEvent } from "@nostr-dev-kit/ndk";
-	import { wotFiltered } from "@/stores/wot";
+	import { wotFilterEvents } from "@/stores/wot";
 
-    let events: Subscription<NDKEvent> | undefined;
+    const events = ndk.$subscribe(() => ({
+        filters: [{ kinds: [30818 as number] }],
+        closeOnEose: true
+    }));
 
-    function computeCategories(events: NDKEvent[]): string[] {
+    function computeCategories(eventsList: typeof events.events): string[] {
+        if (!eventsList) return ["Philosophy"];
+
         const cats = new Set();
-        for (const event of wotFiltered(events)) {
+        const filteredEvents = wotFilterEvents(eventsList);
+        for (const event of filteredEvents) {
             const cat = event.tagValue("c");
             if (cat) cats.add(cat);
         }
@@ -25,11 +29,7 @@
         return Array.from(cats);
     }
 
-    const categories = $derived(events ? computeCategories(events.events) : []);
-
-    onMount(() => {
-        events = ndk.subscribe({kinds: [30818 as number]}, { closeOnEose: true });
-    })
+    const categories = $derived(computeCategories(events.events));
 
     let open = $state(false);
     let { value = $bindable("") } = $props();

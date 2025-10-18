@@ -3,13 +3,12 @@
 	import { Button } from "@/components/ui/button";
 	import { NDKNip07Signer } from "@nostr-dev-kit/ndk";
 	import { Person } from "radix-icons-svelte";
-	import { onMount } from "svelte";
 
-    onMount(() => {
+    $effect(() => {
         if (localStorage.getItem("signed-in")) {
             nip07();
         }
-    })
+    });
 
     async function nip07() {
         document.body.appendChild(document.createElement('script')).src = 'https://unpkg.com/window.nostr.js/dist/window.nostr.js';

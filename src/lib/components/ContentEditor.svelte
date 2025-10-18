@@ -1,7 +1,6 @@
 <script lang="ts">
     import Quill from 'quill';
     import QuillAsciidoc from 'quill-asciidoc';
-    import { onMount } from "svelte";
     import quillEditorMention, { renderItem } from "./quill-editor-mention.js";
     import "quill-mention";
     import QuillImageDropAndPaste from 'quill-image-drop-and-paste';
@@ -145,9 +144,9 @@
         if (autofocus) quill.focus();
     }
 
-    onMount(async () => {
+    $effect(() => {
         enableEditor();
-    })
+    });
 
     // function fileUploaded(e: CustomEvent<{url: string, tags: NDKTag[]}>) {
     //     const {url, tags} = e.detail;

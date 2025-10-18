@@ -4,23 +4,40 @@
 	import { ModeWatcher } from "mode-watcher";
 	import { maxBodyWidth } from "@/stores/layout";
 	import AppHeader from "@/components/AppHeader.svelte";
-	import { networkFollows } from "@/stores/wot";
+	import { wot, wotLoading, wotDepth } from "@/stores/wot";
+	import { NDKWoT } from "@nostr-dev-kit/wot";
+	import { get } from "svelte/store";
 
 	let connected = $state(false);
 	let sessionStarted = $state(false);
 	let userRelays = $derived(Array.from(ndk.$sessions?.relayList?.keys() ?? []));
 	let connectedUserRelays = $state(0);
 
-	// Sync networkFollows with NDK session follows
+	// Build WoT graph when user session is ready
 	$effect(() => {
-		const follows = ndk.$sessions?.follows;
-		if (follows) {
-			// For now, just map follows to score 1
-			// In the future, we could fetch kind:3 for each follow to build a real WoT graph
-			const followsMap = new Map(Array.from(follows).map(f => [f, 1]));
-			networkFollows.set(followsMap);
+		const activePubkey = ndk.$sessions?.pubkey;
+		if (activePubkey && sessionStarted && !get(wot)) {
+			buildWoT(activePubkey);
 		}
 	});
+
+	async function buildWoT(pubkey: string) {
+		wotLoading.set(true);
+		try {
+			const wotInstance = new NDKWoT(ndk, pubkey);
+			await wotInstance.load({
+				depth: get(wotDepth),
+				maxFollows: 1000,
+				timeout: 30000
+			});
+			wot.set(wotInstance);
+			console.log(`WoT graph built with ${wotInstance.size} users`);
+		} catch (error) {
+			console.error("Failed to build WoT graph:", error);
+		} finally {
+			wotLoading.set(false);
+		}
+	}
 
 	// Connect user relays to NDK pool
 	$effect(() => {
@@ -65,9 +82,7 @@
 				<p class="text-muted-foreground">Preparing session...</p>
 			</div>
 		{:else}
-			<div class="container py-6 {$maxBodyWidth}">
-				<slot />
-			</div>
+			<slot />
 		{/if}
 	</main>
 </div>

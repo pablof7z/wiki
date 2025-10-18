@@ -6,15 +6,21 @@
 	import Name from "@/components/Name.svelte";
 	import { derived } from "svelte/store";
 
-    export let baseEvent: NDKEvent;
-    export let activeEvent: NDKEvent;
-    export let relaySet: NDKRelaySet;
-    export let currentUser: NDKUser;
+    let { baseEvent, activeEvent, relaySet, currentUser }: {
+        baseEvent: NDKEvent;
+        activeEvent: NDKEvent;
+        relaySet: NDKRelaySet;
+        currentUser: NDKUser
+    } = $props();
 
-    const sub = ndk.subscribe({
-        "#d": [baseEvent.dTag!],
-        kinds: [baseEvent.kind!],
-    }, { subId: 'alternativeVersions', relaySet});
+    const sub = ndk.$subscribe(() => ({
+        filters: [{
+            "#d": [baseEvent.dTag!],
+            kinds: [baseEvent.kind!]
+        }],
+        subId: 'alternativeVersions',
+        relaySet
+    }));
 
     const authorizedPubkeys = baseEvent.getMatchingTags("p").map((t) => t[1]);
 

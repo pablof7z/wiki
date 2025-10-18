@@ -7,8 +7,7 @@
     import Button from "@/components/ui/button/button.svelte";
     import * as Card from "@/components/ui/card";
 
-    export let topic: string;
-    export let entry: NDKEvent;
+    let { topic, entry }: { topic: string; entry: NDKEvent } = $props();
 
     const wordCount = entry.content.split(" ").length;
 </script>

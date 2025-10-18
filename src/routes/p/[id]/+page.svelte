@@ -2,61 +2,67 @@
 	import { page } from "$app/stores";
 	import { ndk } from "@/ndk.svelte";
     import MergeRequestItem from "./MergeRequestItem.svelte";
-	import type { Hexpubkey, NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
-	import type { Subscription } from "@nostr-dev-kit/svelte";
+	import type { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
 	import Name from "@/components/Name.svelte";
-	import { onDestroy } from "svelte";
-	import { getPubkeyFromUserId, maybePrettifyUrl } from "@/utils/userId-loader";
 
-    let id: string;
-    let user: NDKUser | undefined;
-    let error: string;
-    
-    async function preparePage(userId: string) {
-        getPubkeyFromUserId(userId)
-            .then(async (pubkey: Hexpubkey) => {
-                user = ndk.getUser({pubkey});
-                if (user) loadEventsForUser();
+    const id = $derived($page.params.id);
+    let user = $state<NDKUser | undefined>(undefined);
+    let error = $state<string | undefined>(undefined);
 
-                // if the userId was an npub or a partial pubkey, try to prettify the URL
-                maybePrettifyUrl(userId, pubkey, `/p/<userId>`);
-            })
-            .catch((e) => { error = e; });
-    }
+    $effect(() => {
+        user = undefined;
+        error = undefined;
 
-    $: if (id !== $page.params.id) {
-        id = $page.params.id;
-
-        preparePage(id);
-    }
+        (async () => {
+            try {
+                const fetchedUser = await ndk.$fetchUser(id);
+                if (!fetchedUser) {
+                    error = "Unable to find user: " + id;
+                    return;
+                }
+                user = fetchedUser;
+                loadEventsForUser();
+            } catch (e) {
+                error = String(e);
+            }
+        })();
+    });
 
     let entries = $state<NDKEvent[]>([]);
     let mergeRequests = $state<NDKEvent[]>([]);
-    let entriesSub: ReturnType<typeof ndk.subscribe> | undefined;
-    let mergeRequestsSub: ReturnType<typeof ndk.subscribe> | undefined;
+    let entriesSub: ReturnType<typeof ndk.$subscribe> | undefined;
+    let mergeRequestsSub: ReturnType<typeof ndk.$subscribe> | undefined;
 
     function loadEventsForUser() {
-        entriesSub = ndk.subscribe([{
-            kinds: [30818 as number],
-            authors: [user!.pubkey]
-        }], { subId: 'entries' });
+        entriesSub = ndk.$subscribe(() => ({
+            filters: [{
+                kinds: [30818 as number],
+                authors: [user!.pubkey]
+            }],
+            subId: 'entries'
+        }));
 
         entriesSub.on('event', (e: NDKEvent) => {
             entries = [...entries, e];
         });
 
-        mergeRequestsSub = ndk.subscribe([
-            { kinds: [818 as number], "#p": [user!.pubkey] },
-        ], { subId: 'mergeRequests' });
+        mergeRequestsSub = ndk.$subscribe(() => ({
+            filters: [
+                { kinds: [818 as number], "#p": [user!.pubkey] }
+            ],
+            subId: 'mergeRequests'
+        }));
 
         mergeRequestsSub.on('event', (e: NDKEvent) => {
             mergeRequests = [...mergeRequests, e];
         });
     }
 
-    onDestroy(() => {
-        entriesSub?.stop();
-        mergeRequestsSub?.stop();
+    $effect(() => {
+        return () => {
+            entriesSub?.stop();
+            mergeRequestsSub?.stop();
+        };
     });
 </script>
 

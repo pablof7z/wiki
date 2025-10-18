@@ -5,14 +5,18 @@
 	import { ndk } from "@/ndk.svelte";
 	import { Avatar } from '@nostr-dev-kit/svelte';
 
-    export let entry: NDKEvent;
+    let { entry }: { entry: NDKEvent } = $props();
+
+    console.log(entry)
 
     const topic = entry.dTag!;
 
-    const taggedByEvents = ndk.subscribe({
-        kinds: [30818 as number],
-        ...entry.filter()
-    });
+    const taggedByEvents = ndk.$subscribe(() => ({
+        filters: [{
+            kinds: [30818 as number],
+            ...entry.filter()
+        }]
+    }));
 
     const deferedToBy = derived(taggedByEvents, ($taggedByEvents) => {
         return Array.from($taggedByEvents).filter((e) => e.getMatchingTags("a").find(t => t[3] === "defer"));
@@ -24,10 +28,10 @@
         <UserName pubkey={entry.pubkey} />
 
         <div class="flex flex-row items-center gap-2 text-sm">
-        {#if $deferedToBy.length > 0}
+        {#if deferedToBy.length > 0}
             <span class="opacity-50">Supported by</span>
-            {#each $deferedToBy as defer (defer.pubkey)}
-                <Avatar ndk={ndk} pubkey={defer.pubkey} class="w-6 h-6 object-cover rounded-full flex-none" />
+            {#each deferedToBy as defer (defer.pubkey)}
+                <!-- <Avatar ndk={ndk} pubkey={defer.pubkey} class="w-6 h-6 object-cover rounded-full flex-none" /> -->
             {/each}
         {/if}
         </div>

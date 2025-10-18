@@ -1,63 +1,74 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { ndk } from "$lib/ndk.svelte";
-    import {type AddressPointer, decode} from "nostr-tools/nip19";
 	import Button from "@/components/ui/button/button.svelte";
 	import { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
-	import { onMount } from "svelte";
 	import Editor from "../Editor.svelte";
 	import { goto } from "$app/navigation";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
 	import EntryCard from "@/components/EntryCard.svelte";
 
-    export let naddr: string;
+    let { naddr }: { naddr: string } = $props();
 
     let events: Subscription<NDKEvent> | undefined;
-    let event: NDKEvent;
-    let newContent = false;
-    let title: string;
-    let category: string | undefined;
-    let saving = false;
+    let event = $state<NDKEvent | undefined>(undefined);
+    let newContent = $state(false);
+    let title = $state<string>("");
+    let category = $state<string | undefined>(undefined);
+    let saving = $state(false);
 
     let currentUser: NDKUser;
     ndk.signer?.user().then((user) => {
         currentUser = user;
     });
 
-    let mounted = false;
-    onMount(() => mounted = true)
+    let mounted = $state(true);
 
-    $: if ($page.params.naddr !== naddr && mounted) {
-        naddr = $page.params.naddr;
+    $effect(() => {
+        const currentNaddr = $page.params.naddr;
+        if (currentNaddr && currentNaddr !== naddr && mounted) {
+            if (events) events.stop();
 
-        const data = decode(naddr).data as AddressPointer;
-        const filter = {
-            kinds: [data.kind],
-            "#d": [data.identifier],
-            authors: [data.pubkey],
-        };
-
-        if (events) events.stop();
-
-        events = ndk.subscribe(filter);
-    }
-
-    $: if ($events) {
-        let _ = Array.from($events)
-            .sort((a, b) => {
-                const time = b.created_at! - a.created_at!
-                if (time !== 0) return time
-                return b.content.length - a.content.length
-            })[0];
-        if (_ && event?.id !== _.id) {
-            event = _;
-            content = event.content;
-            title = event.tagValue("title") || event.dTag!;
-            category = event.tagValue("c");
+            // First fetch the initial event
+            ndk.fetchEvent(currentNaddr).then((fetchedEvent) => {
+                if (fetchedEvent) {
+                    // Then subscribe to updates for this specific addressable event
+                    events = ndk.$subscribe(() => ({
+                        filters: [{
+                            kinds: [fetchedEvent.kind],
+                            "#d": [fetchedEvent.dTag!],
+                            authors: [fetchedEvent.pubkey],
+                        }],
+                        subId: 'edit-page-event'
+                    }));
+                }
+            });
         }
-    }
+    });
+
+    $effect(() => {
+        if (events) {
+            const eventsList = Array.from(events.events);
+            if (eventsList.length > 0) {
+                const latest = eventsList
+                    .sort((a, b) => {
+                        const time = b.created_at! - a.created_at!
+                        if (time !== 0) return time
+                        return b.content.length - a.content.length
+                    })[0];
+                if (latest && event?.id !== latest.id) {
+                    event = latest;
+                    content = latest.content;
+                    title = latest.tagValue("title") || latest.dTag!;
+                    category = latest.tagValue("c") ?? undefined;
+                }
+            }
+        }
+    });
 
     async function save() {
+        if (!event) return;
+
         saving = true;
         const prevKey = event.pubkey;
 
@@ -86,8 +97,8 @@
         }
     }
 
-    let content: string;
-    let preview = false;
+    let content = $state<string>("");
+    let preview = $state(false);
 
     function togglePreview() {
         preview = !preview;

@@ -1,27 +1,23 @@
 <script lang="ts">
 	import { ndk } from "@/ndk.svelte";
-	import { wot, networkFollows } from "@/stores/wot";
-	import type { NDKUser } from "@nostr-dev-kit/ndk";
+	import { getWoTScore, getWoTDistance } from "@/stores/wot";
 	import { Avatar } from "@nostr-dev-kit/svelte";
 	import Name from "@/components/Name.svelte";
 
-    export let pubkey: string | undefined = undefined;
-    export let user: NDKUser | undefined = undefined;
+    const { pubkey }: { pubkey: string } = $props();
 
-    if (pubkey && !user) user = ndk.getUser({pubkey})
+    const wotScore = $derived(getWoTScore(pubkey));
+    const wotDistance = $derived(getWoTDistance(pubkey));
 
-    if (!user) throw new Error('User not found')
-
-    console.log('networkFollows', $networkFollows)
-
-    const wotScore = $networkFollows.get(user.pubkey) ?? "";
+    // Display distance if available (more meaningful), otherwise score
+    const displayValue = $derived(wotDistance !== null ? `${wotDistance} hops` : (wotScore > 0 ? wotScore.toFixed(2) : ""));
 </script>
 
 <div class="flex flex-row items-center gap-2">
-    <Avatar ndk={ndk} {user} class="w-8 h-8 object-cover rounded-full flex-none" />
-    <Name ndk={ndk} {user} class="inline-block" />
+    <Avatar ndk={ndk} {pubkey} class="w-8 h-8 object-cover rounded-full flex-none" />
+    <Name ndk={ndk} {pubkey} class="inline-block" />
 
     <div class="text-xs opacity-50">
-        {wotScore}
+        {displayValue}
     </div>
 </div>

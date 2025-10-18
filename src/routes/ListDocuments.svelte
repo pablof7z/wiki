@@ -4,12 +4,15 @@
     import * as Card from "$lib/components/ui/card";
 	import { Avatar } from "@nostr-dev-kit/svelte";
 
-    export let currentUser: NDKUser;
+    let { currentUser }: { currentUser: NDKUser } = $props();
 
-    const docs = ndk.subscribe([
-        { kinds: [31111 as number], "#p": [currentUser.pubkey] },
-        { kinds: [31111 as number], authors: [currentUser.pubkey] }
-    ], { groupable: false });
+    const docs = ndk.$subscribe(() => ({
+        filters: [
+            { kinds: [31111 as number], "#p": [currentUser.pubkey] },
+            { kinds: [31111 as number], authors: [currentUser.pubkey] }
+        ],
+        groupable: false
+    }));
 </script>
 
 <Card.Root>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikifreedia - Dense List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #fafafa;
+            color: #000;
+            line-height: 1.4;
+        }
+
+        header {
+            background: #fff;
+            border-bottom: 2px solid #000;
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .version {
+            font-size: 0.7rem;
+            color: #666;
+            margin-left: 0.5rem;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .nav a {
+            color: #000;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav a:hover {
+            border-bottom: 2px solid #000;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .search-bar {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 0.75rem;
+            margin-bottom: 2rem;
+            display: flex;
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        .info-bar {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .info-bar strong {
+            font-weight: 700;
+        }
+
+        .section {
+            background: #fff;
+            border: 2px solid #000;
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            background: #000;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .section-content {
+            padding: 0;
+        }
+
+        .list-item {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: #f5f5f5;
+        }
+
+        .list-item-main {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+            color: #000;
+        }
+
+        .list-item-desc {
+            font-size: 0.85rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .list-item-meta {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .list-item-stats {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #666;
+            min-width: 100px;
+        }
+
+        .stat-number {
+            font-weight: 700;
+            color: #000;
+            display: block;
+        }
+
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+        }
+
+        .category-item {
+            padding: 0.75rem 1rem;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.85rem;
+        }
+
+        .category-item:nth-child(4n) {
+            border-right: none;
+        }
+
+        .category-item:hover {
+            background: #f0f0f0;
+        }
+
+        .category-name {
+            font-weight: 700;
+        }
+
+        .category-count {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .activity-list {
+            font-size: 0.85rem;
+        }
+
+        .activity-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background: #f5f5f5;
+        }
+
+        .activity-user {
+            font-weight: 700;
+        }
+
+        .activity-time {
+            color: #666;
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .category-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .category-item:nth-child(2n) {
+                border-right: none;
+            }
+
+            .list-item {
+                flex-direction: column;
+            }
+
+            .list-item-stats {
+                text-align: left;
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="logo">WIKIFREEDIA</span>
+                <span class="version">v0.0.8</span>
+            </div>
+            <nav class="nav">
+                <a href="#">[all entries]</a>
+                <a href="#">[new entry]</a>
+                <a href="#">[sign in]</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" placeholder="search wikifreedia...">
+            <button>GO</button>
+        </div>
+
+        <div class="info-bar">
+            <strong>940,707</strong> articles •
+            <strong>150+</strong> contributors •
+            <strong>23</strong> edits today •
+            Decentralized encyclopedia on Nostr
+        </div>
+
+        <div class="section">
+            <div class="section-header">FEATURED ARTICLES</div>
+            <div class="section-content">
+                <div class="list-item">
+                    <div class="list-item-main">
+                        <div class="list-item-title">Bitcoin</div>
+                        <div class="list-item-desc">A decentralized digital currency, without a central bank or single administrator, that can be sent from user to user on the peer-to-peer bitcoin network without the need for intermediaries.</div>
+                        <div class="list-item-meta">Last edited 2 minutes ago by Pablo</div>
+                    </div>
+                    <div class="list-item-stats">
+                        <span class="stat-number">234</span> edits<br>
+                        <span class="stat-number">12</span> contributors
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-main">
+                        <div class="list-item-title">Nostr</div>
+                        <div class="list-item-desc">A simple, open protocol that enables truly censorship-resistant and global value-for-value publishing on the web. The protocol is based on very simple and flexible event objects.</div>
+                        <div class="list-item-meta">Last edited 1 hour ago by Vitor</div>
+                    </div>
+                    <div class="list-item-stats">
+                        <span class="stat-number">156</span> edits<br>
+                        <span class="stat-number">8</span> contributors
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-main">
+                        <div class="list-item-title">Monazite</div>
+                        <div class="list-item-desc">A phosphate mineral containing rare-earth elements. Due to variability in composition, monazite is considered a group of minerals. The most common species is monazite-(Ce).</div>
+                        <div class="list-item-meta">Last edited 3 hours ago by Edward</div>
+                    </div>
+                    <div class="list-item-stats">
+                        <span class="stat-number">89</span> edits<br>
+                        <span class="stat-number">5</span> contributors
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-main">
+                        <div class="list-item-title">Islamic Calendar</div>
+                        <div class="list-item-desc">A lunar calendar consisting of 12 lunar months in a year of 354 or 355 days. It is used to determine the proper days of Islamic holidays and rituals.</div>
+                        <div class="list-item-meta">Last edited 5 hours ago by Satoshi</div>
+                    </div>
+                    <div class="list-item-stats">
+                        <span class="stat-number">67</span> edits<br>
+                        <span class="stat-number">4</span> contributors
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-main">
+                        <div class="list-item-title">Web of Trust</div>
+                        <div class="list-item-desc">A concept used in PGP, GnuPGP, and other OpenPGP-compatible systems to establish the authenticity of the binding between a public key and its owner.</div>
+                        <div class="list-item-meta">Last edited 1 day ago by Fiatjaf</div>
+                    </div>
+                    <div class="list-item-stats">
+                        <span class="stat-number">112</span> edits<br>
+                        <span class="stat-number">9</span> contributors
+                    </div>
+                </div>
+
+                <div class="list-item">
+                    <div class="list-item-main">
+                        <div class="list-item-title">House of Wisdom</div>
+                        <div class="list-item-desc">A major intellectual center during the Islamic Golden Age, founded in Baghdad by the Abbasid caliph Harun al-Rashid.</div>
+                        <div class="list-item-meta">Last edited 2 days ago by Jack</div>
+                    </div>
+                    <div class="list-item-stats">
+                        <span class="stat-number">78</span> edits<br>
+                        <span class="stat-number">6</span> contributors
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">CATEGORIES</div>
+            <div class="section-content">
+                <div class="category-list">
+                    <div class="category-item">
+                        <div class="category-name">Nostr</div>
+                        <div class="category-count">(342)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">People</div>
+                        <div class="category-count">(8,234)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">Knowledge</div>
+                        <div class="category-count">(12,456)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">Technology</div>
+                        <div class="category-count">(5,678)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">History</div>
+                        <div class="category-count">(9,123)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">Philosophy</div>
+                        <div class="category-count">(3,456)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">Cryptocurrency</div>
+                        <div class="category-count">(1,234)</div>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-name">Mathematics</div>
+                        <div class="category-count">(4,567)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">RECENT ACTIVITY</div>
+            <div class="section-content">
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <span class="activity-user">Pablo</span> edited Bitcoin
+                        <span class="activity-time">[2m ago]</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-user">Satoshi</span> created Islamic Calendar
+                        <span class="activity-time">[15m ago]</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-user">Vitor</span> updated Nostr
+                        <span class="activity-time">[1h ago]</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-user">Fiatjaf</span> edited Web of Trust
+                        <span class="activity-time">[2h ago]</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-user">Jack</span> created Charlie Kirk
+                        <span class="activity-time">[3h ago]</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-user">Edward</span> updated House of Wisdom
+                        <span class="activity-time">[5h ago]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
