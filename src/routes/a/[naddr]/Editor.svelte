@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { NDKEvent, type Hexpubkey, type NDKRelaySet, type NostrEvent, NDKUser } from '@nostr-dev-kit/ndk';
-	import { ndk } from '@/ndk.svelte';
+	import type { NDKEvent, NDKRelaySet } from '@nostr-dev-kit/ndk';
 	import Input from '@/components/ui/input/input.svelte';
 	import CategoryDropdown from './CategoryDropdown.svelte';
 	import TiptapEditor from '@/components/TiptapEditor.svelte';
@@ -12,15 +11,19 @@
         relaySet = undefined,
         content = $bindable(""),
         newContent = $bindable(false),
+        publishable = $bindable(true),
         title = $bindable(""),
-        category = $bindable(undefined)
+        category = $bindable(undefined),
+        statusMessage = $bindable("")
     }: {
         baseEvent: NDKEvent;
         relaySet?: NDKRelaySet | undefined;
         content?: string;
         newContent?: boolean;
+        publishable?: boolean;
         title?: string;
         category?: string | undefined;
+        statusMessage?: string;
     } = $props();
 
     $effect(() => {
@@ -28,24 +31,22 @@
             newContent = false;
         }
     });
-
-    $effect(() => {
-        let currentUser: NDKUser;
-        ndk.signer!.user().then((user) => currentUser = user);
-    });
-
-    let timer = 0;
-    setInterval(() => { timer++; }, 1000);
 </script>
 
 <Input bind:value={title} />
-{#if $wysiwyg}
-    <TiptapEditor bind:content={content} bind:newContent />
-{:else}
-    <textarea bind:value={content} class="w-full h-[80vh] p-6 font-mono" placeholder="Write in Djot format..." />
-{/if}
+<TiptapEditor
+	bind:content={content}
+	bind:newContent
+	bind:publishable
+	bind:statusMessage
+	preferRich={$wysiwyg}
+	placeholder="Write in Djot format..."
+/>
 <CategoryDropdown bind:value={category} />
 <label>
     <Switch bind:checked={$wysiwyg} />
     WYSIWYG Editor
 </label>
+{#if !publishable && statusMessage}
+	<p class="text-sm text-amber-600">{statusMessage}</p>
+{/if}

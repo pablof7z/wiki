@@ -3,17 +3,53 @@
 	import StarterKit from '@tiptap/starter-kit';
 	import Link from '@tiptap/extension-link';
 	import Placeholder from '@tiptap/extension-placeholder';
-	import { NostrExtension } from 'nostr-editor';
-	import { tiptapToDjot, djotToTiptap } from '@/utils/djot';
+	import { normalizeDTag } from '@/utils/dtag';
+	import {
+		analyzeMarkupForRichEditor,
+		tiptapToDjot,
+		type MarkupFormat,
+		type RichEditorAnalysis
+	} from '@/utils/markup';
+
+	const WikiAwareLink = Link.extend({
+		addAttributes() {
+			return {
+				...(this.parent?.() ?? {}),
+				wikiRef: {
+					default: null,
+					parseHTML: (element) => element.getAttribute('data-wiki-ref'),
+					renderHTML: (attributes) => {
+						if (typeof attributes.wikiRef !== 'string' || !attributes.wikiRef) {
+							return {};
+						}
+
+						return {
+							'data-wiki-ref': attributes.wikiRef,
+							href:
+								typeof attributes.href === 'string' && attributes.href
+									? attributes.href
+									: `/${normalizeDTag(attributes.wikiRef)}`
+						};
+					}
+				}
+			};
+		}
+	});
+
+	type EditorMode = 'rich' | 'raw';
 
 	let {
-		content = $bindable(""),
-		placeholder = "Write something...",
+		content = $bindable(''),
+		placeholder = 'Write something...',
 		toolbar = true,
 		autofocus = false,
 		enterSubmits = false,
+		preferRich = true,
 		newContent = $bindable(false),
-		class: className = "",
+		publishable = $bindable(true),
+		statusMessage = $bindable(''),
+		contentFormat = $bindable<MarkupFormat>('djot'),
+		class: className = '',
 		onsubmit = () => {},
 		onforceSubmit = () => {},
 		oncontentChanged = () => {},
@@ -25,7 +61,11 @@
 		toolbar?: boolean;
 		autofocus?: boolean;
 		enterSubmits?: boolean;
+		preferRich?: boolean;
 		newContent?: boolean;
+		publishable?: boolean;
+		statusMessage?: string;
+		contentFormat?: MarkupFormat;
 		class?: string;
 		onsubmit?: () => void;
 		onforceSubmit?: () => void;
@@ -34,10 +74,16 @@
 		onblur?: () => void;
 	} = $props();
 
-	let editor: Editor | null = null;
-	let editorElement: HTMLDivElement;
+	let editor = $state<Editor | null>(null);
+	let editorElement = $state<HTMLDivElement | null>(null);
+	let mode = $state<EditorMode>('raw');
+	let canUseRichMode = $state(false);
+	let forceRawMode = $state(false);
+	let pendingAnalysis = $state<RichEditorAnalysis | null>(null);
+	let suppressEditorUpdate = false;
+	let previousPreferRich = preferRich;
 
-	$effect(() => {
+	function buildEditor() {
 		editor = new Editor({
 			element: editorElement,
 			extensions: [
@@ -46,24 +92,25 @@
 						levels: [1, 2, 3, 4, 5, 6]
 					}
 				}),
-				Link.configure({
+				WikiAwareLink.configure({
+					autolink: true,
+					linkOnPaste: true,
 					openOnClick: false,
+					protocols: ['nostr'],
+					isAllowedUri: () => true,
 					HTMLAttributes: {
 						class: 'text-primary hover:underline'
 					}
 				}),
 				Placeholder.configure({
 					placeholder
-				}),
-				NostrExtension.configure({
-					link: { autolink: true }
 				})
 			],
 			editorProps: {
 				attributes: {
 					class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4'
 				},
-				handleKeyDown: (view, event) => {
+				handleKeyDown: (_view, event) => {
 					if (event.key === 'Enter') {
 						if (enterSubmits && !event.shiftKey && !event.metaKey) {
 							event.preventDefault();
@@ -85,28 +132,14 @@
 				}
 			},
 			autofocus,
-			onCreate: () => {
-				if (content) {
-					// Parse Djot content into editor
-					try {
-						const json = djotToTiptap(content);
-						editor?.commands.setContent(json);
-					} catch (e) {
-						console.error('Error parsing Djot content:', e);
-						editor?.commands.setContent(content);
-					}
-				}
-			},
 			onUpdate: ({ editor }) => {
-				// Convert editor content to Djot format
-				try {
-					const json = editor.getJSON();
-					content = tiptapToDjot(json);
-					newContent = true;
-					oncontentChanged();
-				} catch (e) {
-					console.error('Error converting to Djot:', e);
+				if (suppressEditorUpdate) {
+					return;
 				}
+
+				content = tiptapToDjot(editor.getJSON());
+				newContent = true;
+				oncontentChanged();
 			},
 			onFocus: () => {
 				onfocus();
@@ -115,15 +148,78 @@
 				onblur();
 			}
 		});
+	}
 
-		return () => {
-			if (editor) {
-				editor.destroy();
-			}
-		};
-	});
+	function destroyEditor() {
+		if (editor) {
+			editor.destroy();
+			editor = null;
+		}
+	}
 
-	// Helper functions for toolbar actions
+	function syncAnalysis(analysis: RichEditorAnalysis) {
+		pendingAnalysis = analysis;
+		publishable = analysis.publishable;
+		statusMessage = analysis.message ?? '';
+		contentFormat = analysis.format;
+		canUseRichMode = analysis.richSupported;
+
+		if (analysis.convertedFromLegacy && analysis.canonicalDjot && analysis.canonicalDjot !== content) {
+			content = analysis.canonicalDjot;
+			return;
+		}
+
+		if (preferRich && !analysis.richSupported) {
+			forceRawMode = true;
+		}
+
+		const shouldUseRich = preferRich && analysis.richSupported && !forceRawMode;
+		mode = shouldUseRich ? 'rich' : 'raw';
+
+		if (shouldUseRich && analysis.canonicalDjot && analysis.canonicalDjot !== content) {
+			content = analysis.canonicalDjot;
+		}
+	}
+
+	function setEditorContent() {
+		if (!editor || !pendingAnalysis?.json) {
+			return;
+		}
+
+		suppressEditorUpdate = true;
+		editor.commands.setContent(pendingAnalysis.json);
+		suppressEditorUpdate = false;
+	}
+
+	function useRichEditor() {
+		forceRawMode = false;
+	}
+
+	function isDirectLinkTarget(value: string) {
+		return /^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(value);
+	}
+
+	function setLinkFromPrompt() {
+		const value = window.prompt('Enter a URL, nostr URI, or wiki target:')?.trim();
+		if (!value) {
+			return;
+		}
+
+		if (isDirectLinkTarget(value)) {
+			editor?.chain().focus().setLink({ href: value }).run();
+			return;
+		}
+
+		editor
+			?.chain()
+			.focus()
+			.setLink({
+				href: `/${normalizeDTag(value)}`,
+				wikiRef: value
+			} as never)
+			.run();
+	}
+
 	function toggleBold() {
 		editor?.chain().focus().toggleBold().run();
 	}
@@ -132,15 +228,12 @@
 		editor?.chain().focus().toggleItalic().run();
 	}
 
-	function toggleCode() {
-		editor?.chain().focus().toggleCode().run();
+	function toggleStrike() {
+		editor?.chain().focus().toggleStrike().run();
 	}
 
-	function toggleLink() {
-		const url = window.prompt('Enter URL:');
-		if (url) {
-			editor?.chain().focus().setLink({ href: url }).run();
-		}
+	function toggleCode() {
+		editor?.chain().focus().toggleCode().run();
 	}
 
 	function toggleBlockquote() {
@@ -160,31 +253,48 @@
 	}
 
 	$effect(() => {
-		// Reactive update when content changes externally
-		if (editor && !editor.isFocused) {
-			const currentContent = tiptapToDjot(editor.getJSON());
-			if (currentContent !== content) {
-				try {
-					const json = djotToTiptap(content);
-					editor.commands.setContent(json);
-				} catch (e) {
-					console.error('Error updating content:', e);
-				}
-			}
+		if (preferRich !== previousPreferRich) {
+			forceRawMode = !preferRich;
+			previousPreferRich = preferRich;
 		}
+	});
+
+	$effect(() => {
+		syncAnalysis(analyzeMarkupForRichEditor(content));
+	});
+
+	$effect(() => {
+		if (mode !== 'rich') {
+			destroyEditor();
+			return;
+		}
+
+		if (!editorElement) {
+			return;
+		}
+
+		if (!editor) {
+			buildEditor();
+		}
+
+		setEditorContent();
+
+		return () => {
+			destroyEditor();
+		};
 	});
 </script>
 
 <div class="flex flex-col border rounded-xl {className}">
-	{#if toolbar}
+	{#if toolbar && mode === 'rich'}
 		<div class="toolbar border-b p-2 flex flex-wrap gap-1 items-center sticky top-0 bg-background/80 backdrop-blur-xl z-40">
 			<div class="flex gap-1 border-r pr-2">
 				<select
 					class="px-2 py-1 text-sm rounded hover:bg-accent"
-					on:change={(e) => {
-						const value = e.currentTarget.value;
+					onchange={(event) => {
+						const value = event.currentTarget.value;
 						if (value === 'p') setParagraph();
-						else if (value.startsWith('h')) setHeading(parseInt(value[1]) as any);
+						else if (value.startsWith('h')) setHeading(parseInt(value[1]) as 1 | 2 | 3 | 4 | 5 | 6);
 					}}
 				>
 					<option value="p">Paragraph</option>
@@ -200,7 +310,7 @@
 			<div class="flex gap-1">
 				<button
 					type="button"
-					on:click={toggleBold}
+					onclick={toggleBold}
 					class="px-3 py-1 rounded hover:bg-accent font-bold"
 					class:bg-accent={editor?.isActive('bold')}
 					aria-label="Bold"
@@ -209,7 +319,7 @@
 				</button>
 				<button
 					type="button"
-					on:click={toggleItalic}
+					onclick={toggleItalic}
 					class="px-3 py-1 rounded hover:bg-accent italic"
 					class:bg-accent={editor?.isActive('italic')}
 					aria-label="Italic"
@@ -218,7 +328,16 @@
 				</button>
 				<button
 					type="button"
-					on:click={toggleCode}
+					onclick={toggleStrike}
+					class="px-3 py-1 rounded hover:bg-accent line-through"
+					class:bg-accent={editor?.isActive('strike')}
+					aria-label="Strike"
+				>
+					S
+				</button>
+				<button
+					type="button"
+					onclick={toggleCode}
 					class="px-3 py-1 rounded hover:bg-accent font-mono text-sm"
 					class:bg-accent={editor?.isActive('code')}
 					aria-label="Inline code"
@@ -227,16 +346,16 @@
 				</button>
 				<button
 					type="button"
-					on:click={toggleLink}
+					onclick={setLinkFromPrompt}
 					class="px-3 py-1 rounded hover:bg-accent"
 					class:bg-accent={editor?.isActive('link')}
 					aria-label="Link"
 				>
-					🔗
+					Link
 				</button>
 				<button
 					type="button"
-					on:click={toggleBlockquote}
+					onclick={toggleBlockquote}
 					class="px-3 py-1 rounded hover:bg-accent"
 					class:bg-accent={editor?.isActive('blockquote')}
 					aria-label="Blockquote"
@@ -245,7 +364,7 @@
 				</button>
 				<button
 					type="button"
-					on:click={toggleCodeBlock}
+					onclick={toggleCodeBlock}
 					class="px-3 py-1 rounded hover:bg-accent"
 					class:bg-accent={editor?.isActive('codeBlock')}
 					aria-label="Code block"
@@ -256,63 +375,35 @@
 		</div>
 	{/if}
 
-	{#if $$slots.belowToolbar}
-		<slot name="belowToolbar" />
+	<div class="px-4 pt-3 text-sm text-muted-foreground flex flex-wrap gap-3 items-center">
+		<span>{mode === 'rich' ? 'Rich Djot editor' : 'Raw source editor'}</span>
+		<span>Detected: {contentFormat}</span>
+		{#if mode === 'raw' && canUseRichMode && preferRich}
+			<button type="button" class="text-primary hover:underline" onclick={useRichEditor}>
+				Switch to rich editor
+			</button>
+		{/if}
+	</div>
+
+	{#if statusMessage}
+		<div class="px-4 pb-3 text-sm" class:text-amber-600={!publishable}>
+			{statusMessage}
+		</div>
 	{/if}
 
-	<div bind:this={editorElement} class="editor-content"></div>
+	{#if mode === 'rich'}
+		<div bind:this={editorElement} class="min-h-[200px] {className}"></div>
+	{:else}
+		<textarea
+			bind:value={content}
+			class="w-full min-h-[320px] p-4 border-0 rounded-b-xl font-mono bg-transparent"
+			placeholder={placeholder}
+			onfocus={onfocus}
+			onblur={onblur}
+			oninput={() => {
+				newContent = true;
+				oncontentChanged();
+			}}
+		></textarea>
+	{/if}
 </div>
-
-<style>
-	:global(.editor-content .ProseMirror) {
-		min-height: 200px;
-	}
-
-	:global(.editor-content .ProseMirror p.is-editor-empty:first-child::before) {
-		color: #adb5bd;
-		content: attr(data-placeholder);
-		float: left;
-		height: 0;
-		pointer-events: none;
-	}
-
-	:global(.editor-content .ProseMirror:focus) {
-		outline: none;
-	}
-
-	:global(.editor-content code) {
-		@apply bg-muted px-1 py-0.5 rounded text-sm;
-	}
-
-	:global(.editor-content pre) {
-		@apply bg-muted p-4 rounded-lg my-4;
-	}
-
-	:global(.editor-content blockquote) {
-		@apply border-l-4 border-primary/50 pl-4 italic my-4;
-	}
-
-	:global(.editor-content h1) {
-		@apply text-3xl font-bold my-4;
-	}
-
-	:global(.editor-content h2) {
-		@apply text-2xl font-bold my-3;
-	}
-
-	:global(.editor-content h3) {
-		@apply text-xl font-bold my-3;
-	}
-
-	:global(.editor-content h4) {
-		@apply text-lg font-bold my-2;
-	}
-
-	:global(.editor-content ul, .editor-content ol) {
-		@apply my-4 pl-6;
-	}
-
-	:global(.editor-content li) {
-		@apply my-1;
-	}
-</style>

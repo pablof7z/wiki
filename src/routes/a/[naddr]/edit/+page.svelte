@@ -16,6 +16,8 @@
     let title = $state<string>("");
     let category = $state<string | undefined>(undefined);
     let saving = $state(false);
+    let publishable = $state(true);
+    let statusMessage = $state("");
 
     let currentUser: NDKUser;
     ndk.signer?.user().then((user) => {
@@ -109,13 +111,21 @@
     <div class="grid w-full items-center gap-4">
         {#key content}
             {#if !preview}
-                <Editor bind:content={event.content} baseEvent={event} bind:newContent bind:title bind:category />
+                <Editor
+                    bind:content={event.content}
+                    baseEvent={event}
+                    bind:newContent
+                    bind:publishable
+                    bind:statusMessage
+                    bind:title
+                    bind:category
+                />
             {:else}
                 <EntryCard {event} skipEdit={true} />
             {/if}
 
             <div class="flex flex-row gap-4">
-                <Button class="w-fit px-10" on:click={() => save()}>
+                <Button class="w-fit px-10" on:click={() => save()} disabled={!publishable || saving}>
                     {#if saving}
                         Saving...
                     {:else}
@@ -127,6 +137,10 @@
                     Preview
                 </Button>
             </div>
+
+            {#if !publishable && statusMessage}
+                <p class="text-sm text-amber-600">{statusMessage}</p>
+            {/if}
         {/key}
     </div>
 {:else}
