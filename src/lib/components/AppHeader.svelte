@@ -1,97 +1,124 @@
 <script lang="ts">
-	import { ndk } from "$lib/ndk.svelte";
-	import Login from "../../routes/Login.svelte";
-	import { Avatar } from "@nostr-dev-kit/svelte";
-	import { Button } from "@/components/ui/button";
-	import Input from "@/components/ui/input/input.svelte";
-	import { Plus } from "radix-icons-svelte";
-	import Sun from "svelte-radix/Sun.svelte";
-	import Moon from "svelte-radix/Moon.svelte";
-	import { toggleMode } from "mode-watcher";
-	import { goto } from "$app/navigation";
-	import { page } from "$app/stores";
-	import SettingsSheet from "./SettingsSheet.svelte";
+	import { page } from '$app/stores';
+	import { ndk } from '$lib/ndk.svelte';
+	import Login from '../../routes/Login.svelte';
+	import SettingsSheet from './SettingsSheet.svelte';
+	import { Avatar } from '@nostr-dev-kit/svelte';
+	import { Search, ArrowUpRight } from '@lucide/svelte';
+	import { Button } from '@/components/ui/button';
+	import Input from '@/components/ui/input/input.svelte';
+	import Sun from 'svelte-radix/Sun.svelte';
+	import Moon from 'svelte-radix/Moon.svelte';
+	import { toggleMode } from 'mode-watcher';
 
 	let currentUser = $derived(ndk.$sessions?.currentUser);
-	let searchQuery = $state("");
+	let searchQuery = $state('');
+	let isLanding = $derived(
+		$page.url.pathname === '/' &&
+			!$page.url.searchParams.get('q') &&
+			!$page.url.searchParams.get('c')
+	);
 
-	function newEntry() {
-		goto('/new');
-	}
+	$effect(() => {
+		searchQuery = $page.url.searchParams.get('q') || '';
+	});
 
 	function handleSearchKeyup(event: KeyboardEvent) {
 		if (event.key === 'Enter') search();
 	}
 
 	function search() {
-		if (!searchQuery.trim()) {
-			goto('/');
-			return;
-		}
 		const url = new URL($page.url);
 		url.pathname = '/';
-		url.searchParams.set('q', searchQuery);
+
+		if (searchQuery.trim()) {
+			url.searchParams.set('q', searchQuery.trim());
+		} else {
+			url.searchParams.delete('q');
+		}
+
+		url.searchParams.delete('c');
 		goto(url.toString());
 	}
 </script>
 
-<header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-	<div class="container flex h-16 items-center gap-4">
-		<div class="flex items-center gap-2 flex-shrink-0">
-			<a href="/" class="flex items-center">
-				<h2 class="text-xl font-bold text-orange-600">Wikifreedia</h2>
+<header class="sticky top-0 z-50 border-b border-white/8 bg-[rgba(6,6,6,0.78)] backdrop-blur-2xl">
+	<div class="page-shell">
+		<div class="flex min-h-[5.2rem] items-center gap-3 py-3 sm:py-4">
+			<a href="/" class="mr-2 flex min-w-0 items-center gap-3">
+				<div class="min-w-0">
+					<div class="display-wordmark text-[1.9rem] leading-none sm:text-[2.2rem]">
+						Wikifreedia
+					</div>
+					<p class="eyebrow mt-1 hidden sm:block">Open knowledge on Nostr</p>
+				</div>
 			</a>
-			<a href="/wikifreedia/npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft"
-				class="text-xs text-muted-foreground hover:text-foreground transition-colors">
-				v0.0.8
-			</a>
-		</div>
 
-		<div class="flex-1 max-w-md hidden md:flex">
-			<div class="flex flex-row gap-2 w-full">
-				<Input
-					bind:value={searchQuery}
-					on:keyup={handleSearchKeyup}
-					placeholder="Search..."
-					class="h-9"
-				/>
-				<Button
-					class="h-9"
-					variant="outline"
-					on:click={search}
-				>Go</Button>
-			</div>
-		</div>
-
-		<nav class="flex items-center gap-2 flex-shrink-0">
-			<Button href="/" variant="ghost" class="hidden sm:flex">
-				All Entries
-			</Button>
-
-			<Button on:click={newEntry} variant="default" size="default">
-				<Plus class="h-4 w-4 sm:mr-2" />
-				<span class="hidden sm:inline">New Entry</span>
-			</Button>
-
-			<Button on:click={toggleMode} variant="ghost" size="icon" class="hidden sm:flex">
-				<Sun
-					class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-				/>
-				<Moon
-					class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-				/>
-				<span class="sr-only">Toggle theme</span>
-			</Button>
-
-			<SettingsSheet />
-
-			{#if currentUser}
-				<Button href="/p/{currentUser.npub}" variant="ghost" size="icon" class="rounded-full">
-					<Avatar ndk={ndk} pubkey={currentUser.pubkey} class="h-8 w-8 rounded-full object-cover" />
-				</Button>
+			{#if !isLanding}
+				<div class="hidden flex-1 px-2 lg:flex">
+					<div
+						class="flex w-full max-w-2xl items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2"
+					>
+						<Search class="h-4 w-4 text-muted-foreground" />
+						<Input
+							bind:value={searchQuery}
+							on:keyup={handleSearchKeyup}
+							placeholder="Search living entries"
+							class="h-10 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+						/>
+						<button
+							type="button"
+							onclick={search}
+							class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
+							aria-label="Search"
+						>
+							<ArrowUpRight class="h-4 w-4" />
+						</button>
+					</div>
+				</div>
 			{:else}
-				<Login />
+				<div class="hidden flex-1 xl:block">
+					<p class="text-center text-sm text-muted-foreground">
+						Parallel articles, public authorship, community curation.
+					</p>
+				</div>
 			{/if}
-		</nav>
+
+			<nav class="ml-auto flex items-center gap-2">
+				{#if !isLanding}
+					<Button href="/" variant="ghost" class="hidden md:inline-flex">Explore</Button>
+				{/if}
+
+				<Button
+					on:click={toggleMode}
+					variant="ghost"
+					size="icon"
+					class="relative rounded-full border border-white/10 bg-transparent"
+				>
+					<Sun
+						class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+					/>
+					<Moon
+						class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+					/>
+					<span class="sr-only">Toggle theme</span>
+				</Button>
+
+				<SettingsSheet />
+
+				{#if currentUser}
+					<Button
+						href="/p/{currentUser.npub}"
+						variant="ghost"
+						size="icon"
+						class="rounded-full border border-white/10 bg-transparent"
+					>
+						<Avatar {ndk} pubkey={currentUser.pubkey} class="h-8 w-8 rounded-full object-cover" />
+					</Button>
+				{:else}
+					<Login />
+				{/if}
+			</nav>
+		</div>
 	</div>
 </header>

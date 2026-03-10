@@ -57,17 +57,23 @@ export const ndkReady = (async () => {
     const SigVerifyWorker = (await import('./sig-verify.worker.ts?worker')).default;
     sigVerifyWorker = new SigVerifyWorker();
     ndk.signatureVerificationWorker = sigVerifyWorker;
+  } catch (error) {
+    console.error("❌ Failed to initialize signature verification worker:", error);
+  }
 
+  try {
     // Initialize cache
     if (cacheAdapter) {
       await cacheAdapter.initializeAsync(ndk);
       console.log("✅ SQLite WASM cache initialized");
     }
-
-    ndk.connect();
   } catch (error) {
     console.error("❌ Failed to initialize cache:", error);
   }
+
+  void ndk.connect().catch((error) => {
+    console.error("❌ Failed to connect to relays:", error);
+  });
 })();
 
 /**

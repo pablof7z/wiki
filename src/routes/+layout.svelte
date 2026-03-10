@@ -1,21 +1,25 @@
 <script lang="ts">
-	import { ndk } from "$lib/ndk.svelte";
-	import "../app.css";
-	import { ModeWatcher } from "mode-watcher";
-	import { maxBodyWidth } from "@/stores/layout";
-	import AppHeader from "@/components/AppHeader.svelte";
-	import { wot, wotLoading, wotDepth } from "@/stores/wot";
-	import { NDKWoT } from "@nostr-dev-kit/wot";
-	import { get } from "svelte/store";
+	import { ndk } from '$lib/ndk.svelte';
+	import { page } from '$app/stores';
+	import '../app.css';
+	import { ModeWatcher } from 'mode-watcher';
+	import AppHeader from '@/components/AppHeader.svelte';
+	import { wot, wotLoading, wotDepth } from '@/stores/wot';
+	import { NDKWoT } from '@nostr-dev-kit/wot';
+	import { get } from 'svelte/store';
 
-	let connected = $state(false);
+	let { children } = $props();
+
 	let sessionStarted = $state(false);
 	let userRelays = $derived(Array.from(ndk.$sessions?.relayList?.keys() ?? []));
 	let connectedUserRelays = $state(0);
+	let showHeader = $derived(
+		!($page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c'))
+	);
 
 	// Build WoT graph when user session is ready
 	$effect(() => {
-		const activePubkey = ndk.$sessions?.pubkey;
+		const activePubkey = ndk.$sessions?.currentUser?.pubkey;
 		if (activePubkey && sessionStarted && !get(wot)) {
 			buildWoT(activePubkey);
 		}
@@ -33,7 +37,7 @@
 			wot.set(wotInstance);
 			console.log(`WoT graph built with ${wotInstance.size} users`);
 		} catch (error) {
-			console.error("Failed to build WoT graph:", error);
+			console.error('Failed to build WoT graph:', error);
 		} finally {
 			wotLoading.set(false);
 		}
@@ -52,17 +56,17 @@
 		}
 	});
 
-	// Initialize connection
-	ndk.connect(5000).then(() => {
-		connected = true;
-	});
-
-	// Set user when signer is available - NDK handles session automatically
+	// Initialize the signer session in the background once it is available.
 	$effect(() => {
-		if (connected && !sessionStarted && ndk.signer) {
-			ndk.signer.user().then(() => {
-				sessionStarted = true;
-			});
+		if (!sessionStarted && ndk.signer) {
+			ndk.signer
+				.user()
+				.then(() => {
+					sessionStarted = true;
+				})
+				.catch((error) => {
+					console.error('Failed to prepare signer session:', error);
+				});
 		}
 	});
 </script>
@@ -70,19 +74,11 @@
 <ModeWatcher />
 
 <div class="flex min-h-screen flex-col">
-	<AppHeader />
+	{#if showHeader}
+		<AppHeader />
+	{/if}
 
 	<main class="flex-1">
-		{#if !connected}
-			<div class="container flex items-center justify-center py-8">
-				<p class="text-muted-foreground">Connecting to relays...</p>
-			</div>
-		{:else if ndk.signer && !sessionStarted}
-			<div class="container flex items-center justify-center py-8">
-				<p class="text-muted-foreground">Preparing session...</p>
-			</div>
-		{:else}
-			<slot />
-		{/if}
+		{@render children()}
 	</main>
 </div>

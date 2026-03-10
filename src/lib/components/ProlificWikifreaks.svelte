@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { ndk } from "@/ndk.svelte";
-	import type { NDKEvent } from "@nostr-dev-kit/ndk";
-	import { Avatar } from "@nostr-dev-kit/svelte";
-	import Name from "@/components/Name.svelte";
+	import { ndk } from '@/ndk.svelte';
+	import type { NDKEvent } from '@nostr-dev-kit/ndk';
+	import { Avatar } from '@nostr-dev-kit/svelte';
+	import Name from '@/components/Name.svelte';
 
 	const WIKI_KIND = 30818;
 	const LIKE_KIND = 7;
@@ -15,18 +15,21 @@
 
 	// Subscribe to likes on wiki entries
 	const likes = ndk.$subscribe(() => ({
-		filters: [{ kinds: [LIKE_KIND], "#k": [WIKI_KIND.toString()], limit: 5000 }],
+		filters: [{ kinds: [LIKE_KIND], '#k': [WIKI_KIND.toString()], limit: 5000 }],
 		subId: 'prolific-likes'
 	}));
 
 	// Calculate activity scores per user
 	const topUsers = $derived.by(() => {
-		const activityByUser = new Map<string, {
-			pubkey: string;
-			entries: number;
-			likes: number;
-			totalScore: number;
-		}>();
+		const activityByUser = new Map<
+			string,
+			{
+				pubkey: string;
+				entries: number;
+				likes: number;
+				totalScore: number;
+			}
+		>();
 
 		// Count entries per user
 		if (entries.events) {
@@ -47,10 +50,10 @@
 		if (likes.events) {
 			likes.events.forEach((event: NDKEvent) => {
 				// Get the 'a' tag which references the wiki entry
-				const aTag = event.getMatchingTags("a")[0];
+				const aTag = event.getMatchingTags('a')[0];
 				if (aTag && aTag[1]) {
 					// Extract pubkey from the 'a' tag (format: kind:pubkey:dtag)
-					const parts = aTag[1].split(":");
+					const parts = aTag[1].split(':');
 					if (parts.length >= 2) {
 						const pubkey = parts[1];
 						const current = activityByUser.get(pubkey) || {
@@ -68,11 +71,11 @@
 
 		// Calculate total score and sort
 		const usersWithActivity = Array.from(activityByUser.values())
-			.map(user => ({
+			.map((user) => ({
 				...user,
 				totalScore: user.entries + user.likes
 			}))
-			.filter(user => user.totalScore > 0)
+			.filter((user) => user.totalScore > 0)
 			.sort((a, b) => b.totalScore - a.totalScore)
 			.slice(0, 10);
 
@@ -80,29 +83,39 @@
 	});
 </script>
 
-<div class="bg-white dark:bg-neutral-900 rounded-xl p-4 shadow-sm border border-neutral-200 dark:border-neutral-800">
-	<h3 class="text-lg font-semibold mb-4">Prolific Wikifreaks</h3>
+<div class="glass-panel rounded-[2rem] p-5 sm:p-6">
+	<p class="eyebrow mb-3">Community signal</p>
+	<h3 class="text-xl">Prolific Wikifreaks</h3>
+	<p class="mt-2 text-sm text-muted-foreground">
+		People generating the most writing and support around the network.
+	</p>
 
 	{#if topUsers.length === 0}
-		<div class="text-sm text-neutral-500">Loading activity...</div>
+		<div class="mt-6 text-sm text-muted-foreground">Loading activity...</div>
 	{:else}
-		<div class="flex flex-col gap-3">
+		<div class="mt-6 flex flex-col gap-3">
 			{#each topUsers as user, i (user.pubkey)}
 				<a
 					href="/p/{user.pubkey}"
-					class="flex flex-row items-center gap-3 hover:bg-neutral-100 dark:hover:bg-neutral-800 p-2 rounded-lg transition-colors"
+					class="glass-panel-soft flex flex-row items-center gap-3 rounded-[1.5rem] p-3 transition-colors hover:bg-white/[0.08]"
 				>
-					<div class="text-sm font-semibold text-neutral-500 w-6">
+					<div class="w-6 text-sm font-semibold text-muted-foreground">
 						#{i + 1}
 					</div>
-					<Avatar ndk={ndk} pubkey={user.pubkey} class="w-10 h-10 object-cover rounded-full flex-none" />
+					<Avatar
+						{ndk}
+						pubkey={user.pubkey}
+						class="h-10 w-10 rounded-full object-cover ring-1 ring-white/10 flex-none"
+					/>
 					<div class="flex flex-col flex-1 min-w-0">
-						<Name ndk={ndk} pubkey={user.pubkey} class="font-medium truncate" />
-						<div class="text-xs text-neutral-500">
-							{user.entries} {user.entries === 1 ? 'entry' : 'entries'} · {user.likes} {user.likes === 1 ? 'like' : 'likes'}
+						<Name {ndk} pubkey={user.pubkey} class="font-medium truncate" />
+						<div class="text-xs text-muted-foreground">
+							{user.entries}
+							{user.entries === 1 ? 'entry' : 'entries'} · {user.likes}
+							{user.likes === 1 ? 'like' : 'likes'}
 						</div>
 					</div>
-					<div class="text-sm font-semibold text-orange-500">
+					<div class="display-wordmark text-2xl">
 						{user.totalScore}
 					</div>
 				</a>

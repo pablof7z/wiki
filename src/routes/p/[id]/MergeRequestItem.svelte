@@ -1,51 +1,50 @@
 <script lang="ts">
-	import { ndk } from "@/ndk.svelte";
-	import type { NDKEvent } from "@nostr-dev-kit/ndk";
-	import Name from "@/components/Name.svelte";
-	import RequestAccepted from "../../pr/[naddr]/[pr]/RequestAccepted.svelte";
-	import { Button } from "@/components/ui/button";
-	import { nip19 } from "nostr-tools";
+	import { ndk } from '@/ndk.svelte';
+	import type { NDKEvent } from '@nostr-dev-kit/ndk';
+	import Name from '@/components/Name.svelte';
+	import RequestAccepted from '../../pr/[naddr]/[pr]/RequestAccepted.svelte';
+	import { Button } from '@/components/ui/button';
+	import { nip19 } from 'nostr-tools';
 
-    let { mergeRequest }: { mergeRequest: NDKEvent } = $props();
+	let { mergeRequest }: { mergeRequest: NDKEvent } = $props();
 
-    const aTag = mergeRequest.tagValue("a");
-    const [kind, pubkey, topic] = aTag.split(":") ?? [];
+	const aTag = mergeRequest.tagValue('a') ?? '';
+	const [kind = '30818', pubkey = '', topic = mergeRequest.dTag || 'unknown'] = aTag.split(':');
 
-    const naddr = nip19.naddrEncode({
-        pubkey,
-        kind: parseInt(kind),
-        identifier: topic
-    })
+	const naddr = nip19.naddrEncode({
+		pubkey,
+		kind: parseInt(kind),
+		identifier: topic
+	});
 
-    const responses = ndk.$subscribe(() => ({
-        filters: [{
-            kinds: [7, 819 as number],
-            ...mergeRequest.filter()
-        }]
-    }));
+	const responsesSub = ndk.$subscribe(() => ({
+		filters: [
+			{
+				kinds: [7, 819 as number],
+				...mergeRequest.filter()
+			}
+		]
+	}));
+
+	const responses = $derived(Array.from(responsesSub.events ?? []));
 </script>
 
-<div class="
-">
-    <a href="/p/{mergeRequest.pubkey}" class="font-bold">
-        <Name ndk={ndk} pubkey={mergeRequest.pubkey} />
-    </a>
-    sent a merge request of <Name ndk={ndk} pubkey={pubkey} />'s 
-    <a href="/{topic}/{pubkey}"><b>{topic}</b></a>
+<div class="space-y-3">
+	<a href="/p/{mergeRequest.pubkey}" class="font-bold">
+		<Name {ndk} pubkey={mergeRequest.pubkey} />
+	</a>
+	sent a merge request of <Name {ndk} {pubkey} />'s
+	<a href="/{topic}/{pubkey}"><b>{topic}</b></a>
 
-    <Button class="link"
-        href={"/pr/" + naddr + "/" + mergeRequest.id}
-    >
-        View
-    </Button>
-    
-    {#if mergeRequest.content.length > 0}
-        <blockquote class="text-xl p-6">{mergeRequest.content}</blockquote>
-    {/if}
+	<Button class="link" href={'/pr/' + naddr + '/' + mergeRequest.id}>View</Button>
 
-    {#each $responses as response, i (response.id)}
-        {#if response.kind === 819}
-            <RequestAccepted event={response} />
-        {/if}
-    {/each}
+	{#if mergeRequest.content.length > 0}
+		<blockquote class="text-xl p-6">{mergeRequest.content}</blockquote>
+	{/if}
+
+	{#each responses as response, i (response.id)}
+		{#if response.kind === 819}
+			<RequestAccepted event={response} />
+		{/if}
+	{/each}
 </div>

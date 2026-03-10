@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ndk } from "$lib/ndk.svelte";
+	import { ndk } from '$lib/ndk.svelte';
 	import {
 		wot,
 		wotSize,
@@ -9,51 +9,64 @@
 		wotMinScore,
 		wotIncludeUnknown,
 		wotRankAlgorithm
-	} from "@/stores/wot";
-	import * as Sheet from "@/components/ui/sheet";
-	import { Button } from "@/components/ui/button";
-	import { Input } from "@/components/ui/input";
-	import { Gear, Trash } from "radix-icons-svelte";
-	import { Separator } from "@/components/ui/separator";
-	import { RelayList } from "@nostr-dev-kit/svelte";
-	import { NDKEvent, type NostrEvent } from "@nostr-dev-kit/ndk";
-	import * as Select from "@/components/ui/select";
-	import { Label } from "@/components/ui/label";
-	import { Switch } from "@/components/ui/switch";
-	import { NDKWoT } from "@nostr-dev-kit/wot";
+	} from '@/stores/wot';
+	import * as Sheet from '@/components/ui/sheet';
+	import { Button } from '@/components/ui/button';
+	import { Input } from '@/components/ui/input';
+	import { Gear, Trash } from 'radix-icons-svelte';
+	import { Separator } from '@/components/ui/separator';
+	import { RelayList, createRelayManager } from '@nostr-dev-kit/svelte';
+	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
+	import * as Select from '@/components/ui/select';
+	import { Label } from '@/components/ui/label';
+	import { Switch } from '@/components/ui/switch';
+	import { NDKWoT } from '@nostr-dev-kit/wot';
 
 	let userFollows = $derived(ndk.$sessions?.follows ?? new Set());
+	let currentUser = $derived(ndk.$sessions?.currentUser);
 	let relayListMap = $derived(ndk.$sessions?.relayList ?? new Map());
 	let userRelays = $derived(Array.from(relayListMap.keys()));
-	let userRelayEvent = $derived(ndk.$sessions?.getSessionEvent(10102));
+	let userRelayEvent = $derived(ndk.$sessions?.getSessionEvent(10102 as any));
+	const relayManager = createRelayManager(ndk);
+	let allRelays = $derived(relayManager.getFilteredRelays());
 
 	let newRelay = $state('');
 	let savingNewRelay = $state(false);
 	let showAdd = $state(false);
 
 	async function save() {
+		if (!currentUser) return;
+
+		const relayUrl = newRelay.trim();
+		if (!relayUrl) return;
+
 		savingNewRelay = true;
-		ndk.addExplicitRelay(newRelay);
+		try {
+			ndk.addExplicitRelay(relayUrl);
 
-		const e = new NDKEvent(ndk, { kind: 10102 } as NostrEvent);
-		[...userRelays, newRelay].forEach(r => e.tags.push(["relay", r]));
-		await e.publish();
+			const e = new NDKEvent(ndk, { kind: 10102 } as NostrEvent);
+			Array.from(new Set([...userRelays, relayUrl])).forEach((r) => e.tags.push(['relay', r]));
+			await e.publish();
 
-		newRelay = '';
-		savingNewRelay = false;
-		showAdd = false;
+			newRelay = '';
+			showAdd = false;
+		} finally {
+			savingNewRelay = false;
+		}
 	}
 
 	function remove(relay: string) {
+		if (!currentUser) return;
+
 		ndk.pool.removeRelay(relay);
 
 		const e = new NDKEvent(ndk, { kind: 10102 } as NostrEvent);
-		userRelays.filter(r => r !== relay).forEach(r => e.tags.push(["relay", r]));
+		userRelays.filter((r) => r !== relay).forEach((r) => e.tags.push(['relay', r]));
 		e.publish();
 	}
 
 	async function rebuildWoT() {
-		const activePubkey = ndk.$sessions?.pubkey;
+		const activePubkey = ndk.$sessions?.currentUser?.pubkey;
 		if (!activePubkey) return;
 
 		wotLoading.set(true);
@@ -67,16 +80,26 @@
 			wot.set(wotInstance);
 			console.log(`WoT graph rebuilt with ${wotInstance.size} users`);
 		} catch (error) {
-			console.error("Failed to rebuild WoT graph:", error);
+			console.error('Failed to rebuild WoT graph:', error);
 		} finally {
 			wotLoading.set(false);
 		}
+	}
+
+	async function fetchRelayInfo(url: string) {
+		await relayManager.fetchNip11Info(url);
+	}
+
+	function copyRelayUrl(url: string) {
+		navigator.clipboard.writeText(url);
 	}
 </script>
 
 <Sheet.Root>
 	<Sheet.Trigger>
-		<button class="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+		<button
+			class="chrome-pill inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition-colors hover:bg-white/[0.08] hover:text-accent-foreground"
+		>
 			<Gear class="h-5 w-5" />
 			<span class="sr-only">Settings</span>
 		</button>
@@ -84,9 +107,7 @@
 	<Sheet.Content class="w-full sm:max-w-md overflow-y-auto">
 		<Sheet.Header>
 			<Sheet.Title>Settings</Sheet.Title>
-			<Sheet.Description>
-				Configure your Wikifreedia experience
-			</Sheet.Description>
+			<Sheet.Description>Configure your Wikifreedia experience</Sheet.Description>
 		</Sheet.Header>
 
 		<div class="space-y-6 py-6">
@@ -101,7 +122,7 @@
 						variant="outline"
 						size="sm"
 						on:click={rebuildWoT}
-						disabled={$wotLoading}
+						disabled={!currentUser || $wotLoading}
 					>
 						{#if $wotLoading}
 							Rebuilding...
@@ -139,9 +160,13 @@
 								<Label for="wot-depth" class="text-sm font-medium">
 									Network depth
 									<span class="text-xs text-muted-foreground block">
-										{$wotDepth === 1 ? 'Direct follows only' :
-										 $wotDepth === 2 ? 'Friends of friends' :
-										 $wotDepth === 3 ? '3 hops' : `${$wotDepth} hops`}
+										{$wotDepth === 1
+											? 'Direct follows only'
+											: $wotDepth === 2
+												? 'Friends of friends'
+												: $wotDepth === 3
+													? '3 hops'
+													: `${$wotDepth} hops`}
 									</span>
 								</Label>
 								<Input
@@ -171,7 +196,9 @@
 							</div>
 
 							<div class="flex items-center justify-between gap-4">
-								<Label for="wot-include-unknown" class="text-sm font-medium">Include unknown users</Label>
+								<Label for="wot-include-unknown" class="text-sm font-medium"
+									>Include unknown users</Label
+								>
 								<Switch id="wot-include-unknown" bind:checked={$wotIncludeUnknown} />
 							</div>
 
@@ -202,24 +229,28 @@
 						<h3 class="text-lg font-semibold">Your Wiki Relays</h3>
 						<p class="text-sm text-muted-foreground">Manage your personal relay list</p>
 					</div>
-					<div class="flex gap-2">
-						<Button variant="ghost" size="sm" on:click={() => showAdd = !showAdd}>
-							{showAdd ? 'Cancel' : 'Add'}
-						</Button>
-						{#if userRelayEvent}
-							<Button
-								variant="ghost"
-								size="sm"
-								href="https://njump.me/{userRelayEvent.encode()}"
-								target="_blank"
-							>
-								View
+					{#if currentUser}
+						<div class="flex gap-2">
+							<Button variant="ghost" size="sm" on:click={() => (showAdd = !showAdd)}>
+								{showAdd ? 'Cancel' : 'Add'}
 							</Button>
-						{/if}
-					</div>
+							{#if userRelayEvent}
+								<Button
+									variant="ghost"
+									size="sm"
+									href="https://njump.me/{userRelayEvent.encode()}"
+									target="_blank"
+								>
+									View
+								</Button>
+							{/if}
+						</div>
+					{/if}
 				</div>
 
-				{#if showAdd}
+				{#if !currentUser}
+					<p class="text-sm text-muted-foreground">Log in to manage your personal relay list.</p>
+				{:else if showAdd}
 					<div class="flex gap-2">
 						<Input
 							type="text"
@@ -237,9 +268,9 @@
 					</div>
 				{/if}
 
-				{#if userRelays.length === 0}
+				{#if currentUser && userRelays.length === 0}
 					<p class="text-sm text-muted-foreground">No relays configured</p>
-				{:else}
+				{:else if userRelays.length > 0}
 					<div class="space-y-2">
 						{#each userRelays as relay (relay)}
 							<div class="flex items-center gap-2 rounded-md border p-2">
@@ -266,7 +297,12 @@
 					<h3 class="text-lg font-semibold">All Relays</h3>
 					<p class="text-sm text-muted-foreground">View connection status</p>
 				</div>
-				<RelayList ndk={ndk} />
+				<RelayList
+					relays={allRelays}
+					onFetchInfo={fetchRelayInfo}
+					onCopyUrl={copyRelayUrl}
+					emptyMessage="No relays connected"
+				/>
 			</div>
 		</div>
 	</Sheet.Content>

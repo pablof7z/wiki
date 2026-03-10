@@ -1,112 +1,87 @@
 <script lang="ts">
-	import { page } from "$app/stores";
-	import { ndk } from "@/ndk.svelte";
-    import MergeRequestItem from "./MergeRequestItem.svelte";
-	import type { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
-	import Name from "@/components/Name.svelte";
+	import { page } from '$app/stores';
+	import { ndk } from '@/ndk.svelte';
+	import MergeRequestItem from './MergeRequestItem.svelte';
+	import Name from '@/components/Name.svelte';
+	import PageContainer from '@/components/PageContainer.svelte';
+	import type { NDKUser } from '@nostr-dev-kit/ndk';
 
-    const id = $derived($page.params.id);
-    let user = $state<NDKUser | undefined>(undefined);
-    let error = $state<string | undefined>(undefined);
+	const userId = $derived($page.params.id || '');
+	const user = ndk.$fetchUser(() => userId) as NDKUser | undefined;
 
-    $effect(() => {
-        user = undefined;
-        error = undefined;
+	const entriesSub = ndk.$subscribe(() => {
+		if (!user?.pubkey) return undefined;
 
-        (async () => {
-            try {
-                const fetchedUser = await ndk.$fetchUser(id);
-                if (!fetchedUser) {
-                    error = "Unable to find user: " + id;
-                    return;
-                }
-                user = fetchedUser;
-                loadEventsForUser();
-            } catch (e) {
-                error = String(e);
-            }
-        })();
-    });
+		return {
+			filters: [{ kinds: [30818 as number], authors: [user.pubkey] }],
+			subId: 'profile-entries'
+		};
+	});
 
-    let entries = $state<NDKEvent[]>([]);
-    let mergeRequests = $state<NDKEvent[]>([]);
-    let entriesSub: ReturnType<typeof ndk.$subscribe> | undefined;
-    let mergeRequestsSub: ReturnType<typeof ndk.$subscribe> | undefined;
+	const mergeRequestsSub = ndk.$subscribe(() => {
+		if (!user?.pubkey) return undefined;
 
-    function loadEventsForUser() {
-        entriesSub = ndk.$subscribe(() => ({
-            filters: [{
-                kinds: [30818 as number],
-                authors: [user!.pubkey]
-            }],
-            subId: 'entries'
-        }));
+		return {
+			filters: [{ kinds: [818 as number], '#p': [user.pubkey] }],
+			subId: 'profile-merge-requests'
+		};
+	});
 
-        entriesSub.on('event', (e: NDKEvent) => {
-            entries = [...entries, e];
-        });
-
-        mergeRequestsSub = ndk.$subscribe(() => ({
-            filters: [
-                { kinds: [818 as number], "#p": [user!.pubkey] }
-            ],
-            subId: 'mergeRequests'
-        }));
-
-        mergeRequestsSub.on('event', (e: NDKEvent) => {
-            mergeRequests = [...mergeRequests, e];
-        });
-    }
-
-    $effect(() => {
-        return () => {
-            entriesSub?.stop();
-            mergeRequestsSub?.stop();
-        };
-    });
+	const entries = $derived(Array.from(entriesSub.events ?? []));
+	const mergeRequests = $derived(Array.from(mergeRequestsSub.events ?? []));
 </script>
 
-<h1>
-    <Name {user} />
-</h1>
+<PageContainer class="space-y-6">
+	<section class="glass-panel rounded-[2.5rem] px-6 py-6 sm:px-8 sm:py-8">
+		<p class="eyebrow mb-3">Contributor profile</p>
+		<h1>
+			<Name {ndk} pubkey={user?.pubkey} npub={userId} />
+		</h1>
+	</section>
 
-{#if mergeRequests.length > 0}
-    {#each mergeRequests as mergeRequest, i (mergeRequest.id)}
-    <div class="
-        flex flex-row items-start gap-2 w-full p-2
-        {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
-    ">
-        <MergeRequestItem {mergeRequest} />
-    </div>
+	{#if mergeRequests.length > 0}
+		<section class="glass-panel-soft rounded-[2rem] px-6 py-5 sm:px-8">
+			<p class="eyebrow mb-3">Collaboration</p>
+			<h3 class="text-xl">Merge requests</h3>
 
-    {/each}
-{/if}
+			<div class="mt-5 space-y-3">
+				{#each mergeRequests as mergeRequest (mergeRequest.id)}
+					<div class="glass-panel-soft rounded-[1.4rem] p-3">
+						<MergeRequestItem {mergeRequest} />
+					</div>
+				{/each}
+			</div>
+		</section>
+	{/if}
 
-{#if entries.length > 0}
-	{entries.length} entries
+	{#if entries.length > 0}
+		<section class="glass-panel-soft rounded-[2rem] px-6 py-5 sm:px-8">
+			<p class="eyebrow mb-3">Published entries</p>
+			<h3 class="text-xl">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</h3>
 
-	{#each entries as entry, i (entry.id)}
-		<div class="
-            flex flex-row items-start gap-2 w-full p-2
-            {i%2===0 ? 'bg-black/10' : 'dark:bg-black/20'}
-        ">
-			<a href="/{entry.dTag}/{entry.author.npub}" class="grow flex flex-col items-start">
-				{entry.dTag}
-				<div class="text-xs text-neutral-500">
-					{entry.onRelays?.map(r => r.url).join(", ")}
-				</div>
-			</a>
+			<div class="mt-5 space-y-3">
+				{#each entries as entry (entry.id)}
+					<div
+						class="glass-panel-soft flex flex-col gap-3 rounded-[1.4rem] p-4 sm:flex-row sm:items-center sm:justify-between"
+					>
+						<a href="/{entry.dTag}/{entry.author.npub}" class="grow flex flex-col items-start">
+							<span class="display-wordmark text-2xl">{entry.dTag}</span>
+							<div class="text-xs text-muted-foreground">
+								{entry.onRelays?.map((relay) => relay.url).join(', ')}
+							</div>
+						</a>
 
-            {#if entry.getMatchingTags("a").find(t => t[3] === "defer")}
-                <div class="text-xs text-orange-500 font-medium">
-                    Defered
-                </div>
-            {:else}
-                <div class="text-sm text-neutral-500 flex flex-col justify-end text-right">
-                    <span>{entry.created_at}</span>
-                    <span>{entry.content.split(" ").length} words</span>
-                </div>
-            {/if}
-		</div>
-	{/each}
-{/if}
+						{#if entry.getMatchingTags('a').find((tag) => tag[3] === 'defer')}
+							<div class="text-xs uppercase tracking-[0.25em] text-muted-foreground">Deferred</div>
+						{:else}
+							<div class="flex flex-col justify-end text-right text-sm text-muted-foreground">
+								<span>{entry.created_at}</span>
+								<span>{entry.content.split(' ').length} words</span>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</section>
+	{/if}
+</PageContainer>

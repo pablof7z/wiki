@@ -6,6 +6,55 @@
 
 import type { JSONContent } from '@tiptap/core';
 
+export type DjotHeading = {
+	level: number;
+	text: string;
+	id: string;
+};
+
+export function slugifyHeading(value: string): string {
+	const slug = value
+		.toLowerCase()
+		.normalize('NFKD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^\p{L}\p{N}]+/gu, '-')
+		.replace(/^-+|-+$/g, '');
+
+	return slug || 'section';
+}
+
+function stripInlineDjot(text: string): string {
+	return text
+		.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+		.replace(/\{-(.*?)-\}/g, '$1')
+		.replace(/[*_`~]/g, '')
+		.replace(/nostr:([a-z0-9]+)/gi, '$1')
+		.trim();
+}
+
+export function extractDjotHeadings(djot: string): DjotHeading[] {
+	const headings: DjotHeading[] = [];
+	const slugCounts = new Map<string, number>();
+
+	for (const line of djot.split('\n')) {
+		const match = line.match(/^(#{1,6})\s+(.+)$/);
+		if (!match) continue;
+
+		const text = stripInlineDjot(match[2]);
+		const baseId = slugifyHeading(text);
+		const seen = slugCounts.get(baseId) ?? 0;
+		slugCounts.set(baseId, seen + 1);
+
+		headings.push({
+			level: match[1].length,
+			text,
+			id: seen === 0 ? baseId : `${baseId}-${seen + 1}`
+		});
+	}
+
+	return headings;
+}
+
 /**
  * Convert Tiptap JSON to Djot format
  */
@@ -50,7 +99,12 @@ function serializeNode(node: JSONContent, inList = false): string {
 		return text;
 	}
 
-	const content = node.content?.map(child => serializeNode(child, node.type === 'bulletList' || node.type === 'orderedList')).join('') || '';
+	const content =
+		node.content
+			?.map((child) =>
+				serializeNode(child, node.type === 'bulletList' || node.type === 'orderedList')
+			)
+			.join('') || '';
 
 	switch (node.type) {
 		case 'doc':

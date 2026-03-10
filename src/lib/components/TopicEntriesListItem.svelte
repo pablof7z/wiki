@@ -1,40 +1,42 @@
 <script lang="ts">
-	import { derived } from 'svelte/store';
-	import type { NDKEvent } from "@nostr-dev-kit/ndk";
-	import UserName from "./UserName.svelte";
-	import { ndk } from "@/ndk.svelte";
-	import { Avatar } from '@nostr-dev-kit/svelte';
+	import type { NDKEvent } from '@nostr-dev-kit/ndk';
+	import UserName from './UserName.svelte';
+	import { ndk } from '@/ndk.svelte';
 
-    let { entry }: { entry: NDKEvent } = $props();
+	let { entry }: { entry: NDKEvent } = $props();
 
-    console.log(entry)
+	const topic = entry.dTag!;
 
-    const topic = entry.dTag!;
+	const taggedByEvents = ndk.$subscribe(() => ({
+		filters: [
+			{
+				kinds: [30818 as number],
+				...entry.filter()
+			}
+		]
+	}));
 
-    const taggedByEvents = ndk.$subscribe(() => ({
-        filters: [{
-            kinds: [30818 as number],
-            ...entry.filter()
-        }]
-    }));
-
-    const deferedToBy = derived(taggedByEvents, ($taggedByEvents) => {
-        return Array.from($taggedByEvents).filter((e) => e.getMatchingTags("a").find(t => t[3] === "defer"));
-    });
+	const deferedToBy = $derived.by(() => {
+		return Array.from(taggedByEvents.events ?? []).filter((taggedEvent) =>
+			taggedEvent.getMatchingTags('a').find((tag) => tag[3] === 'defer')
+		);
+	});
 </script>
 
-<div class="flex flex-row items-center justify-between w-full">
-    <a href="/{encodeURIComponent(topic)}/{entry.author.npub}" class="grow flex flex-row items-start justify-between">
-        <UserName pubkey={entry.pubkey} />
+<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+	<a href="/{encodeURIComponent(topic)}/{entry.author.npub}" class="min-w-0 grow">
+		<UserName pubkey={entry.pubkey} />
+	</a>
 
-        <div class="flex flex-row items-center gap-2 text-sm">
-        {#if deferedToBy.length > 0}
-            <span class="opacity-50">Supported by</span>
-            {#each deferedToBy as defer (defer.pubkey)}
-                <!-- <Avatar ndk={ndk} pubkey={defer.pubkey} class="w-6 h-6 object-cover rounded-full flex-none" /> -->
-            {/each}
-        {/if}
-        </div>
-    </a>
-    <a href="/a/{entry.encode()}" class="text-xs opacity-50 shrink">Perma-link</a>
+	<div class="flex flex-wrap items-center gap-x-4 gap-y-1 sm:justify-end">
+		{#if deferedToBy.length > 0}
+			<span class="text-sm text-muted-foreground">
+				Supported by {deferedToBy.length} defer{deferedToBy.length === 1 ? '' : 's'}
+			</span>
+		{/if}
+
+		<a href="/a/{entry.encode()}" class="subtle-link shrink text-xs uppercase tracking-[0.24em]">
+			Perma-link
+		</a>
+	</div>
 </div>
