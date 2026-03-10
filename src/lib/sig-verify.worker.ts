@@ -1,5 +1,5 @@
-import { schnorr } from "@noble/curves/secp256k1";
-import { sha256 } from "@noble/hashes/sha256";
+import { schnorr } from "@noble/curves/secp256k1.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 
 /**
  * Web worker for signature verification.
@@ -16,8 +16,9 @@ globalThis.onmessage = (msg: MessageEvent) => {
     queueMicrotask(() => {
         const eventHash = sha256(new TextEncoder().encode(serialized));
 
-        // Convert hex id to Uint8Array for comparison
-        const idBytes = new Uint8Array(id.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+        const idBytes = hexToBytes(id);
+        const sigBytes = hexToBytes(sig);
+        const pubkeyBytes = hexToBytes(pubkey);
 
         // Verify the event hash matches the id
         if (!compareTypedArrays(eventHash, idBytes)) {
@@ -27,7 +28,7 @@ globalThis.onmessage = (msg: MessageEvent) => {
 
         // Verify the signature
         try {
-            const result = schnorr.verify(sig, eventHash, pubkey);
+            const result = schnorr.verify(sigBytes, eventHash, pubkeyBytes);
             postMessage([id, result]);
         } catch (error) {
             console.error("Signature verification error:", error);
@@ -46,4 +47,9 @@ function compareTypedArrays(arr1: Uint8Array, arr2: Uint8Array): boolean {
         }
     }
     return true;
+}
+
+function hexToBytes(value: string): Uint8Array {
+    const pairs = value.match(/.{1,2}/g) ?? [];
+    return new Uint8Array(pairs.map((pair) => parseInt(pair, 16)));
 }
