@@ -1,7 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
+const config = {
   plugins: [sveltekit()],
   test: {
     include: ['src/**/*.{test,spec}.{js,ts}']
@@ -11,7 +10,6 @@ export default defineConfig({
       include: [/@repo-ui/, /node_modules/],
     },
   },
-  define: {
-    'process.env': process.env
-  }
-});
+};
+
+export default config;
