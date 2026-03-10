@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 	import { NDKEvent, type Hexpubkey, type NDKEventId, type NostrEvent } from '@nostr-dev-kit/ndk';
 	import { Avatar } from '@nostr-dev-kit/svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
@@ -74,7 +74,7 @@
 		<div class="chrome-pill flex items-center gap-3 rounded-full border border-white/8 px-2 py-2">
 			{#if !currentUserHasReacted}
 				<Button
-					on:click={() => react(type)}
+					onclick={() => react(type)}
 					variant="ghost"
 					size="icon"
 					class="h-10 w-10 rounded-full bg-white/[0.04] hover:bg-white/[0.08]"

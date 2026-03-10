@@ -1,6 +1,6 @@
 <script lang="ts">
-	import TiptapEditor from '@/components/TiptapEditor.svelte';
-	import DjotRenderer from '@/components/DjotRenderer.svelte';
+	import TiptapEditor from '$lib/components/TiptapEditor.svelte';
+	import DjotRenderer from '$lib/components/DjotRenderer.svelte';
 
 	let content = $state(`# Welcome to Tiptap with Djot
 

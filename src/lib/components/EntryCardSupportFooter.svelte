@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { ndk } from '$lib/ndk.svelte';
-	import Button from '@/components/ui/button/button.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
-	import { maxBodyWidth } from '@/stores/layout';
+	import { maxBodyWidth } from '$lib/stores/layout';
 
 	let { event }: { event: NDKEvent } = $props();
 
@@ -66,7 +66,7 @@
 		<div class="glass-panel rounded-[1.75rem] px-4 py-4 sm:px-6">
 			{#if currentUserEntry && !userDefersToEntry}
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-					<Button on:click={defer}>Defer</Button>
+					<Button onclick={defer}>Defer</Button>
 					<div class="flex flex-col items-start">
 						<span class="font-medium">
 							Do you consider this version better than yours for <i>{event.dTag}</i>?

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { NDKEvent } from '@nostr-dev-kit/ndk';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
-	import { Button } from '@/components/ui/button';
+	import { Button } from '$lib/components/ui/button';
 	import { SvelteMap } from 'svelte/reactivity';
 
 	let { entries = undefined }: { entries?: Subscription<NDKEvent> } = $props();

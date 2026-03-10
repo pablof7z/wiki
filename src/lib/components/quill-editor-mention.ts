@@ -1,6 +1,6 @@
 import { searchUser } from '$lib/utils/search/user';
 import type { NDKSvelte } from '@nostr-dev-kit/svelte';
-import { prettifyNip05 } from '@/utils/nip05';
+import { prettifyNip05 } from '$lib/utils/nip05';
 
 export default function (ndk: NDKSvelte) {
   return {

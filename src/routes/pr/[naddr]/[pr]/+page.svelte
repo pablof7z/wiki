@@ -1,14 +1,14 @@
 <script lang="ts">
-    import EventContent from "@/components/EventContent.svelte";
-	import EntryCard from '@/components/EntryCard.svelte';
+    import EventContent from "$lib/components/EventContent.svelte";
+	import EntryCard from '$lib/components/EntryCard.svelte';
 	import { Avatar } from '@nostr-dev-kit/svelte';
-	import Name from '@/components/Name.svelte';
+	import Name from '$lib/components/Name.svelte';
 	import { page } from "$app/stores";
-	import { ndk } from "@/ndk.svelte";
+	import { ndk } from "$lib/ndk.svelte";
 	import { NDKEvent, NDKSubscriptionCacheUsage, type NostrEvent } from "@nostr-dev-kit/ndk";
-	import { maxBodyWidth } from "@/stores/layout";
-	import Button from "@/components/ui/button/button.svelte";
-    import * as Card from "@/components/ui/card";
+	import { maxBodyWidth } from "$lib/stores/layout";
+	import Button from "$lib/components/ui/button/button.svelte";
+    import * as Card from "$lib/components/ui/card";
     import * as Alert from "$lib/components/ui/alert";
 	import Editor from "../../../a/[naddr]/Editor.svelte";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
@@ -17,20 +17,23 @@
 
     let { naddr, pr }: { naddr: string; pr: string } = $props();
 
-    let originalEvent: NDKEvent | null | undefined;
-    let prEvent: NDKEvent | null | undefined;
-    let proposedVersion: NDKEvent | null | undefined;
+    let originalEvent = $state<NDKEvent | null | undefined>(undefined);
+    let prEvent = $state<NDKEvent | null | undefined>(undefined);
+    let proposedVersion = $state<NDKEvent | null | undefined>(undefined);
 
-    let diff: any;
-    let results: Subscription<NDKEvent> | undefined;
+    let diff = $state<any>(undefined);
+    let results = $state<Subscription<NDKEvent> | undefined>(undefined);
 
     $effect(() => {
-        if (originalEvent && prEvent && !results) {
+        const currentOriginalEvent = originalEvent;
+        const currentPrEvent = prEvent;
+
+        if (currentOriginalEvent && currentPrEvent && !results) {
             results = ndk.$subscribe(() => ({
                 filters: [{
                     kinds: [7, 819 as number],
-                    authors: [originalEvent.pubkey],
-                    ...prEvent.filter()
+                    authors: [currentOriginalEvent.pubkey],
+                    ...currentPrEvent.filter()
                 }]
             }));
         }
@@ -45,33 +48,58 @@
     });
 
     $effect(() => {
-        if ($page.params.naddr !== naddr || $page.params.pr !== pr) {
-            naddr = $page.params.naddr;
-            diff = undefined;
-            pr = $page.params.pr;
-            originalEvent = undefined;
-            prEvent = undefined;
-            proposedVersion = undefined;
-            results?.stop(); results = undefined;
+        const nextNaddr = $page.params.naddr;
+        const nextPr = $page.params.pr;
 
-            ndk.fetchEvent(naddr).then((event) => {
-                originalEvent = event;
-            });
-
-            ndk.fetchEvent(pr).then((event) => {
-                prEvent = event;
-
-                console.log(event.rawEvent());
-                const eTagFork = event.getMatchingTags("e").find(t => t[3] === "fork")?.[1];
-                console.log('asking for fork version', eTagFork);
-                if (eTagFork) {
-                    console.log('fetching fork', eTagFork);
-                    ndk.fetchEvents({ids: [eTagFork]}, {cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY}).then((event) => {
-                        proposedVersion = Array.from(event)?.[0];
-                    });
-                }
-            });
+        if (!nextNaddr || !nextPr) return;
+        if (
+            nextNaddr === naddr &&
+            nextPr === pr &&
+            (originalEvent !== undefined ||
+                prEvent !== undefined ||
+                proposedVersion !== undefined ||
+                results !== undefined ||
+                diff !== undefined)
+        ) {
+            return;
         }
+
+        naddr = nextNaddr;
+        diff = undefined;
+        pr = nextPr;
+        originalEvent = undefined;
+        prEvent = undefined;
+        proposedVersion = undefined;
+        results?.stop();
+        results = undefined;
+
+        ndk.fetchEvent(naddr).then((event) => {
+            originalEvent = event ?? null;
+        });
+
+        ndk.fetchEvent(pr).then((event) => {
+            if (!event) {
+                prEvent = null;
+                return;
+            }
+
+            prEvent = event;
+
+            console.log(event.rawEvent());
+            const eTagFork = event.getMatchingTags("e").find((tag) => tag[3] === "fork")?.[1];
+            console.log('asking for fork version', eTagFork);
+            if (eTagFork) {
+                console.log('fetching fork', eTagFork);
+                ndk
+                    .fetchEvents(
+                        { ids: [eTagFork] },
+                        { cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY }
+                    )
+                    .then((events) => {
+                        proposedVersion = Array.from(events)[0];
+                    });
+            }
+        });
     });
 
     $effect(() => {
@@ -82,9 +110,9 @@
         };
     });
 
-    let editView = false;
-    let content: string;
-    let title: string;
+    let editView = $state(false);
+    let content = $state('');
+    let title = $state('');
 
     function approve() {
         if (!proposedVersion) return;
@@ -117,7 +145,7 @@
         await acceptedEvent.publish();
     }
 
-    let showAll = false;
+    let showAll = $state(false);
 </script>
 
 {#if originalEvent && prEvent && proposedVersion}
@@ -138,8 +166,8 @@
         </Alert.Root>
     {/if}
 
-    {#if $results}
-        {#each $results as result}
+    {#if results?.events.length}
+        {#each results.events as result}
             {#if result.kind === 819}
                 <RequestAccepted event={result} />
             {/if}
@@ -148,7 +176,7 @@
 
     {#if diff}
 
-        <Button on:click={() => showAll = !showAll}>
+        <Button onclick={() => showAll = !showAll}>
             Show All
         </Button>
         <div class="grid grid-cols-2 gap-4">
@@ -181,7 +209,7 @@
                     <div class="grid w-full items-center gap-4">
                         <Editor bind:content={content} baseEvent={originalEvent} bind:title />
 
-                        <Button class="w-fit px-10" on:click={save}>
+                        <Button class="w-fit px-10" onclick={save}>
                             Save
                         </Button>
                     </div>
@@ -203,10 +231,10 @@
             <Card.Footer>
                 <div class="flex flex-row gap-4">
                     <div class="w-1/2">
-                        <Button on:click={approve}>Edit / Approve</Button>
+                        <Button onclick={approve}>Edit / Approve</Button>
                     </div>
                     <div class="w-1/2">
-                        <Button on:click={() => {}} variant="secondary" class="w-full">Reject</Button>
+                        <Button onclick={() => {}} variant="secondary" class="w-full">Reject</Button>
                     </div>
                 </div>
             </Card.Footer>

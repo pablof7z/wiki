@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { ndk } from '$lib/ndk.svelte';
 	import Login from '../../routes/Login.svelte';
 	import SettingsSheet from './SettingsSheet.svelte';
 	import { Avatar } from '@nostr-dev-kit/svelte';
 	import { Search, ArrowUpRight } from '@lucide/svelte';
-	import { Button } from '@/components/ui/button';
-	import Input from '@/components/ui/input/input.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import Input from '$lib/components/ui/input/input.svelte';
 	import Sun from 'svelte-radix/Sun.svelte';
 	import Moon from 'svelte-radix/Moon.svelte';
 	import { toggleMode } from 'mode-watcher';
@@ -62,7 +63,7 @@
 						<Search class="h-4 w-4 text-muted-foreground" />
 						<Input
 							bind:value={searchQuery}
-							on:keyup={handleSearchKeyup}
+							onkeyup={handleSearchKeyup}
 							placeholder="Search living entries"
 							class="h-10 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
 						/>
@@ -90,7 +91,7 @@
 				{/if}
 
 				<Button
-					on:click={toggleMode}
+					onclick={toggleMode}
 					variant="ghost"
 					size="icon"
 					class="relative rounded-full border border-white/10 bg-transparent"

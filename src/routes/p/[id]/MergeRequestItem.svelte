@@ -1,21 +1,31 @@
 <script lang="ts">
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
-	import Name from '@/components/Name.svelte';
+	import Name from '$lib/components/Name.svelte';
 	import RequestAccepted from '../../pr/[naddr]/[pr]/RequestAccepted.svelte';
-	import { Button } from '@/components/ui/button';
+	import { Button } from '$lib/components/ui/button';
 	import { nip19 } from 'nostr-tools';
 
 	let { mergeRequest }: { mergeRequest: NDKEvent } = $props();
 
-	const aTag = mergeRequest.tagValue('a') ?? '';
-	const [kind = '30818', pubkey = '', topic = mergeRequest.dTag || 'unknown'] = aTag.split(':');
+	const mergeTarget = $derived.by(() => {
+		const aTag = mergeRequest.tagValue('a') ?? '';
+		const [kind = '30818', pubkey = '', topic = mergeRequest.dTag || 'unknown'] = aTag.split(':');
 
-	const naddr = nip19.naddrEncode({
-		pubkey,
-		kind: parseInt(kind),
-		identifier: topic
+		return {
+			pubkey,
+			kind: Number.parseInt(kind, 10) || 30818,
+			topic
+		};
 	});
+
+	const naddr = $derived(
+		nip19.naddrEncode({
+			pubkey: mergeTarget.pubkey,
+			kind: mergeTarget.kind,
+			identifier: mergeTarget.topic
+		})
+	);
 
 	const responsesSub = ndk.$subscribe(() => ({
 		filters: [
@@ -33,8 +43,8 @@
 	<a href="/p/{mergeRequest.pubkey}" class="font-bold">
 		<Name {ndk} pubkey={mergeRequest.pubkey} />
 	</a>
-	sent a merge request of <Name {ndk} {pubkey} />'s
-	<a href="/{topic}/{pubkey}"><b>{topic}</b></a>
+	sent a merge request of <Name {ndk} pubkey={mergeTarget.pubkey} />'s
+	<a href="/{mergeTarget.topic}/{mergeTarget.pubkey}"><b>{mergeTarget.topic}</b></a>
 
 	<Button class="link" href={'/pr/' + naddr + '/' + mergeRequest.id}>View</Button>
 

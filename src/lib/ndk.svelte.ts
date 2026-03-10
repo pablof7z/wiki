@@ -15,9 +15,7 @@ const DEFAULT_RELAYS = [
 // Initialize SQLite WASM cache with worker mode (browser only)
 const cacheAdapter = browser ? new NDKCacheSqliteWasm({
   dbName: "wikifreedia-cache",
-  useWorker: true,
   workerUrl: "/worker.js",
-  wasmUrl: "/sql-wasm.wasm",
 }) : undefined;
 
 // Initialize signature verification worker (only in browser)

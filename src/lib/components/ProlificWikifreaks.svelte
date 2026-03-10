@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import { Avatar } from '@nostr-dev-kit/svelte';
-	import Name from '@/components/Name.svelte';
+	import Name from '$lib/components/Name.svelte';
 
 	const WIKI_KIND = 30818;
 	const LIKE_KIND = 7;

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { ndk } from '@/ndk.svelte';
-	import { Button } from '@/components/ui/button';
-	import { wotEnabled, isInWoT } from '@/stores/wot';
+	import { ndk } from '$lib/ndk.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { wotEnabled, isInWoT } from '$lib/stores/wot';
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import { Avatar } from '@nostr-dev-kit/svelte';
@@ -208,7 +208,7 @@
 						variant="outline"
 						size="sm"
 						disabled={currentPage === 1}
-						on:click={() => (currentPage = Math.max(1, currentPage - 1))}
+						onclick={() => (currentPage = Math.max(1, currentPage - 1))}
 					>
 						Previous
 					</Button>
@@ -216,7 +216,7 @@
 						variant="outline"
 						size="sm"
 						disabled={currentPage === totalPages}
-						on:click={() => (currentPage = Math.min(totalPages, currentPage + 1))}
+						onclick={() => (currentPage = Math.min(totalPages, currentPage + 1))}
 					>
 						Next
 					</Button>

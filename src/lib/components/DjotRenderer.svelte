@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { renderMarkupToHtml } from '@/utils/markup';
+	import { renderMarkupToHtml } from '$lib/utils/markup';
 
 	let { content, class: className = '' }: { content: string; class?: string } = $props();
 
@@ -23,62 +23,94 @@
 
 <style>
 	:global(.markup-content) {
-		@apply text-foreground;
+		color: hsl(var(--foreground) / 1);
 	}
 
 	:global(.markup-content p) {
-		@apply my-4;
+		margin-block: 1rem;
 	}
 
 	:global(.markup-content h1) {
-		@apply text-3xl font-bold my-4;
+		margin-block: 1rem;
+		font-size: 1.875rem;
+		font-weight: 700;
+		line-height: 1.2;
 	}
 
 	:global(.markup-content h2) {
-		@apply text-2xl font-bold my-3;
+		margin-block: 0.75rem;
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1.25;
 	}
 
 	:global(.markup-content h3) {
-		@apply text-xl font-bold my-3;
+		margin-block: 0.75rem;
+		font-size: 1.25rem;
+		font-weight: 700;
+		line-height: 1.3;
 	}
 
 	:global(.markup-content h4) {
-		@apply text-lg font-bold my-2;
+		margin-block: 0.5rem;
+		font-size: 1.125rem;
+		font-weight: 700;
+		line-height: 1.35;
 	}
 
 	:global(.markup-content code) {
-		@apply bg-muted px-1 py-0.5 rounded text-sm;
+		border-radius: 0.375rem;
+		background: hsl(var(--muted) / 1);
+		padding: 0.125rem 0.25rem;
+		font-size: 0.875rem;
 	}
 
 	:global(.markup-content pre) {
-		@apply bg-muted p-4 rounded-lg my-4 overflow-x-auto;
+		overflow-x: auto;
+		margin-block: 1rem;
+		border-radius: 0.5rem;
+		background: hsl(var(--muted) / 1);
+		padding: 1rem;
 	}
 
 	:global(.markup-content pre code) {
-		@apply bg-transparent p-0;
+		background: transparent;
+		padding: 0;
 	}
 
 	:global(.markup-content blockquote) {
-		@apply border-l-4 border-primary/50 pl-4 italic my-4;
+		margin-block: 1rem;
+		border-left: 4px solid hsl(var(--primary) / 0.5);
+		padding-left: 1rem;
+		font-style: italic;
 	}
 
 	:global(.markup-content ul, .markup-content ol) {
-		@apply my-4 pl-6;
+		margin-block: 1rem;
+		padding-left: 1.5rem;
 	}
 
 	:global(.markup-content li) {
-		@apply my-1;
+		margin-block: 0.25rem;
 	}
 
 	:global(.markup-content hr) {
-		@apply my-6 border-border;
+		margin-block: 1.5rem;
+		border-color: hsl(var(--border) / 1);
 	}
 
 	:global(.markup-content img) {
-		@apply max-w-full rounded-lg my-4;
+		margin-block: 1rem;
+		max-width: 100%;
+		border-radius: 0.5rem;
 	}
 
 	:global(.markup-content a) {
-		@apply text-primary hover:underline;
+		color: hsl(var(--primary) / 1);
+		text-decoration: none;
+	}
+
+	:global(.markup-content a:hover) {
+		text-decoration: underline;
 	}
 </style>

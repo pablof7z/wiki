@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 	import MergeRequestItem from './MergeRequestItem.svelte';
-	import Name from '@/components/Name.svelte';
-	import PageContainer from '@/components/PageContainer.svelte';
+	import Name from '$lib/components/Name.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
 	import type { NDKUser } from '@nostr-dev-kit/ndk';
 
 	const userId = $derived($page.params.id || '');

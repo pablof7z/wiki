@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { NDKEvent, NDKRelaySet } from '@nostr-dev-kit/ndk';
-	import Input from '@/components/ui/input/input.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
 	import CategoryDropdown from './CategoryDropdown.svelte';
-	import TiptapEditor from '@/components/TiptapEditor.svelte';
-	import { Switch } from '@/components/ui/switch';
-	import { wysiwyg } from '@/stores/settings';
+	import TiptapEditor from '$lib/components/TiptapEditor.svelte';
+	import { Switch } from '$lib/components/ui/switch';
+	import { wysiwyg } from '$lib/stores/settings';
 
     let {
         baseEvent,

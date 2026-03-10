@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { wotFilterEvents, wotRankEvents } from '@/stores/wot';
+	import { wotFilterEvents, wotRankEvents } from '$lib/stores/wot';
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import TopicEntriesListItem from './TopicEntriesListItem.svelte';

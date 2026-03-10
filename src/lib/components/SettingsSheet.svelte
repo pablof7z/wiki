@@ -9,17 +9,16 @@
 		wotMinScore,
 		wotIncludeUnknown,
 		wotRankAlgorithm
-	} from '@/stores/wot';
-	import * as Sheet from '@/components/ui/sheet';
-	import { Button } from '@/components/ui/button';
-	import { Input } from '@/components/ui/input';
+	} from '$lib/stores/wot';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Gear, Trash } from 'radix-icons-svelte';
-	import { Separator } from '@/components/ui/separator';
-	import { RelayList, createRelayManager } from '@nostr-dev-kit/svelte';
+	import { Separator } from '$lib/components/ui/separator';
 	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
-	import * as Select from '@/components/ui/select';
-	import { Label } from '@/components/ui/label';
-	import { Switch } from '@/components/ui/switch';
+	import * as Select from '$lib/components/ui/select';
+	import { Label } from '$lib/components/ui/label';
+	import { Switch } from '$lib/components/ui/switch';
 	import { NDKWoT } from '@nostr-dev-kit/wot';
 
 	let userFollows = $derived(ndk.$sessions?.follows ?? new Set());
@@ -27,12 +26,22 @@
 	let relayListMap = $derived(ndk.$sessions?.relayList ?? new Map());
 	let userRelays = $derived(Array.from(relayListMap.keys()));
 	let userRelayEvent = $derived(ndk.$sessions?.getSessionEvent(10102 as any));
-	const relayManager = createRelayManager(ndk);
-	let allRelays = $derived(relayManager.getFilteredRelays());
+	let allRelays = $derived.by(() =>
+		Array.from(ndk.$pool?.relays.values() ?? []).sort((a, b) => a.url.localeCompare(b.url))
+	);
 
 	let newRelay = $state('');
 	let savingNewRelay = $state(false);
 	let showAdd = $state(false);
+	const rankAlgorithmOptions: Array<{ value: string; label: string }> = [
+		{ value: 'distance', label: 'Distance (closer = higher)' },
+		{ value: 'score', label: 'Score (WoT score)' },
+		{ value: 'followers', label: 'Followers (popularity)' }
+	];
+	const selectedRankAlgorithmLabel = $derived(
+		rankAlgorithmOptions.find((option) => option.value === $wotRankAlgorithm)?.label ??
+			'Select algorithm'
+	);
 
 	async function save() {
 		if (!currentUser) return;
@@ -86,10 +95,6 @@
 		}
 	}
 
-	async function fetchRelayInfo(url: string) {
-		await relayManager.fetchNip11Info(url);
-	}
-
 	function copyRelayUrl(url: string) {
 		navigator.clipboard.writeText(url);
 	}
@@ -121,7 +126,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						on:click={rebuildWoT}
+						onclick={rebuildWoT}
 						disabled={!currentUser || $wotLoading}
 					>
 						{#if $wotLoading}
@@ -204,14 +209,20 @@
 
 							<div class="space-y-2">
 								<Label for="wot-rank-algo" class="text-sm font-medium">Ranking algorithm</Label>
-								<Select.Root bind:selected={$wotRankAlgorithm}>
+								<Select.Root
+									type="single"
+									items={rankAlgorithmOptions}
+									bind:value={$wotRankAlgorithm}
+								>
 									<Select.Trigger id="wot-rank-algo" class="w-full">
-										<Select.Value placeholder="Select algorithm" />
+										{selectedRankAlgorithmLabel}
 									</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="distance">Distance (closer = higher)</Select.Item>
-										<Select.Item value="score">Score (WoT score)</Select.Item>
-										<Select.Item value="followers">Followers (popularity)</Select.Item>
+										{#each rankAlgorithmOptions as option}
+											<Select.Item value={option.value} label={option.label}>
+												{option.label}
+											</Select.Item>
+										{/each}
 									</Select.Content>
 								</Select.Root>
 							</div>
@@ -231,7 +242,7 @@
 					</div>
 					{#if currentUser}
 						<div class="flex gap-2">
-							<Button variant="ghost" size="sm" on:click={() => (showAdd = !showAdd)}>
+							<Button variant="ghost" size="sm" onclick={() => (showAdd = !showAdd)}>
 								{showAdd ? 'Cancel' : 'Add'}
 							</Button>
 							{#if userRelayEvent}
@@ -258,7 +269,7 @@
 							placeholder="wss://relay.example.com"
 							class="flex-1"
 						/>
-						<Button on:click={save} disabled={savingNewRelay}>
+						<Button onclick={save} disabled={savingNewRelay}>
 							{#if savingNewRelay}
 								Saving...
 							{:else}
@@ -276,7 +287,7 @@
 							<div class="flex items-center gap-2 rounded-md border p-2">
 								<span class="flex-1 truncate text-sm">{relay}</span>
 								<Button
-									on:click={() => remove(relay)}
+									onclick={() => remove(relay)}
 									variant="ghost"
 									size="icon"
 									class="h-8 w-8 flex-shrink-0"
@@ -297,12 +308,45 @@
 					<h3 class="text-lg font-semibold">All Relays</h3>
 					<p class="text-sm text-muted-foreground">View connection status</p>
 				</div>
-				<RelayList
-					relays={allRelays}
-					onFetchInfo={fetchRelayInfo}
-					onCopyUrl={copyRelayUrl}
-					emptyMessage="No relays connected"
-				/>
+				{#if allRelays.length === 0}
+					<p class="text-sm text-muted-foreground">No relays connected</p>
+				{:else}
+					<div class="space-y-2">
+						{#each allRelays as relay (relay.url)}
+							<div class="rounded-md border p-3">
+								<div class="flex items-start gap-3">
+									<div class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full {relay.status === 'connected'
+										? 'bg-emerald-500'
+										: relay.status === 'connecting'
+											? 'bg-amber-500'
+											: relay.status === 'reconnecting'
+												? 'bg-sky-500'
+												: 'bg-muted-foreground/40'}"></div>
+									<div class="min-w-0 flex-1">
+										<p class="truncate text-sm font-medium">{relay.url}</p>
+										<p class="text-xs text-muted-foreground capitalize">
+											{relay.status}
+											{#if relay.connectionStats.success > 0}
+												· {relay.connectionStats.success} successful connection{relay.connectionStats.success ===
+												1
+													? ''
+													: 's'}
+											{/if}
+										</p>
+									</div>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onclick={() => copyRelayUrl(relay.url)}
+									>
+										Copy
+									</Button>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</div>
 	</Sheet.Content>

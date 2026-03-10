@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import { Avatar } from '@nostr-dev-kit/svelte';
 	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
-	import ArticleComments from '@/components/ArticleComments.svelte';
-	import ArticleOtherAuthors from '@/components/ArticleOtherAuthors.svelte';
-	import ArticleToc from '@/components/ArticleToc.svelte';
+	import ArticleComments from '$lib/components/ArticleComments.svelte';
+	import ArticleOtherAuthors from '$lib/components/ArticleOtherAuthors.svelte';
+	import ArticleToc from '$lib/components/ArticleToc.svelte';
 	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
 	import EntryReactions from './EntryReactions.svelte';
-	import EventContent from '@/components/EventContent.svelte';
+	import EventContent from '$lib/components/EventContent.svelte';
 	import Input from './ui/input/input.svelte';
-	import Name from '@/components/Name.svelte';
-	import Button from '@/components/ui/button/button.svelte';
-	import { extractMarkupHeadings, extractMarkupTitle } from '@/utils/markup';
+	import Name from '$lib/components/Name.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { extractMarkupHeadings, extractMarkupTitle } from '$lib/utils/markup';
 
 	let currentUser = $derived(ndk.$sessions?.currentUser);
 
@@ -151,7 +151,7 @@
 				<Button href={'/' + encodeURIComponent(event.dTag || '')} variant="ghost" size="sm">
 					All versions
 				</Button>
-				<Button on:click={copyPermalink} variant="ghost" size="sm">
+				<Button onclick={copyPermalink} variant="ghost" size="sm">
 					{copied ? 'Copied' : 'Copy link'}
 				</Button>
 				<div class:hidden={skipEdit}>
@@ -197,7 +197,7 @@
 
 			{#if currentUser?.pubkey === event.pubkey && fork}
 				<div class="mt-5">
-					<Button on:click={requestMerge} variant="outline" size="sm">Request merge</Button>
+					<Button onclick={requestMerge} variant="outline" size="sm">Request merge</Button>
 				</div>
 			{/if}
 
@@ -232,7 +232,7 @@
 					<h4 class="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
 						Raw event
 					</h4>
-					<Button on:click={() => (showRaw = !showRaw)} variant="outline" size="sm">
+					<Button onclick={() => (showRaw = !showRaw)} variant="outline" size="sm">
 						{showRaw ? 'Hide' : 'Open'}
 					</Button>
 				</div>

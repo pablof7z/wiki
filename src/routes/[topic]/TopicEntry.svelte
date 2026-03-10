@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { ndk } from "@/ndk.svelte";
+	import { ndk } from "$lib/ndk.svelte";
 	import { NDKEvent } from "@nostr-dev-kit/ndk";
-    import EventContent from "@/components/EventContent.svelte";
+    import EventContent from "$lib/components/EventContent.svelte";
 	import { Avatar } from "@nostr-dev-kit/svelte";
-	import Name from "@/components/Name.svelte";
-    import Button from "@/components/ui/button/button.svelte";
-    import * as Card from "@/components/ui/card";
+	import Name from "$lib/components/Name.svelte";
+    import Button from "$lib/components/ui/button/button.svelte";
+    import * as Card from "$lib/components/ui/card";
 
     let { topic, entry }: { topic: string; entry: NDKEvent } = $props();
 
-    const wordCount = entry.content.split(" ").length;
+    const wordCount = $derived(entry.content.split(" ").length);
 </script>
 
 <Card.Root>
@@ -35,7 +35,7 @@
             Edit
         </Button>
 
-        <Button on:click={() => entry.react("+")}>
+        <Button onclick={() => entry.react("+")}>
             Like
         </Button>
     </Card.Footer>

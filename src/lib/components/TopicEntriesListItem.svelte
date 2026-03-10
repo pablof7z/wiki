@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import UserName from './UserName.svelte';
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 
 	let { entry }: { entry: NDKEvent } = $props();
 
-	const topic = entry.dTag!;
+	const topic = $derived(entry.dTag ?? '');
 
 	const taggedByEvents = ndk.$subscribe(() => ({
 		filters: [

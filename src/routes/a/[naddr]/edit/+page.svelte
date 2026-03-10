@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { ndk } from "$lib/ndk.svelte";
-	import Button from "@/components/ui/button/button.svelte";
+	import Button from "$lib/components/ui/button/button.svelte";
 	import { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
 	import Editor from "../Editor.svelte";
 	import { goto } from "$app/navigation";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
-	import EntryCard from "@/components/EntryCard.svelte";
+	import EntryCard from "$lib/components/EntryCard.svelte";
 
     let { naddr }: { naddr: string } = $props();
 
@@ -125,7 +125,7 @@
             {/if}
 
             <div class="flex flex-row gap-4">
-                <Button class="w-fit px-10" on:click={() => save()} disabled={!publishable || saving}>
+                <Button class="w-fit px-10" onclick={() => save()} disabled={!publishable || saving}>
                     {#if saving}
                         Saving...
                     {:else}
@@ -133,7 +133,7 @@
                     {/if}
                 </Button>
 
-                <Button variant="ghost" on:click={togglePreview}>
+                <Button variant="ghost" onclick={togglePreview}>
                     Preview
                 </Button>
             </div>

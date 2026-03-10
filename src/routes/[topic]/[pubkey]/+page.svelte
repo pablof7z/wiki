@@ -2,12 +2,12 @@
     import { page } from "$app/stores";
     import { ndk } from "$lib/ndk.svelte";
 	import type { NDKEvent } from "@nostr-dev-kit/ndk";
-	import EntryCard from "@/components/EntryCard.svelte";
+	import EntryCard from "$lib/components/EntryCard.svelte";
 	import type { Subscription } from "@nostr-dev-kit/svelte";
 	import { nip19 } from "nostr-tools";
 
-    const topic = $derived($page.params.topic);
-    const userId = $derived($page.params.pubkey);
+    const topic = $derived($page.params.topic ?? '');
+    const userId = $derived($page.params.pubkey ?? '');
 
     let error = $state<string | undefined>(undefined);
 
@@ -21,7 +21,7 @@
         otherVersions = undefined;
         error = undefined;
 
-        if (!user) return;
+        if (!user || !topic || !userId) return;
 
         try {
             const naddr = nip19.naddrEncode({

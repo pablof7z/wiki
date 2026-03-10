@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { ndk } from '@/ndk.svelte';
+	import { ndk } from '$lib/ndk.svelte';
 	import type { NDKEvent, NostrEvent } from '@nostr-dev-kit/ndk';
 	import { NDKEvent as NDKCommentEvent } from '@nostr-dev-kit/ndk';
 	import { Avatar } from '@nostr-dev-kit/svelte';
 	import Name from './Name.svelte';
-	import { Button } from '@/components/ui/button';
-	import { Textarea } from '@/components/ui/textarea';
+	import { Button } from '$lib/components/ui/button';
+	import { Textarea } from '$lib/components/ui/textarea';
 
 	let { event }: { event: NDKEvent } = $props();
 
@@ -90,7 +90,7 @@
 					placeholder="Leave a plaintext comment scoped to this article"
 				/>
 				<div class="flex justify-end">
-					<Button on:click={submitComment} disabled={submitting || !newComment.trim()}>
+					<Button onclick={submitComment} disabled={submitting || !newComment.trim()}>
 						{submitting ? 'Posting...' : 'Post comment'}
 					</Button>
 				</div>

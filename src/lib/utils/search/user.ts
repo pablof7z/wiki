@@ -4,7 +4,7 @@ import { type UserSearchResult } from ".";
 export async function searchUser(
     searchTerm: string,
     ndk: NDK,
-    userFollows: Set<Hexpubkey>
+    userFollows: { has(value: Hexpubkey): boolean }
 ) {
     const haveCache = !!ndk.cacheAdapter?.getProfiles;
     const result: UserSearchResult[] = [];
@@ -41,9 +41,11 @@ export async function searchUser(
     if (result.length === 0) {
         const relaySet = NDKRelaySet.fromRelayUrls([ "wss://cache2.primal.net/v1" ], ndk);
 
-        const res = await ndk.fetchEvents({
-            cache: [ "user_search", {query: searchTerm, limit: 10} ]
-        }, { closeOnEose: true }, relaySet);
+        const res = await ndk.fetchEvents(
+            { kinds: [0], search: searchTerm, limit: 10 },
+            { closeOnEose: true },
+            relaySet
+        );
 
         Array.from(res).map((event: NDKEvent) => {
             const p = profileFromEvent(event);

@@ -3,8 +3,8 @@
 	import { page } from '$app/stores';
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
-	import AppHeader from '@/components/AppHeader.svelte';
-	import { wot, wotLoading, wotDepth } from '@/stores/wot';
+	import AppHeader from '$lib/components/AppHeader.svelte';
+	import { wot, wotLoading, wotDepth } from '$lib/stores/wot';
 	import { NDKWoT } from '@nostr-dev-kit/wot';
 	import { get } from 'svelte/store';
 

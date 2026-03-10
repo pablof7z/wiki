@@ -2,9 +2,9 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { ndk } from '$lib/ndk.svelte';
-	import TopicEntriesList from '@/components/TopicEntriesList.svelte';
+	import TopicEntriesList from '$lib/components/TopicEntriesList.svelte';
 	import { fetchWikipediaArticle, type WikipediaArticle } from '$lib/utils/wikipedia';
-	import PageContainer from '@/components/PageContainer.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
 
 	let { topic = $bindable($page.params.topic) }: { topic?: string } = $props();
 

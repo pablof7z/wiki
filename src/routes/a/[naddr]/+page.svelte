@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { ndk } from '$lib/ndk.svelte';
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
-	import EntryCard from '@/components/EntryCard.svelte';
+	import EntryCard from '$lib/components/EntryCard.svelte';
 
 	let event: NDKEvent | undefined = $state(undefined);
 	let loading = $state(true);

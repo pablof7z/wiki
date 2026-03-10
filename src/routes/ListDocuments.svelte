@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ndk } from "@/ndk.svelte";
+	import { ndk } from "$lib/ndk.svelte";
 	import type { NDKUser } from "@nostr-dev-kit/ndk";
     import * as Card from "$lib/components/ui/card";
 	import { Avatar } from "@nostr-dev-kit/svelte";
@@ -23,7 +23,7 @@
 
 	<Card.Content>
 		<div class="flex flex-col w-full">
-            {#each $docs as doc, i (doc.tagId())}
+            {#each docs.events as doc, i (doc.tagId())}
                 <a
                     class="
                         flex flex-row items-center gap-4 w-full p-2 rounded-lg
@@ -41,7 +41,7 @@
                         </div>
 
                         <div class="text-xs text-neutral-500">
-                            Last edited {new Date(doc.created_at*1000).toLocaleDateString()}
+                            Last edited {new Date((doc.created_at ?? 0) * 1000).toLocaleDateString()}
                         </div>
                     </div>
                     <div class="flex -space-x-4  place-self-end">

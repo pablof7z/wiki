@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MarkupHeading } from '@/utils/markup';
+	import type { MarkupHeading } from '$lib/utils/markup';
 
 	let { headings = [] }: { headings?: MarkupHeading[] } = $props();
 </script>

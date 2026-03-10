@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { NDKUserProfile } from "@nostr-dev-kit/ndk";
-	import type NDKSvelte from "@nostr-dev-kit/svelte";
+	import type { NDKSvelte } from "@nostr-dev-kit/svelte";
 
 	let {
 		ndk = $bindable(),
@@ -22,8 +22,30 @@
 		style?: string;
 	} = $props();
 
-	// Fetch profile using the new $fetchProfile pattern
-	const profile = ndk && pubkey && !userProfile ? ndk.$fetchProfile(() => pubkey) : undefined;
+	let profile = $state<NDKUserProfile | undefined>(userProfile);
+
+	$effect(() => {
+		profile = userProfile;
+
+		if (!ndk || !pubkey || userProfile) return;
+
+		let cancelled = false;
+
+		ndk.fetchUser(pubkey).then((user) => {
+			if (cancelled || !user) return;
+
+			profile = user.profile;
+
+			return user.fetchProfile().then((fetchedProfile) => {
+				if (cancelled) return;
+				profile = fetchedProfile ?? user.profile;
+			});
+		});
+
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	function truncatedBech32(bech32: string | undefined, length?: number): string {
 		if (!bech32) return "";

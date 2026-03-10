@@ -2,14 +2,14 @@
 	import { ndk } from "$lib/ndk.svelte";
 	import { goto } from "$app/navigation";
 	import { NDKEvent, type NostrEvent } from "@nostr-dev-kit/ndk";
-	import Button from "@/components/ui/button/button.svelte";
-	import Input from "@/components/ui/input/input.svelte";
-	import Label from "@/components/ui/label/label.svelte";
-	import TiptapEditor from "@/components/TiptapEditor.svelte";
+	import Button from "$lib/components/ui/button/button.svelte";
+	import Input from "$lib/components/ui/input/input.svelte";
+	import Label from "$lib/components/ui/label/label.svelte";
+	import TiptapEditor from "$lib/components/TiptapEditor.svelte";
 	import CategoryDropdown from "../a/[naddr]/CategoryDropdown.svelte";
-	import { Switch } from "@/components/ui/switch";
-	import { wysiwyg } from "@/stores/settings";
-	import { normalizeDTag } from '@/utils/dtag';
+	import { Switch } from "$lib/components/ui/switch";
+	import { wysiwyg } from "$lib/stores/settings";
+	import { normalizeDTag } from '$lib/utils/dtag';
 
 	let title = $state("");
 	let dTag = $state("");

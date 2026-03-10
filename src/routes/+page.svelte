@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { ndk } from '$lib/ndk.svelte';
-	import CategoryList from '@/components/CategoryList.svelte';
-	import EntriesList from '@/components/EntriesList.svelte';
-	import ProlificWikifreaks from '@/components/ProlificWikifreaks.svelte';
+	import CategoryList from '$lib/components/CategoryList.svelte';
+	import EntriesList from '$lib/components/EntriesList.svelte';
+	import ProlificWikifreaks from '$lib/components/ProlificWikifreaks.svelte';
 	import { Switch } from '$lib/components/ui/switch';
-	import { wotEnabled, wotSize } from '@/stores/wot';
+	import { wotEnabled, wotSize } from '$lib/stores/wot';
 	import { ArrowUpRight, Search } from '@lucide/svelte';
 	import { NDKRelaySet, type NDKFilter, NDKWiki } from '@nostr-dev-kit/ndk';
 	import { ArrowLeft } from 'radix-icons-svelte';

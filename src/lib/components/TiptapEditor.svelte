@@ -3,13 +3,13 @@
 	import StarterKit from '@tiptap/starter-kit';
 	import Link from '@tiptap/extension-link';
 	import Placeholder from '@tiptap/extension-placeholder';
-	import { normalizeDTag } from '@/utils/dtag';
+	import { normalizeDTag } from '$lib/utils/dtag';
 	import {
 		analyzeMarkupForRichEditor,
 		tiptapToDjot,
 		type MarkupFormat,
 		type RichEditorAnalysis
-	} from '@/utils/markup';
+	} from '$lib/utils/markup';
 
 	const WikiAwareLink = Link.extend({
 		addAttributes() {
@@ -81,7 +81,7 @@
 	let forceRawMode = $state(false);
 	let pendingAnalysis = $state<RichEditorAnalysis | null>(null);
 	let suppressEditorUpdate = false;
-	let previousPreferRich = preferRich;
+	let previousPreferRich = $state<boolean | undefined>(undefined);
 
 	function buildEditor() {
 		editor = new Editor({
@@ -253,6 +253,11 @@
 	}
 
 	$effect(() => {
+		if (previousPreferRich === undefined) {
+			previousPreferRich = preferRich;
+			return;
+		}
+
 		if (preferRich !== previousPreferRich) {
 			forceRawMode = !preferRich;
 			previousPreferRich = preferRich;
