@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
 	:root {
@@ -133,7 +132,7 @@
 	}
 
 	* {
-		@apply border-border;
+		border-color: hsl(var(--border) / 1);
 	}
 
 	::selection {
@@ -187,11 +186,12 @@
 	}
 
 	ul {
-		@apply list-disc pl-6;
+		list-style: disc;
+		padding-left: 1.5rem;
 	}
 
 	.prose {
-		@apply overflow-auto;
+		overflow: auto;
 	}
 
 	.prose a[href],
@@ -204,15 +204,22 @@
 
 	.prose pre {
 		background: rgba(255, 255, 255, 0.04);
-		@apply rounded-2xl p-4 overflow-auto w-full;
+		width: 100%;
+		overflow: auto;
+		border-radius: 1rem;
+		padding: 1rem;
 	}
 
 	.prose table {
-		@apply border w-full;
+		width: 100%;
+		border-width: 1px;
+		border-style: solid;
 	}
 
 	.prose table td {
-		@apply border px-2 py-2;
+		border-width: 1px;
+		border-style: solid;
+		padding: 0.5rem;
 	}
 
 	.prose table tbody tr:nth-child(odd) {
@@ -222,7 +229,9 @@
 	blockquote {
 		border-left: 1px solid rgba(255, 255, 255, 0.18);
 		background: rgba(255, 255, 255, 0.03);
-		@apply pl-4 rounded-r-2xl;
+		padding-left: 1rem;
+		border-top-right-radius: 1rem;
+		border-bottom-right-radius: 1rem;
 	}
 
 	.article-document {
