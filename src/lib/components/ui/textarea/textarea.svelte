@@ -1,33 +1,22 @@
 <script lang="ts">
-	import type { HTMLTextareaAttributes } from 'svelte/elements';
-	import { cn } from '$lib/utils';
-	import type { TextareaEvents } from '.';
+	import type { WithElementRef, WithoutChildren } from "bits-ui";
+	import type { HTMLTextareaAttributes } from "svelte/elements";
+	import { cn } from "$lib/utils.js";
 
-	type $$Props = HTMLTextareaAttributes;
-	type $$Events = TextareaEvents;
-
-	let className: $$Props['class'] = undefined;
-	export let value: $$Props['value'] = undefined;
-	export { className as class };
+	let {
+		ref = $bindable(null),
+		value = $bindable(),
+		class: className,
+		...restProps
+	}: WithoutChildren<WithElementRef<HTMLTextareaAttributes>> = $props();
 </script>
 
 <textarea
+	bind:this={ref}
+	bind:value
 	class={cn(
-		'flex min-h-[60px] w-full rounded-[1.25rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm shadow-[0_12px_30px_rgba(0,0,0,0.14)] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+		"border-input placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
 		className
 	)}
-	bind:value
-	on:blur
-	on:change
-	on:click
-	on:focus
-	on:keydown
-	on:keypress
-	on:keyup
-	on:mouseover
-	on:mouseenter
-	on:mouseleave
-	on:paste
-	on:input
-	{...$$restProps}
-/>
+	{...restProps}
+></textarea>
