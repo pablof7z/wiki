@@ -10,6 +10,20 @@
 	let error = $state('');
 	let hasExtension = $state(false);
 
+	/**
+	 * Portal action: moves the element to document.body so that
+	 * `position: fixed` is relative to the viewport, not a parent
+	 * with `backdrop-filter` (which creates a new containing block).
+	 */
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			}
+		};
+	}
+
 	$effect(() => {
 		if (typeof window !== 'undefined') {
 			hasExtension = !!window.nostr;
@@ -69,6 +83,7 @@
 </button>
 
 {#if showModal}
+	<div use:portal>
 	<div
 		class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
 		onclick={closeModal}
@@ -192,5 +207,6 @@
 				</div>
 			{/if}
 		</div>
+	</div>
 	</div>
 {/if}
