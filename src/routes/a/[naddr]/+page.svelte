@@ -33,15 +33,13 @@
 
 <div class="page-shell pt-6 pb-16">
 	{#if loading}
-		<div class="glass-panel-soft rounded-[2rem] px-6 py-8 text-muted-foreground">
-			Loading entry...
-		</div>
+		<div class="surface-inset rounded-[2rem] px-6 py-8 text-muted-foreground">Loading entry...</div>
 	{:else if event}
 		{#key event.id}
 			<EntryCard {event} />
 		{/key}
 	{:else}
-		<div class="glass-panel-soft rounded-[2rem] px-6 py-8 text-muted-foreground">
+		<div class="surface-inset rounded-[2rem] px-6 py-8 text-muted-foreground">
 			{loadError || 'Entry not found.'}
 		</div>
 	{/if}

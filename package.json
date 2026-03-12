@@ -36,6 +36,7 @@
 		"clsx": "^2.1.1",
 		"cmdk-sv": "^0.0.19",
 		"diff": "^8.0.3",
+		"katex": "^0.16.38",
 		"mode-watcher": "^1.1.0",
 		"nostr-tools": "^2.23.3",
 		"radix-icons-svelte": "^1.2.1",

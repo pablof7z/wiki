@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NDKUser, NDKUserProfile } from '@nostr-dev-kit/ndk';
+	import { NDKSubscriptionCacheUsage, type NDKUser, type NDKUserProfile } from '@nostr-dev-kit/ndk';
 	import { cn } from '$lib/utils';
 
 	type FetchingNdk = {
@@ -11,6 +11,7 @@
 		user,
 		pubkey,
 		npub,
+		userProfile,
 		class: className = '',
 		alt = 'User avatar'
 	}: {
@@ -18,6 +19,7 @@
 		user?: NDKUser;
 		pubkey?: string;
 		npub?: string;
+		userProfile?: NDKUserProfile;
 		class?: string;
 		alt?: string;
 	} = $props();
@@ -36,19 +38,19 @@
 
 	function initialsFor(value: string | undefined): string {
 		if (!value) return '?';
-		return value
-			.split(/\s+/)
-			.filter(Boolean)
-			.slice(0, 2)
-			.map((part) => part[0]?.toUpperCase() ?? '')
-			.join('') || value.slice(0, 2).toUpperCase();
+		return (
+			value
+				.split(/\s+/)
+				.filter(Boolean)
+				.slice(0, 2)
+				.map((part) => part[0]?.toUpperCase() ?? '')
+				.join('') || value.slice(0, 2).toUpperCase()
+		);
 	}
 
 	const identifier = $derived(user?.pubkey ?? pubkey ?? npub);
 	const image = $derived(profile?.image ?? profile?.picture);
-	const label = $derived(
-		profile?.displayName ?? profile?.name ?? user?.npub ?? identifier ?? alt
-	);
+	const label = $derived(profile?.displayName ?? profile?.name ?? user?.npub ?? identifier ?? alt);
 	const fallbackText = $derived(initialsFor(label));
 	const gradient = $derived.by(() => {
 		const value = identifier ?? label ?? alt;
@@ -66,9 +68,10 @@
 		const currentUser = user;
 		const currentIdentifier = identifier;
 		const currentNdk = ndk;
+		const currentProfile = userProfile;
 
 		if (!currentIdentifier || !currentNdk) {
-			profile = currentUser?.profile;
+			profile = currentProfile ?? currentUser?.profile;
 			return;
 		}
 
@@ -81,14 +84,20 @@
 		).then((fetchedUser) => {
 			if (cancelled) return;
 
-			profile = fetchedUser?.profile ?? currentUser?.profile;
+			profile = currentProfile ?? fetchedUser?.profile ?? currentUser?.profile;
 
 			if (!fetchedUser) return;
 
-			return fetchedUser.fetchProfile().then((fetchedProfile) => {
-				if (cancelled) return;
-				profile = fetchedProfile ?? fetchedUser.profile;
-			});
+			return fetchedUser
+				.fetchProfile({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY })
+				.then((fetchedProfile) => {
+					if (cancelled) return;
+					profile = fetchedProfile ?? currentProfile ?? fetchedUser.profile;
+				})
+				.catch(() => {
+					if (cancelled) return;
+					profile = currentProfile ?? fetchedUser.profile ?? currentUser?.profile;
+				});
 		});
 
 		return () => {

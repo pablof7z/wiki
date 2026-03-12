@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @config "../tailwind.config.js";
 
 @layer base {
@@ -236,13 +236,13 @@
 
 	.article-document {
 		font-size: 1.08rem;
-		line-height: 1.95;
+		line-height: 1.82;
 		color: rgba(245, 241, 234, 0.9);
 	}
 
 	.article-document .markup-content {
 		display: grid;
-		gap: 1.4rem;
+		gap: 0.8rem;
 	}
 
 	.article-document .markup-content > * {
@@ -407,6 +407,41 @@
 		backdrop-filter: blur(22px);
 	}
 
+	.section-list > * + * {
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.section-row {
+		padding-block: 1.25rem;
+	}
+
+	.section-row:first-child {
+		padding-top: 0;
+	}
+
+	.section-row:last-child {
+		padding-bottom: 0;
+	}
+
+	.section-row-link {
+		margin-inline: -0.75rem;
+		padding-inline: 0.75rem;
+		border-radius: 1.35rem;
+		transition:
+			background-color 160ms ease,
+			color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.section-row-link:hover {
+		background: rgba(255, 255, 255, 0.04);
+	}
+
+	.surface-inset {
+		background: rgba(255, 255, 255, 0.025);
+		border: 1px solid var(--border-soft);
+	}
+
 	.chrome-pill {
 		background: rgba(255, 255, 255, 0.04);
 		border: 1px solid var(--border-soft);
@@ -432,6 +467,195 @@
 
 	.subtle-link:hover {
 		color: hsl(var(--foreground));
+	}
+
+	.compose-frame {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 42%),
+			linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+			rgba(7, 7, 7, 0.86);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 36px 120px rgba(0, 0, 0, 0.42);
+		backdrop-filter: blur(28px);
+	}
+
+	.compose-frame::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
+			radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 28%);
+		opacity: 0.85;
+	}
+
+	.compose-title-input {
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		font-family: var(--font-display);
+		font-size: clamp(3.2rem, 8vw, 5.8rem);
+		font-weight: 500;
+		line-height: 0.94;
+		letter-spacing: -0.07em;
+		color: hsl(var(--foreground));
+	}
+
+	.compose-title-input::placeholder {
+		color: rgba(245, 241, 234, 0.32);
+	}
+
+	.compose-title-input:focus {
+		outline: none;
+	}
+
+	.compose-editor-shell {
+		border: 1px solid rgba(255, 255, 255, 0.09);
+		border-radius: 1.9rem;
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+			rgba(5, 5, 5, 0.9);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+	}
+
+	.compose-toolbar {
+		padding: 0.85rem 1rem;
+		border-color: rgba(255, 255, 255, 0.08);
+		background: rgba(255, 255, 255, 0.02);
+	}
+
+	.compose-toolbar .border-r {
+		border-color: rgba(255, 255, 255, 0.08);
+	}
+
+	.compose-toolbar-control,
+	.compose-toolbar-select {
+		min-height: 2.5rem;
+		border: 1px solid transparent;
+		border-radius: 999px;
+		background: transparent;
+		color: hsl(var(--muted-foreground));
+	}
+
+	.compose-toolbar-control:hover,
+	.compose-toolbar-select:hover {
+		background: rgba(255, 255, 255, 0.06);
+		color: hsl(var(--foreground));
+	}
+
+	.compose-toolbar-control.bg-accent {
+		border-color: rgba(255, 255, 255, 0.08);
+		background: rgba(255, 255, 255, 0.08);
+		color: hsl(var(--foreground));
+	}
+
+	.compose-toolbar-select {
+		padding-inline: 0.95rem;
+	}
+
+	.compose-editor-meta {
+		padding: 1rem 1.4rem 0;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.24em;
+		text-transform: uppercase;
+		color: hsl(var(--muted-foreground));
+	}
+
+	.compose-editor-status {
+		padding-inline: 1.4rem;
+		padding-bottom: 0.25rem;
+	}
+
+	.compose-editor-content,
+	.compose-raw-editor {
+		min-height: 29rem;
+		width: min(100%, 72ch);
+		margin-inline: auto;
+		font-size: 1.08rem;
+		line-height: 1.9;
+		color: rgba(245, 241, 234, 0.92);
+	}
+
+	.compose-editor-content {
+		padding: 1.5rem 0 2.5rem;
+	}
+
+	.compose-editor-content > * {
+		margin-top: 0;
+		margin-bottom: 1.35rem;
+	}
+
+	.compose-editor-content p,
+	.compose-editor-content li {
+		max-width: 72ch;
+	}
+
+	.compose-editor-content h1,
+	.compose-editor-content h2,
+	.compose-editor-content h3,
+	.compose-editor-content h4 {
+		font-family: var(--font-display);
+		font-weight: 500;
+		line-height: 0.98;
+		letter-spacing: -0.05em;
+		color: hsl(var(--foreground));
+	}
+
+	.compose-editor-content h1 {
+		font-size: clamp(2.4rem, 4vw, 3.6rem);
+	}
+
+	.compose-editor-content h2 {
+		font-size: clamp(1.9rem, 3vw, 2.8rem);
+	}
+
+	.compose-editor-content h3 {
+		font-size: clamp(1.45rem, 2vw, 2rem);
+	}
+
+	.compose-editor-content h4 {
+		font-size: 1.2rem;
+	}
+
+	.compose-editor-content blockquote {
+		margin: 2rem 0;
+	}
+
+	.compose-editor-content .is-editor-empty:first-child::before {
+		color: rgba(245, 241, 234, 0.3);
+	}
+
+	.compose-raw-editor {
+		display: block;
+		padding: 1.15rem 0 2.5rem;
+		resize: vertical;
+		font-family: var(--font-mono);
+		font-size: 0.97rem;
+		line-height: 1.75;
+	}
+
+	.compose-raw-editor:focus {
+		outline: none;
+	}
+
+	@media (max-width: 640px) {
+		.compose-frame {
+			border-radius: 1.6rem;
+		}
+
+		.compose-editor-shell {
+			border-radius: 1.45rem;
+		}
+
+		.compose-editor-content,
+		.compose-raw-editor {
+			min-height: 24rem;
+		}
 	}
 }
 

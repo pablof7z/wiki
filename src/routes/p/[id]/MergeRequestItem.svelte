@@ -39,17 +39,29 @@
 	const responses = $derived(Array.from(responsesSub.events ?? []));
 </script>
 
-<div class="space-y-3">
-	<a href="/p/{mergeRequest.pubkey}" class="font-bold">
-		<Name {ndk} pubkey={mergeRequest.pubkey} />
-	</a>
-	sent a merge request of <Name {ndk} pubkey={mergeTarget.pubkey} />'s
-	<a href="/{mergeTarget.topic}/{mergeTarget.pubkey}"><b>{mergeTarget.topic}</b></a>
+<div class="space-y-3 text-sm">
+	<p class="leading-7 text-muted-foreground">
+		<a href="/p/{mergeRequest.pubkey}" class="font-semibold text-foreground">
+			<Name {ndk} pubkey={mergeRequest.pubkey} />
+		</a>
+		sent a merge request for
+		<a href="/{mergeTarget.topic}/{mergeTarget.pubkey}" class="font-semibold text-foreground">
+			{mergeTarget.topic}
+		</a>
+		by
+		<span class="text-foreground"><Name {ndk} pubkey={mergeTarget.pubkey} /></span>.
+	</p>
 
-	<Button class="link" href={'/pr/' + naddr + '/' + mergeRequest.id}>View</Button>
+	<div class="flex items-center gap-3">
+		<Button class="px-0 text-sm" variant="link" href={'/pr/' + naddr + '/' + mergeRequest.id}>
+			View request
+		</Button>
+	</div>
 
 	{#if mergeRequest.content.length > 0}
-		<blockquote class="text-xl p-6">{mergeRequest.content}</blockquote>
+		<blockquote class="p-4 text-sm leading-7 text-muted-foreground">
+			{mergeRequest.content}
+		</blockquote>
 	{/if}
 
 	{#each responses as response, i (response.id)}

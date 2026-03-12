@@ -19,6 +19,7 @@
 			!$page.url.searchParams.get('q') &&
 			!$page.url.searchParams.get('c')
 	);
+	let isCommentsPage = $derived($page.url.pathname === '/comments');
 
 	$effect(() => {
 		searchQuery = $page.url.searchParams.get('q') || '';
@@ -80,14 +81,23 @@
 			{:else}
 				<div class="hidden flex-1 xl:block">
 					<p class="text-center text-sm text-muted-foreground">
-						Parallel articles, public authorship, community curation.
+						Parallel articles, public authorship, visible provenance.
 					</p>
 				</div>
 			{/if}
 
 			<nav class="ml-auto flex items-center gap-2">
 				{#if !isLanding}
-					<Button href="/" variant="ghost" class="hidden md:inline-flex">Explore</Button>
+					<Button href="/" variant={isCommentsPage ? 'ghost' : 'secondary'} class="hidden md:inline-flex">
+						Explore
+					</Button>
+					<Button
+						href="/comments"
+						variant={isCommentsPage ? 'secondary' : 'ghost'}
+						class="hidden md:inline-flex"
+					>
+						Comments
+					</Button>
 				{/if}
 
 				<Button

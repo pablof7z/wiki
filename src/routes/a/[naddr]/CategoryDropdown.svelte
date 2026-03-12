@@ -4,7 +4,7 @@
 	import { cn } from '$lib/utils.js';
 	import { tick } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Check, ChevronUp } from 'radix-icons-svelte';
+	import { Check } from 'radix-icons-svelte';
 	import { ChevronDown } from 'svelte-radix';
 	import { ndk } from '$lib/ndk.svelte';
 	import { wotFilterEvents } from '$lib/stores/wot';
@@ -32,7 +32,15 @@
 	const categories = $derived(computeCategories(events.events));
 
 	let open = $state(false);
-	let { value = $bindable('') } = $props();
+	let {
+		value = $bindable(''),
+		class: className = '',
+		placeholder = 'Enter a Category'
+	}: {
+		value?: string;
+		class?: string;
+		placeholder?: string;
+	} = $props();
 	let triggerRef = $state<HTMLElement | null>(null);
 
 	function closeAndFocusTrigger() {
@@ -52,16 +60,16 @@
 				variant="outline"
 				role="combobox"
 				aria-expanded={open}
-				class="w-[200px] justify-between"
+				class={cn('w-[200px] justify-between', className)}
 			>
-				{value || 'Enter a Category'}
+				{value || placeholder}
 				<ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
+	<Popover.Content class="w-[240px] p-0">
 		<Command.Root>
-			<Command.Input bind:value={value} placeholder="Type a category" />
+			<Command.Input bind:value placeholder="Type a category" />
 			<Command.Group>
 				{#if categories}
 					{#each categories as category}
@@ -72,12 +80,7 @@
 								closeAndFocusTrigger();
 							}}
 						>
-							<Check
-								class={cn(
-									'mr-2 h-4 w-4',
-									value !== category && 'text-transparent'
-								)}
-							/>
+							<Check class={cn('mr-2 h-4 w-4', value !== category && 'text-transparent')} />
 							{category}
 						</Command.Item>
 					{/each}

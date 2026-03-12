@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { NDKUserProfile } from "@nostr-dev-kit/ndk";
-	import type { NDKSvelte } from "@nostr-dev-kit/svelte";
+	import { NDKSubscriptionCacheUsage, type NDKUserProfile } from '@nostr-dev-kit/ndk';
+	import type { NDKSvelte } from '@nostr-dev-kit/svelte';
 
 	let {
 		ndk = $bindable(),
@@ -8,38 +8,45 @@
 		pubkey = $bindable(),
 		userProfile = $bindable(),
 		npubMaxLength = undefined,
-		attribute = "display_name",
-		class: className = "",
-		style = ""
+		attribute = 'display_name',
+		class: className = '',
+		style = ''
 	}: {
 		ndk?: NDKSvelte;
 		npub?: string;
 		pubkey?: string;
 		userProfile?: NDKUserProfile;
 		npubMaxLength?: number;
-		attribute?: "display_name" | "name" | string;
+		attribute?: 'display_name' | 'name' | string;
 		class?: string;
 		style?: string;
 	} = $props();
 
 	let profile = $state<NDKUserProfile | undefined>(userProfile);
+	const identifier = $derived(pubkey || npub);
 
 	$effect(() => {
 		profile = userProfile;
 
-		if (!ndk || !pubkey || userProfile) return;
+		if (!ndk || !identifier || userProfile) return;
 
 		let cancelled = false;
 
-		ndk.fetchUser(pubkey).then((user) => {
+		ndk.fetchUser(identifier).then((user) => {
 			if (cancelled || !user) return;
 
 			profile = user.profile;
 
-			return user.fetchProfile().then((fetchedProfile) => {
-				if (cancelled) return;
-				profile = fetchedProfile ?? user.profile;
-			});
+			return user
+				.fetchProfile({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY })
+				.then((fetchedProfile) => {
+					if (cancelled) return;
+					profile = fetchedProfile ?? user.profile;
+				})
+				.catch(() => {
+					if (cancelled) return;
+					profile = user.profile;
+				});
 		});
 
 		return () => {
@@ -48,15 +55,19 @@
 	});
 
 	function truncatedBech32(bech32: string | undefined, length?: number): string {
-		if (!bech32) return "";
+		if (!bech32) return '';
 		return `${bech32.substring(0, length || 9)}...`;
 	}
 
 	function prettifyNip05(nip05: string): string {
-		return nip05.startsWith("_@") ? nip05.substring(2) : nip05;
+		return nip05.startsWith('_@') ? nip05.substring(2) : nip05;
 	}
 
-	const truncatedNpub = $derived(npubMaxLength && (npub || pubkey) ? truncatedBech32(npub || pubkey, npubMaxLength) : (npub || pubkey || ""));
+	const truncatedNpub = $derived(
+		npubMaxLength && (npub || pubkey)
+			? truncatedBech32(npub || pubkey, npubMaxLength)
+			: npub || pubkey || ''
+	);
 
 	function chooseNameFromDisplay(prof?: NDKUserProfile) {
 		if (prof?.[attribute]) return prof[attribute];

@@ -1,148 +1,211 @@
 <script lang="ts">
-	import { page } from "$app/stores";
-	import { ndk } from "$lib/ndk.svelte";
-	import Button from "$lib/components/ui/button/button.svelte";
-	import { NDKEvent, NDKUser } from "@nostr-dev-kit/ndk";
-	import Editor from "../Editor.svelte";
-	import { goto } from "$app/navigation";
-	import type { Subscription } from "@nostr-dev-kit/svelte";
-	import EntryCard from "$lib/components/EntryCard.svelte";
+	import { page } from '$app/stores';
+	import { ndk } from '$lib/ndk.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { NDKEvent, NDKUser } from '@nostr-dev-kit/ndk';
+	import Editor from '../Editor.svelte';
+	import { goto } from '$app/navigation';
+	import EntryCard from '$lib/components/EntryCard.svelte';
 
-    let { naddr }: { naddr: string } = $props();
+	let event = $state<NDKEvent | undefined>(undefined);
+	let newContent = $state(false);
+	let title = $state<string>('');
+	let category = $state('');
+	let saving = $state(false);
+	let publishable = $state(true);
+	let statusMessage = $state('');
+	let subscriptionKind = $state<number | undefined>(undefined);
+	let subscriptionDTag = $state<string | undefined>(undefined);
+	let subscriptionAuthor = $state<string | undefined>(undefined);
 
-    let events: Subscription<NDKEvent> | undefined;
-    let event = $state<NDKEvent | undefined>(undefined);
-    let newContent = $state(false);
-    let title = $state<string>("");
-    let category = $state<string | undefined>(undefined);
-    let saving = $state(false);
-    let publishable = $state(true);
-    let statusMessage = $state("");
+	let currentUser: NDKUser;
+	ndk.signer?.user().then((user) => {
+		currentUser = user;
+	});
 
-    let currentUser: NDKUser;
-    ndk.signer?.user().then((user) => {
-        currentUser = user;
-    });
+	const events = ndk.$subscribe(() => {
+		if (!subscriptionKind || !subscriptionDTag || !subscriptionAuthor) return undefined;
 
-    let mounted = $state(true);
+		return {
+			filters: [
+				{
+					kinds: [subscriptionKind],
+					'#d': [subscriptionDTag],
+					authors: [subscriptionAuthor]
+				}
+			],
+			subId: 'edit-page-event'
+		};
+	});
 
-    $effect(() => {
-        const currentNaddr = $page.params.naddr;
-        if (currentNaddr && currentNaddr !== naddr && mounted) {
-            if (events) events.stop();
+	$effect(() => {
+		const currentNaddr = $page.params.naddr;
+		if (!currentNaddr) return;
 
-            // First fetch the initial event
-            ndk.fetchEvent(currentNaddr).then((fetchedEvent) => {
-                if (fetchedEvent) {
-                    // Then subscribe to updates for this specific addressable event
-                    events = ndk.$subscribe(() => ({
-                        filters: [{
-                            kinds: [fetchedEvent.kind],
-                            "#d": [fetchedEvent.dTag!],
-                            authors: [fetchedEvent.pubkey],
-                        }],
-                        subId: 'edit-page-event'
-                    }));
-                }
-            });
-        }
-    });
+		let cancelled = false;
 
-    $effect(() => {
-        if (events) {
-            const eventsList = Array.from(events.events);
-            if (eventsList.length > 0) {
-                const latest = eventsList
-                    .sort((a, b) => {
-                        const time = b.created_at! - a.created_at!
-                        if (time !== 0) return time
-                        return b.content.length - a.content.length
-                    })[0];
-                if (latest && event?.id !== latest.id) {
-                    event = latest;
-                    content = latest.content;
-                    title = latest.tagValue("title") || latest.dTag!;
-                    category = latest.tagValue("c") ?? undefined;
-                }
-            }
-        }
-    });
+		event = undefined;
+		title = '';
+		category = '';
+		content = '';
+		subscriptionKind = undefined;
+		subscriptionDTag = undefined;
+		subscriptionAuthor = undefined;
 
-    async function save() {
-        if (!event) return;
+		ndk.fetchEvent(currentNaddr).then((fetchedEvent) => {
+			if (cancelled || !fetchedEvent) return;
 
-        saving = true;
-        const prevKey = event.pubkey;
+			event = fetchedEvent;
+			content = fetchedEvent.content;
+			title = fetchedEvent.tagValue('title') || fetchedEvent.dTag!;
+			category = fetchedEvent.tagValue('c') ?? '';
+			subscriptionKind = fetchedEvent.kind;
+			subscriptionDTag = fetchedEvent.dTag ?? undefined;
+			subscriptionAuthor = fetchedEvent.pubkey;
+		});
 
-        if (prevKey !== currentUser.pubkey) {
-            event.removeTag("e");
-            event.removeTag("a");
-            event.tag(event, "fork");
-        }
+		return () => {
+			cancelled = true;
+		};
+	});
 
-        try {
-            event.id = "";
-            event.sig = "";
-            event.pubkey = "";
-            event.created_at = undefined;
-            event.removeTag("title");
-            event.alt = "This is a wiki article about " + title + "\n\nYou can read it on https://wikifreedia.xyz/a/" + event.encode();
-            event.tags.push(["title", title]);
-            event.removeTag("c");
-            if (category) event.tags.push(["c", category]);
-            event.removeTag("published_at");
-            event.tags.push(["published_at", Math.floor(Date.now() / 1000).toString()]);
-            await event.publish();
-            goto(`/${event.dTag}/${event.author.npub}`);
-        } finally {
-            saving = false;
-        }
-    }
+	$effect(() => {
+		if (events) {
+			const eventsList = Array.from(events.events);
+			if (eventsList.length > 0) {
+				const latest = eventsList.sort((a, b) => {
+					const time = b.created_at! - a.created_at!;
+					if (time !== 0) return time;
+					return b.content.length - a.content.length;
+				})[0];
+				if (latest && event?.id !== latest.id) {
+					event = latest;
+					content = latest.content;
+					title = latest.tagValue('title') || latest.dTag!;
+					category = latest.tagValue('c') ?? '';
+				}
+			}
+		}
+	});
 
-    let content = $state<string>("");
-    let preview = $state(false);
+	async function save() {
+		if (!event) return;
 
-    function togglePreview() {
-        preview = !preview;
-    }
+		saving = true;
+		const prevKey = event.pubkey;
+
+		if (prevKey !== currentUser.pubkey) {
+			event.removeTag('e');
+			event.removeTag('a');
+			event.tag(event, 'fork');
+		}
+
+		try {
+			event.id = '';
+			event.sig = '';
+			event.pubkey = '';
+			event.created_at = undefined;
+			event.removeTag('title');
+			event.alt =
+				'This is a wiki article about ' +
+				title +
+				'\n\nYou can read it on https://wikifreedia.xyz/a/' +
+				event.encode();
+			event.tags.push(['title', title]);
+			event.removeTag('c');
+			if (category) event.tags.push(['c', category]);
+			event.removeTag('published_at');
+			event.tags.push(['published_at', Math.floor(Date.now() / 1000).toString()]);
+			await event.publish();
+			goto(`/${event.dTag}/${event.author.npub}`);
+		} finally {
+			saving = false;
+		}
+	}
+
+	let content = $state<string>('');
+	let preview = $state(false);
+
+	function togglePreview() {
+		preview = !preview;
+	}
 </script>
 
 {#if event}
-    <div class="grid w-full items-center gap-4">
-        {#key content}
-            {#if !preview}
-                <Editor
-                    bind:content={event.content}
-                    baseEvent={event}
-                    bind:newContent
-                    bind:publishable
-                    bind:statusMessage
-                    bind:title
-                    bind:category
-                />
-            {:else}
-                <EntryCard {event} skipEdit={true} />
-            {/if}
+	<div class="page-shell-content px-4 pb-16 pt-6 sm:px-6">
+		<section class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+			<div class="max-w-3xl space-y-3">
+				<p class="eyebrow">Revision</p>
+				<h1>Edit Entry</h1>
+				<p class="max-w-2xl text-sm text-muted-foreground sm:text-base">
+					Revise the piece in the same surface readers will feel. Title, structure, and body stay
+					together while metadata remains out of sight.
+				</p>
+			</div>
 
-            <div class="flex flex-row gap-4">
-                <Button class="w-fit px-10" onclick={() => save()} disabled={!publishable || saving}>
-                    {#if saving}
-                        Saving...
-                    {:else}
-                        Save
-                    {/if}
-                </Button>
+			<div
+				class="chrome-pill self-start rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.26em] text-muted-foreground"
+			>
+				{preview ? 'Previewing' : 'Editing live draft'}
+			</div>
+		</section>
 
-                <Button variant="ghost" onclick={togglePreview}>
-                    Preview
-                </Button>
-            </div>
+		<div class="compose-frame rounded-[2rem] p-5 sm:p-6 lg:p-8">
+			{#key `${event.id}:${preview}`}
+				{#if !preview}
+					<Editor
+						bind:content={event.content}
+						bind:newContent
+						bind:publishable
+						bind:statusMessage
+						bind:title
+						bind:category
+					/>
+				{:else}
+					<div class="rounded-[1.75rem] border border-white/10 bg-black/20 p-4 sm:p-6">
+						<EntryCard {event} skipEdit={true} />
+					</div>
+				{/if}
 
-            {#if !publishable && statusMessage}
-                <p class="text-sm text-amber-600">{statusMessage}</p>
-            {/if}
-        {/key}
-    </div>
+				<div
+					class="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+				>
+					<p class="max-w-xl text-sm text-muted-foreground">
+						{#if !publishable && statusMessage}
+							{statusMessage}
+						{:else if preview}
+							Preview the article as readers will see it, then return to the editor for the next
+							pass.
+						{:else}
+							Save when the next version is ready. The existing URL stays intact.
+						{/if}
+					</p>
+
+					<div class="flex flex-col gap-3 sm:flex-row">
+						<Button
+							variant="ghost"
+							onclick={togglePreview}
+							class="rounded-full px-6 text-muted-foreground hover:text-foreground"
+						>
+							{preview ? 'Back to Editor' : 'Preview'}
+						</Button>
+
+						<Button
+							class="w-fit rounded-full px-8"
+							onclick={() => save()}
+							disabled={!publishable || saving}
+						>
+							{#if saving}
+								Saving...
+							{:else}
+								Save
+							{/if}
+						</Button>
+					</div>
+				</div>
+			{/key}
+		</div>
+	</div>
 {:else}
-    Looking for event
+	Looking for event
 {/if}

@@ -1,11 +1,29 @@
 <script lang="ts">
+	import { mount, onMount } from 'svelte';
+	import 'katex/dist/katex.min.css';
 	import { renderMarkupToHtml } from '$lib/utils/markup';
+	import { renderLatexInElement } from '$lib/utils/latex';
+	import { ndk } from '$lib/ndk.svelte';
+	import type { ContentRenderer } from '$lib/nostr-content/content-renderer';
+	import { defaultContentRenderer } from '$lib/nostr-content/default-renderer';
+	import EmbeddedEvent from '$lib/nostr-content/embedded-event.svelte';
 
-	let { content, class: className = '' }: { content: string; class?: string } = $props();
+	let {
+		content,
+		renderer = defaultContentRenderer,
+		class: className = ''
+	}: {
+		content: string;
+		renderer?: ContentRenderer;
+		class?: string;
+	} = $props();
 
 	function escapeHtml(value: string) {
 		return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 	}
+
+	let contentElement: HTMLDivElement | undefined;
+	let mountedComponents: Array<{ unmount: () => void }> = [];
 
 	const html = $derived.by(() => {
 		try {
@@ -15,9 +33,103 @@
 			return `<p>${escapeHtml(content)}</p>`;
 		}
 	});
+
+	function unmountMountedComponents() {
+		for (const mounted of mountedComponents) {
+			mounted.unmount();
+		}
+
+		mountedComponents = [];
+	}
+
+	function trackMountedComponent(component: { unmount?: () => void }) {
+		mountedComponents.push({
+			unmount: component.unmount ?? (() => {})
+		});
+	}
+
+	async function hydrateRenderedContent() {
+		if (!contentElement) {
+			return;
+		}
+
+		await renderLatexInElement(contentElement);
+		hydrateNostrEntities();
+	}
+
+	function hydrateNostrEntities() {
+		if (!contentElement) {
+			return;
+		}
+
+		unmountMountedComponents();
+
+		const mentionPlaceholders = contentElement.querySelectorAll<HTMLElement>('.nostr-mention');
+		for (const placeholder of mentionPlaceholders) {
+			const bech32 = placeholder.dataset.bech32;
+			if (!bech32) {
+				continue;
+			}
+
+			placeholder.replaceChildren();
+
+			if (!renderer.mentionComponent) {
+				placeholder.textContent = `nostr:${bech32}`;
+				continue;
+			}
+
+			trackMountedComponent(
+				mount(renderer.mentionComponent, {
+					target: placeholder,
+					props: {
+						ndk,
+						bech32
+					}
+				}) as { unmount?: () => void }
+			);
+		}
+
+		const eventPlaceholders = contentElement.querySelectorAll<HTMLElement>('.nostr-event-ref');
+		for (const placeholder of eventPlaceholders) {
+			const bech32 = placeholder.dataset.bech32;
+			if (!bech32) {
+				continue;
+			}
+
+			placeholder.replaceChildren();
+
+			trackMountedComponent(
+				mount(EmbeddedEvent, {
+					target: placeholder,
+					props: {
+						ndk,
+						bech32,
+						renderer
+					}
+				}) as { unmount?: () => void }
+			);
+		}
+	}
+
+	onMount(() => {
+		return () => {
+			unmountMountedComponents();
+		};
+	});
+
+	$effect(() => {
+		html;
+		renderer;
+
+		if (!contentElement) {
+			return;
+		}
+
+		void hydrateRenderedContent();
+	});
 </script>
 
-<div class="markup-content prose dark:prose-invert max-w-none {className}">
+<div bind:this={contentElement} class="markup-content prose dark:prose-invert max-w-none {className}">
 	{@html html}
 </div>
 
@@ -112,5 +224,15 @@
 
 	:global(.markup-content a:hover) {
 		text-decoration: underline;
+	}
+
+	:global(.markup-content .katex) {
+		color: inherit;
+	}
+
+	:global(.markup-content .katex-display) {
+		overflow-x: auto;
+		overflow-y: hidden;
+		padding-block: 0.5rem;
 	}
 </style>

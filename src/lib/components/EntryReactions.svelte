@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ndk } from '$lib/ndk.svelte';
-	import { NDKEvent, type Hexpubkey, type NDKEventId, type NostrEvent } from '@nostr-dev-kit/ndk';
+	import { NDKEvent, type Hexpubkey, type NDKEventId } from '@nostr-dev-kit/ndk';
 	import { Avatar } from '@nostr-dev-kit/svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import Button from './ui/button/button.svelte';
@@ -8,7 +8,7 @@
 	let {
 		event,
 		reactions,
-		reactionCount = $bindable(undefined)
+		reactionCount = $bindable()
 	}: {
 		event: NDKEvent;
 		reactions: Subscription<NDKEvent>;
@@ -52,12 +52,7 @@
 	}
 
 	async function react(type: string) {
-		const r = new NDKEvent(ndk, {
-			kind: 7,
-			content: type
-		} as NostrEvent);
-		r.tag(event);
-		r.publish();
+		await event.react(type);
 	}
 
 	function deleteUserReaction() {
@@ -69,45 +64,45 @@
 	}
 </script>
 
-<div class="flex flex-wrap items-center gap-3">
+<div class="flex flex-wrap items-center gap-2.5">
 	{#each Object.keys(grupedReactions) as type}
-		<div class="chrome-pill flex items-center gap-3 rounded-full border border-white/8 px-2 py-2">
+		<div class="chrome-pill flex items-center gap-2 rounded-full border border-white/8 px-1.5 py-1.5">
 			{#if !currentUserHasReacted}
 				<Button
 					onclick={() => react(type)}
 					variant="ghost"
 					size="icon"
-					class="h-10 w-10 rounded-full bg-white/[0.04] hover:bg-white/[0.08]"
+					class="h-9 w-9 rounded-full bg-white/[0.04] text-base hover:bg-white/[0.08]"
 				>
 					{prettifyReaction(type)}
 				</Button>
 			{:else}
 				<div
-					class="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.04] text-base"
+					class="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.04] text-base"
 				>
 					{prettifyReaction(type)}
 				</div>
 			{/if}
 
-			<div class="flex flex-row flex-wrap items-center -space-x-2 transition-all duration-300">
+			<div class="flex flex-row flex-wrap items-center gap-1.5 pr-1 transition-all duration-300">
 				{#if grupedReactions[type].size === 0}
-					<span class="px-2 text-sm text-muted-foreground">0</span>
+					<span class="pr-1 text-xs font-medium text-muted-foreground">0</span>
 				{/if}
 
 				{#each Array.from(grupedReactions[type]) as pubkey (pubkey)}
 					{#if pubkey === currentUser?.pubkey}
-						<button onclick={deleteUserReaction}>
+						<button onclick={deleteUserReaction} class="rounded-full">
 							<Avatar
 								{ndk}
 								{pubkey}
-								class="h-9 w-9 rounded-full border-2 border-amber-500/80 object-cover"
+								class="h-8 w-8 rounded-full border-2 border-amber-500/80 object-cover"
 							/>
 						</button>
 					{:else}
 						<Avatar
 							{ndk}
 							{pubkey}
-							class="h-9 w-9 rounded-full border-2 border-white/10 object-cover"
+							class="h-8 w-8 rounded-full border-2 border-white/10 object-cover"
 						/>
 					{/if}
 				{/each}

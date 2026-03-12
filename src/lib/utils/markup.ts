@@ -2,6 +2,10 @@ import type { JSONContent } from '@tiptap/core';
 import Asciidoctor from 'asciidoctor';
 import { parse, renderDjot, renderHTML } from '@djot/djot';
 import { normalizeDTag } from './dtag';
+import {
+	createNostrPlaceholderHtml,
+	findNostrEntityMatches
+} from './nostr-entities';
 
 type DjotReference = {
 	destination: string;
@@ -131,7 +135,7 @@ export function renderDjotToHtml(content: string): string {
 		return '';
 	}
 
-	const ast = parse(content) as DjotDoc;
+	const ast = enhanceDjotAstWithNostrEntities(parse(content) as DjotDoc);
 
 	return renderHTML(ast as never, {
 		overrides: {
@@ -153,6 +157,75 @@ export function renderDjotToHtml(content: string): string {
 			}
 		}
 	});
+}
+
+function enhanceDjotAstWithNostrEntities(doc: DjotDoc): DjotDoc {
+	return {
+		...doc,
+		children: enhanceDjotNodes(doc.children, false) as DjotBlock[]
+	};
+}
+
+function enhanceDjotNodes(
+	nodes: Array<DjotBlock | DjotInline>,
+	insideLink: boolean
+): Array<DjotBlock | DjotInline> {
+	return nodes.flatMap((node) => {
+		if (node.tag === 'str' && !insideLink) {
+			return splitDjotStringNode(node as DjotInline);
+		}
+
+		if (!Array.isArray(node.children)) {
+			return [node];
+		}
+
+		return [
+			{
+				...node,
+				children: enhanceDjotNodes(
+					node.children as Array<DjotBlock | DjotInline>,
+					insideLink || node.tag === 'link'
+				)
+			}
+		];
+	});
+}
+
+function splitDjotStringNode(node: DjotInline): DjotInline[] {
+	const text = node.text ?? '';
+	const matches = findNostrEntityMatches(text);
+	if (matches.length === 0) {
+		return [node];
+	}
+
+	const fragments: DjotInline[] = [];
+	let lastIndex = 0;
+
+	for (const match of matches) {
+		if (match.index > lastIndex) {
+			fragments.push({
+				...node,
+				text: text.slice(lastIndex, match.index)
+			});
+		}
+
+		fragments.push({
+			tag: 'raw_inline',
+			format: 'html',
+			text: createNostrPlaceholderHtml(match, escapeHtmlText, escapeHtmlAttribute)
+		});
+
+		lastIndex = match.index + match.uri.length;
+	}
+
+	if (lastIndex < text.length) {
+		fragments.push({
+			...node,
+			text: text.slice(lastIndex)
+		});
+	}
+
+	return fragments;
 }
 
 export function renderMarkupToHtml(content: string): string {

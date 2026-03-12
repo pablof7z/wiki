@@ -12,7 +12,7 @@
 	}
 </script>
 
-<section class="glass-panel-soft rounded-[1.9rem] px-5 py-5">
+<section class="glass-panel rounded-[1.9rem] px-5 py-5">
 	<p class="eyebrow mb-3">Other authors</p>
 	<h3 class="text-lg">Alternative versions</h3>
 
@@ -21,11 +21,11 @@
 			No alternate authors have published this topic yet.
 		</p>
 	{:else}
-		<div class="mt-4 space-y-2">
+		<div class="section-list mt-4">
 			{#each versions as version (version.id)}
 				<a
 					href={'/a/' + version.encode()}
-					class="flex items-center gap-3 rounded-[1.2rem] px-3 py-3 transition-colors hover:bg-white/[0.04]"
+					class="section-row section-row-link flex items-center gap-3"
 				>
 					<Avatar
 						{ndk}

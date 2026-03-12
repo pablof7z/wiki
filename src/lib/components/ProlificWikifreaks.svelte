@@ -84,7 +84,7 @@
 </script>
 
 <div class="glass-panel rounded-[2rem] p-5 sm:p-6">
-	<p class="eyebrow mb-3">Community signal</p>
+	<p class="eyebrow mb-3">Network signal</p>
 	<h3 class="text-xl">Prolific Wikifreaks</h3>
 	<p class="mt-2 text-sm text-muted-foreground">
 		People generating the most writing and support around the network.
@@ -93,11 +93,11 @@
 	{#if topUsers.length === 0}
 		<div class="mt-6 text-sm text-muted-foreground">Loading activity...</div>
 	{:else}
-		<div class="mt-6 flex flex-col gap-3">
+		<div class="section-list mt-6">
 			{#each topUsers as user, i (user.pubkey)}
 				<a
 					href="/p/{user.pubkey}"
-					class="glass-panel-soft flex flex-row items-center gap-3 rounded-[1.5rem] p-3 transition-colors hover:bg-white/[0.08]"
+					class="section-row section-row-link flex flex-row items-center gap-3"
 				>
 					<div class="w-6 text-sm font-semibold text-muted-foreground">
 						#{i + 1}

@@ -2,13 +2,13 @@
 
 Wikifreedia is a decentralized, censorship-resistant alternative to Wikipedia, built entirely on the Nostr protocol. It was created by developer Pablo Fernandez (@PABLOF7z) to demonstrate how a collaborative knowledge repository can exist without centralized control.
 
-The core principle of Wikifreedia is that there is **no single source of truth**. Multiple perspectives and versions of a topic can coexist, and it is up to the community to decide which versions they find most valuable through a voting mechanism.
+The core principle of Wikifreedia is that there is **no single source of truth**. Multiple perspectives and versions of a topic can coexist, and readers decide which versions they find most valuable through a voting mechanism.
 
 ## Core Principles
 
 *   **No Single Source of Truth:** Unlike traditional wikis, Wikifreedia allows multiple, parallel versions of an article to exist. Different authors can publish their own take on the same subject.
 *   **Open and Permissionless:** Anyone with a Nostr identity can create, edit, or "fork" an article without needing prior approval from a central authority.
-*   **Community Curation:** The platform incorporates a voting mechanism that allows the community to signal which versions of an article they find most accurate or valuable.
+*   **Open Ranking:** The platform incorporates a voting mechanism that allows readers to signal which versions of an article they find most accurate or valuable.
 *   **Censorship-Resistant:** Because all content is stored as Nostr events and broadcasted to a network of relays, no single entity can block, modify, or remove content.
 
 ## User Flows

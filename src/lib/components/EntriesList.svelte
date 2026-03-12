@@ -130,7 +130,7 @@
 </script>
 
 {#if topicGroups.length === 0}
-	<div class="glass-panel-soft rounded-[1.5rem] px-5 py-6 text-sm text-muted-foreground">
+	<div class="surface-inset rounded-[1.5rem] px-5 py-6 text-sm text-muted-foreground">
 		No entries match this view yet.
 	</div>
 {:else}
@@ -145,11 +145,9 @@
 			{/if}
 		</div>
 
-		<div class="flex flex-col gap-3">
+		<div class="section-list">
 			{#each paginatedTopicGroups as topicGroup (topicGroup.topic)}
-				<div
-					class="glass-panel-soft group rounded-[1.75rem] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:bg-white/[0.06] sm:p-5"
-				>
+				<div class="section-row section-row-link group">
 					<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 						<a href="/{encodeURIComponent(topicGroup.topic)}" class="min-w-0 flex-1">
 							<div class="eyebrow mb-2">Topic</div>

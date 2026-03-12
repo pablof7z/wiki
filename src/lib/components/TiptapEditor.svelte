@@ -1,8 +1,18 @@
 <script lang="ts">
+	import {
+		Bold,
+		CodeXml,
+		Italic,
+		Link2,
+		SquareTerminal,
+		Strikethrough,
+		TextQuote
+	} from '@lucide/svelte';
 	import { Editor } from '@tiptap/core';
-	import StarterKit from '@tiptap/starter-kit';
-	import Link from '@tiptap/extension-link';
-	import Placeholder from '@tiptap/extension-placeholder';
+	import { Link as LinkExtension } from '@tiptap/extension-link';
+	import { Placeholder } from '@tiptap/extension-placeholder';
+	import { StarterKit } from '@tiptap/starter-kit';
+	import { cn } from '$lib/utils.js';
 	import { normalizeDTag } from '$lib/utils/dtag';
 	import {
 		analyzeMarkupForRichEditor,
@@ -11,7 +21,7 @@
 		type RichEditorAnalysis
 	} from '$lib/utils/markup';
 
-	const WikiAwareLink = Link.extend({
+	const WikiAwareLink = LinkExtension.extend({
 		addAttributes() {
 			return {
 				...(this.parent?.() ?? {}),
@@ -37,6 +47,7 @@
 	});
 
 	type EditorMode = 'rich' | 'raw';
+	type EditorVariant = 'default' | 'compose';
 
 	let {
 		content = $bindable(''),
@@ -49,6 +60,7 @@
 		publishable = $bindable(true),
 		statusMessage = $bindable(''),
 		contentFormat = $bindable<MarkupFormat>('djot'),
+		variant = 'default',
 		class: className = '',
 		onsubmit = () => {},
 		onforceSubmit = () => {},
@@ -66,6 +78,7 @@
 		publishable?: boolean;
 		statusMessage?: string;
 		contentFormat?: MarkupFormat;
+		variant?: EditorVariant;
 		class?: string;
 		onsubmit?: () => void;
 		onforceSubmit?: () => void;
@@ -80,8 +93,17 @@
 	let canUseRichMode = $state(false);
 	let forceRawMode = $state(false);
 	let pendingAnalysis = $state<RichEditorAnalysis | null>(null);
+	let syncedEditorContent = $state<string | null>(null);
 	let suppressEditorUpdate = false;
 	let previousPreferRich = $state<boolean | undefined>(undefined);
+
+	function editorContentClass() {
+		if (variant === 'compose') {
+			return 'compose-editor-content prose prose-lg max-w-none focus:outline-none';
+		}
+
+		return 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4';
+	}
 
 	function buildEditor() {
 		editor = new Editor({
@@ -108,7 +130,7 @@
 			],
 			editorProps: {
 				attributes: {
-					class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4'
+					class: editorContentClass()
 				},
 				handleKeyDown: (_view, event) => {
 					if (event.key === 'Enter') {
@@ -138,6 +160,7 @@
 				}
 
 				content = tiptapToDjot(editor.getJSON());
+				syncedEditorContent = content;
 				newContent = true;
 				oncontentChanged();
 			},
@@ -155,6 +178,8 @@
 			editor.destroy();
 			editor = null;
 		}
+
+		syncedEditorContent = null;
 	}
 
 	function syncAnalysis(analysis: RichEditorAnalysis) {
@@ -164,7 +189,11 @@
 		contentFormat = analysis.format;
 		canUseRichMode = analysis.richSupported;
 
-		if (analysis.convertedFromLegacy && analysis.canonicalDjot && analysis.canonicalDjot !== content) {
+		if (
+			analysis.convertedFromLegacy &&
+			analysis.canonicalDjot &&
+			analysis.canonicalDjot !== content
+		) {
 			content = analysis.canonicalDjot;
 			return;
 		}
@@ -189,6 +218,7 @@
 		suppressEditorUpdate = true;
 		editor.commands.setContent(pendingAnalysis.json);
 		suppressEditorUpdate = false;
+		syncedEditorContent = content;
 	}
 
 	function useRichEditor() {
@@ -282,20 +312,44 @@
 			buildEditor();
 		}
 
-		setEditorContent();
-
 		return () => {
 			destroyEditor();
 		};
 	});
+
+	$effect(() => {
+		if (mode !== 'rich' || !editor || !pendingAnalysis?.json) {
+			return;
+		}
+
+		if (content === syncedEditorContent) {
+			return;
+		}
+
+		setEditorContent();
+	});
 </script>
 
-<div class="flex flex-col border rounded-xl {className}">
+<div
+	class={cn(
+		'flex flex-col overflow-hidden',
+		variant === 'compose' ? 'compose-editor-shell' : 'rounded-xl border',
+		className
+	)}
+>
 	{#if toolbar && mode === 'rich'}
-		<div class="toolbar border-b p-2 flex flex-wrap gap-1 items-center sticky top-0 bg-background/80 backdrop-blur-xl z-40">
+		<div
+			class={cn(
+				'toolbar sticky top-0 z-40 flex flex-wrap items-center gap-1 border-b bg-background/80 p-2 backdrop-blur-xl',
+				variant === 'compose' && 'compose-toolbar'
+			)}
+		>
 			<div class="flex gap-1 border-r pr-2">
 				<select
-					class="px-2 py-1 text-sm rounded hover:bg-accent"
+					class={cn(
+						'rounded px-2 py-1 text-sm hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-select'
+					)}
 					onchange={(event) => {
 						const value = event.currentTarget.value;
 						if (value === 'p') setParagraph();
@@ -316,95 +370,142 @@
 				<button
 					type="button"
 					onclick={toggleBold}
-					class="px-3 py-1 rounded hover:bg-accent font-bold"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('bold')}
 					aria-label="Bold"
+					title="Bold"
 				>
-					B
+					<Bold class="size-4" />
 				</button>
 				<button
 					type="button"
 					onclick={toggleItalic}
-					class="px-3 py-1 rounded hover:bg-accent italic"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('italic')}
 					aria-label="Italic"
+					title="Italic"
 				>
-					I
+					<Italic class="size-4" />
 				</button>
 				<button
 					type="button"
 					onclick={toggleStrike}
-					class="px-3 py-1 rounded hover:bg-accent line-through"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('strike')}
 					aria-label="Strike"
+					title="Strikethrough"
 				>
-					S
+					<Strikethrough class="size-4" />
 				</button>
 				<button
 					type="button"
 					onclick={toggleCode}
-					class="px-3 py-1 rounded hover:bg-accent font-mono text-sm"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('code')}
 					aria-label="Inline code"
+					title="Inline code"
 				>
-					&lt;/&gt;
+					<CodeXml class="size-4" />
 				</button>
 				<button
 					type="button"
 					onclick={setLinkFromPrompt}
-					class="px-3 py-1 rounded hover:bg-accent"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('link')}
 					aria-label="Link"
+					title="Link"
 				>
-					Link
+					<Link2 class="size-4" />
 				</button>
 				<button
 					type="button"
 					onclick={toggleBlockquote}
-					class="px-3 py-1 rounded hover:bg-accent"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('blockquote')}
 					aria-label="Blockquote"
+					title="Blockquote"
 				>
-					"
+					<TextQuote class="size-4" />
 				</button>
 				<button
 					type="button"
 					onclick={toggleCodeBlock}
-					class="px-3 py-1 rounded hover:bg-accent"
+					class={cn(
+						'inline-flex items-center justify-center rounded px-3 py-1.5 transition-colors hover:bg-accent',
+						variant === 'compose' && 'compose-toolbar-control'
+					)}
 					class:bg-accent={editor?.isActive('codeBlock')}
 					aria-label="Code block"
+					title="Code block"
 				>
-					{'<>'}
+					<SquareTerminal class="size-4" />
 				</button>
 			</div>
 		</div>
 	{/if}
 
-	<div class="px-4 pt-3 text-sm text-muted-foreground flex flex-wrap gap-3 items-center">
-		<span>{mode === 'rich' ? 'Rich Djot editor' : 'Raw source editor'}</span>
-		<span>Detected: {contentFormat}</span>
+	<div
+		class={cn(
+			'flex flex-wrap items-center gap-3 px-4 pt-3 text-sm text-muted-foreground',
+			variant === 'compose' && 'compose-editor-meta'
+		)}
+	>
+		<span>{mode === 'rich' ? 'Rich editor' : 'Source editor'}</span>
+		<span>{contentFormat === 'djot' ? 'Djot markup' : 'AsciiDoc markup'}</span>
 		{#if mode === 'raw' && canUseRichMode && preferRich}
 			<button type="button" class="text-primary hover:underline" onclick={useRichEditor}>
-				Switch to rich editor
+				Switch back to rich editing
 			</button>
 		{/if}
 	</div>
 
 	{#if statusMessage}
-		<div class="px-4 pb-3 text-sm" class:text-amber-600={!publishable}>
+		<div
+			class={cn(
+				'px-4 pb-3 text-sm',
+				variant === 'compose' && 'compose-editor-status',
+				!publishable && 'text-amber-600'
+			)}
+		>
 			{statusMessage}
 		</div>
 	{/if}
 
 	{#if mode === 'rich'}
-		<div bind:this={editorElement} class="min-h-[200px] {className}"></div>
+		<div
+			bind:this={editorElement}
+			class={variant === 'compose' ? 'px-5 pb-5 sm:px-8' : 'min-h-[200px]'}
+		></div>
 	{:else}
 		<textarea
 			bind:value={content}
-			class="w-full min-h-[320px] p-4 border-0 rounded-b-xl font-mono bg-transparent"
-			placeholder={placeholder}
-			onfocus={onfocus}
-			onblur={onblur}
+			class={cn(
+				'w-full border-0 bg-transparent',
+				variant === 'compose'
+					? 'compose-raw-editor px-5 pb-10 pt-4 sm:px-8'
+					: 'min-h-[320px] rounded-b-xl p-4 font-mono'
+			)}
+			{placeholder}
+			{onfocus}
+			{onblur}
 			oninput={() => {
 				newContent = true;
 				oncontentChanged();

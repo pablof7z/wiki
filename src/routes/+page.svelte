@@ -20,6 +20,7 @@
 	let mounted = $state(true);
 	let query = $derived($page.url.searchParams.get('q') || '');
 	let category = $derived($page.url.searchParams.get('c'));
+	let hasActiveFilters = $derived(Boolean(query || category));
 
 	const entries = ndk.$subscribe(() => {
 		if (!mounted) return { filters: [] };
@@ -87,6 +88,10 @@
 		url.searchParams.set('c', nextCategory);
 		goto(url.toString());
 	}
+
+	$effect(() => {
+		newQuery = $page.url.searchParams.get('q') || '';
+	});
 </script>
 
 <svelte:head>
@@ -98,91 +103,113 @@
 </svelte:head>
 
 <div class="page-shell pb-20 pt-4 sm:pt-6">
-	<section class="relative overflow-hidden px-5 py-8 sm:px-8 sm:py-10 lg:min-h-[calc(100vh-8.5rem)] lg:px-12 lg:py-12">
-		<div class="absolute left-[8%] top-[18%] h-48 w-48 rounded-full bg-white/[0.04] blur-3xl"></div>
-		<div
-			class="absolute bottom-[12%] right-[12%] h-64 w-64 rounded-full bg-white/[0.05] blur-3xl"
-		></div>
-
-		<div class="relative z-10 flex h-full flex-col">
+	{#if !hasActiveFilters}
+		<section
+			class="relative overflow-hidden px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
+		>
 			<div
-				class="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center py-16 text-center"
-			>
-				<h1 class="display-wordmark text-[clamp(4rem,12vw,7.75rem)] leading-[0.92]">
-					Wikifreedia
-					<span class="ml-2 align-middle text-[0.28em] italic text-muted-foreground">v0.2</span>
-				</h1>
+				class="absolute left-[8%] top-[18%] h-48 w-48 rounded-full bg-white/[0.04] blur-3xl"
+			></div>
+			<div
+				class="absolute bottom-[12%] right-[12%] h-64 w-64 rounded-full bg-white/[0.05] blur-3xl"
+			></div>
 
-				<p class="mt-6 max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
-					No entry here has a canonical version. Truth is not discovered by consensus, but by
-					integrating opposites and tracing how competing accounts sharpen one another.
-				</p>
-
-				<form
-					class="mt-10 flex w-full max-w-4xl items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
-					onsubmit={(event) => {
-						event.preventDefault();
-						search();
-					}}
+			<div class="relative z-10 flex h-full flex-col">
+				<div
+					class="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center py-16 text-center"
 				>
-					<div
-						class="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.04] text-muted-foreground"
+					<h1 class="display-wordmark text-[clamp(4rem,12vw,7.75rem)] leading-[0.92]">
+						Wikifreedia
+						<span class="ml-2 align-middle text-[0.28em] italic text-muted-foreground">v0.2</span>
+					</h1>
+
+					<p class="mt-6 max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
+						No entry here has a canonical version. Truth is not discovered by consensus, but by
+						integrating opposites and tracing how competing accounts sharpen one another.
+					</p>
+
+					<form
+						class="mt-10 flex w-full max-w-4xl items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
+						onsubmit={(event) => {
+							event.preventDefault();
+							search();
+						}}
 					>
-						<Search class="h-5 w-5" />
-					</div>
+						<div
+							class="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.04] text-muted-foreground"
+						>
+							<Search class="h-5 w-5" />
+						</div>
 
-					<input
-						bind:value={newQuery}
-						type="text"
-						class="h-12 flex-1 bg-transparent pr-2 text-base outline-none placeholder:text-muted-foreground/70"
-						placeholder={category ? `Search beyond ${category}` : 'Search a topic, person, or idea'}
-						aria-label="Search articles"
-					/>
+						<input
+							bind:value={newQuery}
+							type="text"
+							class="h-12 flex-1 bg-transparent pr-2 text-base outline-none placeholder:text-muted-foreground/70"
+							placeholder="Search a topic, person, or idea"
+							aria-label="Search articles"
+						/>
 
-					<button
-						type="submit"
-						class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
-						aria-label="Submit search"
-					>
-						<ArrowUpRight class="h-5 w-5" />
-					</button>
-				</form>
+						<button
+							type="submit"
+							class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform duration-200 hover:-translate-y-px"
+							aria-label="Submit search"
+						>
+							<ArrowUpRight class="h-5 w-5" />
+						</button>
+					</form>
 
-				{#if query || category}
-					<button
-						type="button"
-						onclick={clearFilters}
-						class="subtle-link mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm"
-					>
-						<ArrowLeft class="h-4 w-4" />
-						Return to the full atlas
-					</button>
-				{/if}
-
-				{#if featuredCategories.length > 0}
-					<div class="mt-6 flex flex-wrap justify-center gap-2">
-						{#each featuredCategories as [featuredCategory, count] (featuredCategory)}
-							<button
-								type="button"
-								onclick={() => browseCategory(featuredCategory)}
-								class="chrome-pill rounded-full px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
-							>
-								{featuredCategory}
-								<span class="ml-2 text-xs opacity-70">{formatCount(count)}</span>
-							</button>
-						{/each}
-					</div>
-				{/if}
+					{#if featuredCategories.length > 0}
+						<div class="mt-6 flex flex-wrap justify-center gap-2">
+							{#each featuredCategories as [featuredCategory, count] (featuredCategory)}
+								<button
+									type="button"
+									onclick={() => browseCategory(featuredCategory)}
+									class="chrome-pill rounded-full px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+								>
+									{featuredCategory}
+									<span class="ml-2 text-xs opacity-70">{formatCount(count)}</span>
+								</button>
+							{/each}
+						</div>
+					{/if}
+				</div>
 			</div>
-		</div>
-	</section>
+		</section>
+	{/if}
 
-	<div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_360px]">
+	<div
+		class={`grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_360px] ${hasActiveFilters ? 'mt-2' : 'mt-6'}`}
+	>
 		<div class="space-y-6">
 			<section class="glass-panel rounded-[2.25rem] p-5 sm:p-7">
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 					<div>
-						<p class="eyebrow mb-3">Discovery Feed</p>
+						{#if hasActiveFilters}
+							<div class="mb-4 flex flex-wrap items-center gap-2">
+								{#if query}
+									<span class="chrome-pill rounded-full px-3 py-1.5 text-xs text-muted-foreground">
+										Query: {query}
+									</span>
+								{/if}
+
+								{#if category}
+									<span class="chrome-pill rounded-full px-3 py-1.5 text-xs text-muted-foreground">
+										Category: {category}
+									</span>
+								{/if}
+
+								<button
+									type="button"
+									onclick={clearFilters}
+									class="subtle-link inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm"
+								>
+									<ArrowLeft class="h-4 w-4" />
+									Return to the full atlas
+								</button>
+							</div>
+						{/if}
+
+						<p class="eyebrow mb-3">{hasActiveFilters ? 'Search Results' : 'Discovery Feed'}</p>
 						<h2 class="text-[clamp(2rem,4vw,3rem)]">
 							{query
 								? `Results for "${query}"`
@@ -191,7 +218,9 @@
 									: 'Recently modified wikis'}
 						</h2>
 						<p class="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-							Scan what changed most recently, then decide which version deserves your attention.
+							{hasActiveFilters
+								? 'Results are surfaced immediately. Refine the search from the header or jump back to the full atlas.'
+								: 'Scan what changed most recently, then decide which version deserves your attention.'}
 						</p>
 					</div>
 
@@ -205,7 +234,7 @@
 
 				{#if $wotSize > 1000}
 					<div
-						class="glass-panel-soft mt-6 flex flex-col gap-4 rounded-[1.5rem] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+						class="surface-inset mt-6 flex flex-col gap-4 rounded-[1.5rem] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
 					>
 						<div>
 							<p class="eyebrow mb-2">Trust Filter</p>
@@ -230,7 +259,7 @@
 							bind:entriesNotVisible
 						/>
 					{:else}
-						<div class="glass-panel-soft rounded-[1.5rem] px-5 py-6 text-sm text-muted-foreground">
+						<div class="surface-inset rounded-[1.5rem] px-5 py-6 text-sm text-muted-foreground">
 							Loading entries from cache and relays...
 						</div>
 					{/if}
@@ -248,7 +277,7 @@
 				<h3 class="text-xl">Knowledge without a central gatekeeper</h3>
 				<p class="mt-3 text-sm leading-7 text-muted-foreground">
 					Every entry is just a signed event. Authors can publish competing versions, readers can
-					trace provenance, and communities decide what should rise.
+					trace provenance, and readers decide what should rise.
 				</p>
 			</section>
 		</div>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { JSONContent } from '@tiptap/core';
 import { JSDOM } from 'jsdom';
+import { nip19 } from 'nostr-tools';
 import {
 	analyzeDjotForRichEditor,
 	analyzeMarkupForRichEditor,
@@ -47,6 +48,27 @@ describe('djot rendering', () => {
 		const html = renderDjotToHtml('[x](javascript:alert(1))');
 
 		expect(html).toContain('href="javascript:alert(1)"');
+	});
+
+	it('renders bare nostr entities as hydratable placeholders', () => {
+		const npub = nip19.npubEncode('f'.repeat(64));
+		const note = nip19.noteEncode('e'.repeat(64));
+		const nevent = nip19.neventEncode({ id: 'd'.repeat(64) });
+		const naddr = nip19.naddrEncode({
+			identifier: 'nostr-markup',
+			pubkey: 'c'.repeat(64),
+			kind: 30818
+		});
+		const html = renderDjotToHtml(
+			`author nostr:${npub}\n\nsee nostr:${note}\n\nthread nostr:${nevent}\n\nwiki nostr:${naddr}`
+		);
+
+		expect(html).toContain(`class="nostr-mention"`);
+		expect(html).toContain(`data-bech32="${npub}"`);
+		expect(html).toContain(`class="nostr-event-ref"`);
+		expect(html).toContain(`data-bech32="${note}"`);
+		expect(html).toContain(`data-bech32="${nevent}"`);
+		expect(html).toContain(`data-bech32="${naddr}"`);
 	});
 });
 
