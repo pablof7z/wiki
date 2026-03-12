@@ -207,21 +207,17 @@
 									Return to the full atlas
 								</button>
 							</div>
-						{/if}
 
-						<p class="eyebrow mb-3">{hasActiveFilters ? 'Search Results' : 'Discovery Feed'}</p>
-						<h2 class="text-[clamp(2rem,4vw,3rem)]">
-							{query
-								? `Results for "${query}"`
-								: category
-									? `${category}`
-									: 'Recently modified wikis'}
-						</h2>
-						<p class="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-							{hasActiveFilters
-								? 'Results are surfaced immediately. Refine the search from the header or jump back to the full atlas.'
-								: 'Scan what changed most recently, then decide which version deserves your attention.'}
-						</p>
+							<p class="eyebrow mb-3">Search Results</p>
+							<h2 class="text-[clamp(2rem,4vw,3rem)]">
+								{query
+									? `Results for "${query}"`
+									: `${category}`}
+							</h2>
+							<p class="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+								Results are surfaced immediately. Refine the search from the header or jump back to the full atlas.
+							</p>
+						{/if}
 					</div>
 
 					<div class="text-sm text-muted-foreground">
