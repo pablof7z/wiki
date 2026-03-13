@@ -31,7 +31,7 @@
 	});
 </script>
 
-<div class="page-shell-wide pt-6 pb-16 bg-background min-h-screen">
+<div class="w-full px-4 sm:px-6 lg:px-10 pt-6 pb-16 bg-background min-h-screen">
 	{#if loading}
 		<div class="surface-inset rounded-[2rem] px-6 py-8 text-muted-foreground">Loading entry...</div>
 	{:else if event}

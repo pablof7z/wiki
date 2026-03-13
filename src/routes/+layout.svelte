@@ -20,6 +20,19 @@
 		!isLandingPage
 	);
 
+	// Toggle landing class on body for stars/dots background (only on landing page)
+	let isLanding = $derived(
+		$page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c')
+	);
+
+	$effect(() => {
+		if (isLanding) {
+			document.body.classList.add('landing');
+		} else {
+			document.body.classList.remove('landing');
+		}
+	});
+
 	// Build WoT graph when user session is ready
 	$effect(() => {
 		const activePubkey = ndk.$sessions?.currentUser?.pubkey;
