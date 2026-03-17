@@ -7,8 +7,9 @@ import type { NDKUser, NDKEvent } from '@nostr-dev-kit/ndk';
 
 const DEFAULT_RELAYS = [
     'wss://purplepag.es',
-    'wss://relay.nostr.band',
     'wss://nos.lol',
+    'wss://relay.primal.net',
+    'wss://custom.fiatjaf.com',
     'wss://relay.wikifreedia.xyz',
 ];
 
