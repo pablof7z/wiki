@@ -31,7 +31,7 @@
 	});
 </script>
 
-<div class="page-shell pt-6 pb-16">
+<div class="page-shell-wide pt-6 pb-16">
 	{#if loading}
 		<div class="surface-inset rounded-[2rem] px-6 py-8 text-muted-foreground">Loading entry...</div>
 	{:else if event}

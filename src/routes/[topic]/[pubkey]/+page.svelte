@@ -81,12 +81,14 @@
 	});
 </script>
 
-{#if event}
-	{#key event.id}
-		<EntryCard {event} {otherVersions} />
-	{/key}
-{:else if error}
-	<div>{error}</div>
-{:else}
-	<div>Loading...</div>
-{/if}
+<div class="page-shell-wide pt-6 pb-16">
+	{#if event}
+		{#key event.id}
+			<EntryCard {event} {otherVersions} />
+		{/key}
+	{:else if error}
+		<div class="surface-inset rounded-[2rem] px-6 py-8 text-muted-foreground">{error}</div>
+	{:else}
+		<div class="surface-inset rounded-[2rem] px-6 py-8 text-muted-foreground">Loading...</div>
+	{/if}
+</div>

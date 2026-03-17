@@ -130,18 +130,18 @@
 
 <div
 	class={showToc
-		? 'grid gap-8 xl:grid-cols-[200px_minmax(0,54rem)_300px] 2xl:grid-cols-[220px_minmax(0,56rem)_320px] xl:justify-center'
-		: 'grid gap-8 xl:grid-cols-[minmax(0,56rem)_300px] xl:justify-center'}
+		? 'grid gap-8 xl:grid-cols-[minmax(12rem,1fr)_minmax(0,54rem)_minmax(16rem,1fr)] 2xl:grid-cols-[minmax(14rem,1fr)_minmax(0,56rem)_minmax(18rem,1fr)] xl:items-start'
+		: 'grid gap-8 xl:grid-cols-[minmax(0,56rem)_minmax(16rem,1fr)] xl:items-start'}
 >
 	{#if showToc}
-		<aside class="hidden xl:block">
-			<div class="sticky top-32">
+		<aside class="hidden xl:block xl:justify-self-start">
+			<div class="sticky top-32 w-full max-w-[15rem] 2xl:max-w-[17rem]">
 				<ArticleToc headings={tocHeadings} />
 			</div>
 		</aside>
 	{/if}
 
-	<article class="min-w-0">
+	<article class="min-w-0 xl:w-full">
 		<Tabs.Root bind:value={activeView}>
 			<div class="mt-7">
 				{#if !skipTitle}
@@ -293,8 +293,8 @@
 		</div>
 	</article>
 
-	<aside class="hidden xl:block">
-		<div class="sticky top-32">
+	<aside class="hidden xl:block xl:justify-self-end">
+		<div class="sticky top-32 w-full max-w-[20rem] 2xl:max-w-[22rem]">
 			<ArticleOtherAuthors versions={relatedVersions} />
 		</div>
 	</aside>

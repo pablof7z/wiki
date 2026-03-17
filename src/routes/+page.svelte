@@ -105,7 +105,7 @@
 <div class="page-shell pb-20 pt-4 sm:pt-6">
 	{#if !hasActiveFilters}
 		<section
-			class="relative overflow-hidden px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
+			class="relative flex min-h-[calc(90svh-2.5rem)] overflow-hidden px-5 py-8 sm:min-h-[calc(90svh-3rem)] sm:px-8 sm:py-10 lg:px-12 lg:py-12"
 		>
 			<div
 				class="absolute left-[8%] top-[18%] h-48 w-48 rounded-full bg-white/[0.04] blur-3xl"
@@ -114,7 +114,7 @@
 				class="absolute bottom-[12%] right-[12%] h-64 w-64 rounded-full bg-white/[0.05] blur-3xl"
 			></div>
 
-			<div class="relative z-10 flex h-full flex-col">
+			<div class="relative z-10 flex w-full flex-1 flex-col">
 				<div
 					class="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center py-16 text-center"
 				>
