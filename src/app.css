@@ -83,16 +83,16 @@
 		min-height: 100vh;
 		margin: 0;
 		font-family: var(--font-sans);
-		background:
-			radial-gradient(circle at 18% 18%, var(--glow), transparent 24%),
-			radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.025), transparent 18%),
-			radial-gradient(circle at 50% -4%, var(--glow-secondary), transparent 24%),
-			linear-gradient(180deg, var(--backdrop-top), var(--backdrop-bottom));
+		background: hsl(var(--background));
 		color: hsl(var(--foreground));
 		overflow-x: hidden;
 	}
 
-	body::before {
+	body.homepageBackdrop {
+		background: linear-gradient(180deg, var(--backdrop-top), var(--backdrop-bottom));
+	}
+
+	body.homepageBackdrop::before {
 		content: '';
 		position: fixed;
 		inset: 0;
@@ -115,7 +115,7 @@
 		animation: twinkle 16s ease-in-out infinite alternate;
 	}
 
-	body::after {
+	body.homepageBackdrop::after {
 		content: '';
 		position: fixed;
 		inset: 0;

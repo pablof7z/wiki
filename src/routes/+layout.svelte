@@ -13,8 +13,11 @@
 	let sessionStarted = $state(false);
 	let userRelays = $derived(Array.from(ndk.$sessions?.relayList?.keys() ?? []));
 	let connectedUserRelays = $state(0);
+	let isLandingPage = $derived(
+		$page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c')
+	);
 	let showHeader = $derived(
-		!($page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c'))
+		!isLandingPage
 	);
 
 	// Build WoT graph when user session is ready
@@ -72,6 +75,7 @@
 </script>
 
 <ModeWatcher />
+<svelte:body class:homepageBackdrop={isLandingPage} />
 
 <div class="flex min-h-screen flex-col">
 	{#if showHeader}
