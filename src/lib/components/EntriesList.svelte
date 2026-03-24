@@ -194,13 +194,7 @@
 		</div>
 
 		{#if totalPages > 1}
-			<div
-				class="flex flex-col gap-3 border-t border-white/8 pt-5 sm:flex-row sm:items-center sm:justify-between"
-			>
-				<p class="text-sm text-muted-foreground">
-					Use the pager to move through older topics without rendering the full feed at once.
-				</p>
-
+			<div class="flex justify-end border-t border-white/8 pt-5">
 				<div class="flex items-center gap-2">
 					<Button
 						variant="outline"
