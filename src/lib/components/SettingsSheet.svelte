@@ -21,6 +21,14 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { NDKWoT } from '@nostr-dev-kit/wot';
 
+	let {
+		open = $bindable(false),
+		showTrigger = true
+	}: {
+		open?: boolean;
+		showTrigger?: boolean;
+	} = $props();
+
 	let userFollows = $derived(ndk.$sessions?.follows ?? new Set());
 	let currentUser = $derived(ndk.$sessions?.currentUser);
 	let relayListMap = $derived(ndk.$sessions?.relayList ?? new Map());
@@ -100,15 +108,17 @@
 	}
 </script>
 
-<Sheet.Root>
-	<Sheet.Trigger>
-		<button
-			class="chrome-pill inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition-colors hover:bg-white/[0.08] hover:text-accent-foreground"
-		>
-			<Gear class="h-5 w-5" />
-			<span class="sr-only">Settings</span>
-		</button>
-	</Sheet.Trigger>
+<Sheet.Root bind:open>
+	{#if showTrigger}
+		<Sheet.Trigger>
+			<button
+				class="chrome-pill inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition-colors hover:bg-white/[0.08] hover:text-accent-foreground"
+			>
+				<Gear class="h-5 w-5" />
+				<span class="sr-only">Settings</span>
+			</button>
+		</Sheet.Trigger>
+	{/if}
 	<Sheet.Content class="w-full sm:max-w-md overflow-y-auto">
 		<Sheet.Header>
 			<Sheet.Title>Settings</Sheet.Title>
