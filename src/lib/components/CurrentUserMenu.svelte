@@ -25,7 +25,7 @@
 		includeSettingsSheet?: boolean;
 	} = $props();
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 
 	function navigateTo(path: string) {
 		void goto(path);

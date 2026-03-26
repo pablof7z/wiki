@@ -30,7 +30,7 @@
 	} = $props();
 
 	let userFollows = $derived(ndk.$sessions?.follows ?? new Set());
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 	let relayListMap = $derived(ndk.$sessions?.relayList ?? new Map());
 	let userRelays = $derived(Array.from(relayListMap.keys()));
 	let userRelayEvent = $derived(ndk.$sessions?.getSessionEvent(10102 as any));
@@ -83,7 +83,7 @@
 	}
 
 	async function rebuildWoT() {
-		const activePubkey = ndk.$sessions?.currentUser?.pubkey;
+		const activePubkey = ndk.$currentPubkey;
 		if (!activePubkey) return;
 
 		wotLoading.set(true);

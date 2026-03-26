@@ -4,6 +4,9 @@
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import AppHeader from '$lib/components/AppHeader.svelte';
+	import SeoHead from '$lib/components/SeoHead.svelte';
+	import WikiCacheWarmSyncDebug from '$lib/components/WikiCacheWarmSyncDebug.svelte';
+	import { startWikiCacheWarmSync, wikiCacheWarmSync } from '$lib/stores/wiki-cache-warm-sync';
 	import { wot, wotLoading, wotDepth } from '$lib/stores/wot';
 	import { NDKWoT } from '@nostr-dev-kit/wot';
 	import { get } from 'svelte/store';
@@ -13,16 +16,14 @@
 	let sessionStarted = $state(false);
 	let userRelays = $derived(Array.from(ndk.$sessions?.relayList?.keys() ?? []));
 	let connectedUserRelays = $state(0);
-	let isLandingPage = $derived(
-		$page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c')
-	);
-	let showHeader = $derived(
-		!isLandingPage
-	);
+	let isLandingPage = $derived($page.url.pathname === '/');
+	let isComposePage = $derived($page.url.pathname === '/new');
+	let isWelcomePage = $derived($page.url.pathname === '/welcome');
+	let showHeader = $derived(!isLandingPage && !isComposePage && !isWelcomePage);
 
 	// Build WoT graph when user session is ready
 	$effect(() => {
-		const activePubkey = ndk.$sessions?.currentUser?.pubkey;
+		const activePubkey = ndk.$currentPubkey;
 		if (activePubkey && sessionStarted && !get(wot)) {
 			buildWoT(activePubkey);
 		}
@@ -72,8 +73,15 @@
 				});
 		}
 	});
+
+	$effect(() => {
+		void startWikiCacheWarmSync();
+	});
 </script>
 
+{#if $page.data.seo}
+	<SeoHead seo={$page.data.seo} />
+{/if}
 <ModeWatcher />
 <svelte:body class:homepageBackdrop={isLandingPage} />
 
@@ -86,3 +94,5 @@
 		{@render children()}
 	</main>
 </div>
+
+<WikiCacheWarmSyncDebug state={$wikiCacheWarmSync} />

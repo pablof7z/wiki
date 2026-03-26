@@ -48,7 +48,7 @@
 	let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
 	let applyingDraftState = false;
 
-	const currentUser = $derived(ndk.$sessions?.currentUser);
+	const currentUser = $derived(ndk.$currentUser);
 	const requestedDraftId = $derived($page.url.searchParams.get('draft')?.trim() || undefined);
 	const dTag = $derived(title ? normalizeDTag(title) : '');
 	const currentDraftKey = $derived(deriveNewWikiDraftKey(title));

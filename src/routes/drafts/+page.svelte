@@ -16,7 +16,7 @@
 	let error = $state<string | undefined>(undefined);
 	let deletingDraftId = $state<string | undefined>(undefined);
 
-	const currentUser = $derived(ndk.$sessions?.currentUser);
+	const currentUser = $derived(ndk.$currentUser);
 	const dateFormat = new Intl.DateTimeFormat(undefined, {
 		dateStyle: 'medium',
 		timeStyle: 'short'

@@ -16,7 +16,6 @@
 	import { ndk } from '$lib/ndk.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import { Plus, Shuffle } from '@lucide/svelte';
-	import { NDKBlossom, defaultSHA256Calculator } from '@nostr-dev-kit/blossom';
 	import { NDKEvent, NDKPrivateKeySigner, type NostrEvent } from '@nostr-dev-kit/ndk';
 
 	type PictureSelection = {
@@ -284,6 +283,7 @@
 		pictureUploadError = '';
 
 		try {
+			const { NDKBlossom, defaultSHA256Calculator } = await import('@nostr-dev-kit/blossom');
 			const blossom = new NDKBlossom(ndk, activeSigner);
 			const uploaded = await blossom.upload(file, {
 				server: BLOSSOM_PROFILE_UPLOAD_SERVER,

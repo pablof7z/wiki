@@ -13,7 +13,7 @@
 	import Logo from './Logo.svelte';
 	import CurrentUserMenu from './CurrentUserMenu.svelte';
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 	let searchQuery = $state('');
 	let scrolled = $state(false);
 	let settingsOpen = $state(false);
