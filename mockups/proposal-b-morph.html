@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal B — The Morph</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+
+  .tagline {
+    font-size: 0.95rem;
+    color: #999;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+  }
+
+  /* The single morphing article */
+  .morph-stage {
+    width: 620px;
+    margin-bottom: 2rem;
+  }
+
+  .article-card {
+    background: #1a1a18;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .article-topic {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #666;
+    margin-bottom: 1rem;
+  }
+
+  .article-title {
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Author selector tabs */
+  .author-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .author-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    position: relative;
+  }
+
+  .author-tab:hover { color: #aaa; }
+
+  .author-tab.active {
+    color: #e8e0d4;
+    border-bottom-color: rgba(255,255,255,0.3);
+  }
+
+  .tab-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    flex-shrink: 0;
+  }
+
+  .tab-name { font-weight: 600; }
+  .tab-school {
+    font-size: 0.6rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Content area with morph */
+  .article-content {
+    position: relative;
+    min-height: 200px;
+  }
+
+  .perspective {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .perspective.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    position: relative;
+  }
+
+  .perspective p {
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #aaa;
+    margin-bottom: 1rem;
+  }
+
+  .perspective .divergent {
+    color: #e8e0d4;
+    background: rgba(255, 200, 100, 0.08);
+    padding: 1px 4px;
+    border-radius: 3px;
+    border-left: 2px solid rgba(255, 200, 100, 0.25);
+    padding-left: 6px;
+    margin-left: -8px;
+    display: inline;
+  }
+
+  /* Auto-cycle indicator */
+  .cycle-bar {
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 1px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+  }
+
+  .cycle-progress {
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    width: 0%;
+    transition: width 0.1s linear;
+    border-radius: 1px;
+  }
+
+  .bottom-note {
+    font-size: 0.75rem;
+    color: #555;
+    text-align: center;
+    max-width: 480px;
+    line-height: 1.6;
+    margin-top: 1.5rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #999;
+    padding: 0.5rem 1.2rem;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+  .ctrl-btn:hover {
+    border-color: rgba(255,255,255,0.3);
+    color: #e8e0d4;
+  }
+  .ctrl-btn.active {
+    border-color: rgba(255,255,255,0.3);
+    color: #e8e0d4;
+  }
+
+  .counter {
+    font-size: 0.7rem;
+    color: #555;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <p class="tagline">No entry here has a canonical version. Truth is not discovered by consensus, but by integrating opposites and tracing how competing accounts sharpen one another.</p>
+
+  <div class="morph-stage">
+    <div class="article-card">
+      <div class="article-topic">Topic with 3 perspectives</div>
+      <div class="article-title">Capitalism</div>
+
+      <div class="author-tabs">
+        <button class="author-tab active" onclick="switchTo(0)">
+          <div class="tab-avatar">AS</div>
+          <div>
+            <div class="tab-name">Adam Smith</div>
+            <div class="tab-school">Classical Economics</div>
+          </div>
+        </button>
+        <button class="author-tab" onclick="switchTo(1)">
+          <div class="tab-avatar">KM</div>
+          <div>
+            <div class="tab-name">Karl Marx</div>
+            <div class="tab-school">Political Economy</div>
+          </div>
+        </button>
+        <button class="author-tab" onclick="switchTo(2)">
+          <div class="tab-avatar">MR</div>
+          <div>
+            <div class="tab-name">Murray Rothbard</div>
+            <div class="tab-school">Austrian Economics</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="article-content">
+        <!-- Smith -->
+        <div class="perspective active" id="p0">
+          <p>Capitalism is a natural extension of humanity's innate propensity to truck, barter, and exchange. When individuals freely pursue their own economic self-interest, <span class="divergent">an invisible hand guides the market toward outcomes that benefit society as a whole</span>.</p>
+          <p>The division of labor, enabled by free exchange, multiplies productive capacity beyond what any central planner could achieve. Specialization and trade create wealth — not by design, but by the cumulative effect of countless voluntary transactions.</p>
+          <p><span class="divergent">The role of the state is limited but necessary: enforce contracts, protect property rights, and provide public goods</span> that no private actor would supply. Beyond this, government intervention distorts the natural price signals that coordinate millions of independent decisions.</p>
+        </div>
+
+        <!-- Marx -->
+        <div class="perspective" id="p1">
+          <p>Capitalism is a historically specific mode of production defined by the private ownership of the means of production and the exploitation of wage labor. The apparent freedom of the market masks a fundamental asymmetry: <span class="divergent">the capitalist extracts surplus value from workers, paying them less than the full value of what they produce</span>.</p>
+          <p>This is not a flaw that can be reformed away — it is the mechanism by which capital reproduces itself. Competition drives capitalists to intensify exploitation and replace human labor with machinery, creating a growing reserve army of unemployed.</p>
+          <p><span class="divergent">The state under capitalism is not a neutral arbiter but an instrument of class domination</span>, enforcing the property relations that sustain bourgeois power. Capital accumulation inevitably concentrates wealth and deepens the contradictions that will lead to capitalism's own dissolution.</p>
+        </div>
+
+        <!-- Rothbard -->
+        <div class="perspective" id="p2">
+          <p>Capitalism, in its pure form, is a system of voluntary exchange between free individuals, rooted in the absolute right to self-ownership and private property. What most people call "capitalism" today is actually a corrupted version — <span class="divergent">a partnership between big business and big government that Austrian economists call corporatism, not capitalism</span>.</p>
+          <p>Every government intervention — taxation, regulation, licensing — is a coercive violation of individual rights that distorts market outcomes and creates the very problems it claims to solve. Minimum wage causes unemployment. Regulation creates monopolies. Central banking causes boom-bust cycles.</p>
+          <p><span class="divergent">The state itself is the greatest threat to capitalism, not its guardian. A truly free market requires no state at all</span> — private arbitration, insurance, and defense agencies can provide every service government monopolizes, more efficiently and without coercion.</p>
+        </div>
+      </div>
+
+      <div class="cycle-bar">
+        <div class="cycle-progress" id="cycleProgress"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn active" id="autoBtn" onclick="toggleAuto()">Auto-cycle</button>
+    <span class="counter" id="counter">1 / 3</span>
+  </div>
+
+  <p class="bottom-note">
+    The highlighted passages mark where these perspectives fundamentally diverge.<br>
+    Same topic. Same structure. Radically different worldviews.
+  </p>
+</div>
+
+<script>
+let current = 0;
+let autoCycle = true;
+let cycleTimer = null;
+let progressInterval = null;
+const CYCLE_MS = 4500;
+
+function switchTo(idx) {
+  current = idx;
+  document.querySelectorAll('.perspective').forEach((p, i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.author-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+  document.getElementById('counter').textContent = `${idx + 1} / 3`;
+  resetProgress();
+}
+
+function next() {
+  switchTo((current + 1) % 3);
+}
+
+function resetProgress() {
+  const bar = document.getElementById('cycleProgress');
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  if (progressInterval) clearInterval(progressInterval);
+
+  if (autoCycle) {
+    let elapsed = 0;
+    const step = 50;
+    progressInterval = setInterval(() => {
+      elapsed += step;
+      bar.style.transition = 'width 0.05s linear';
+      bar.style.width = `${(elapsed / CYCLE_MS) * 100}%`;
+    }, step);
+  }
+}
+
+function startAuto() {
+  if (cycleTimer) clearInterval(cycleTimer);
+  cycleTimer = setInterval(next, CYCLE_MS);
+  resetProgress();
+}
+
+function stopAuto() {
+  if (cycleTimer) clearInterval(cycleTimer);
+  if (progressInterval) clearInterval(progressInterval);
+  const bar = document.getElementById('cycleProgress');
+  bar.style.width = '0%';
+}
+
+function toggleAuto() {
+  autoCycle = !autoCycle;
+  document.getElementById('autoBtn').classList.toggle('active', autoCycle);
+  if (autoCycle) startAuto();
+  else stopAuto();
+}
+
+// Start
+startAuto();
+</script>
+
+</body>
+</html>

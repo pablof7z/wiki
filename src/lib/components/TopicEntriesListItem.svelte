@@ -2,10 +2,18 @@
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import UserName from './UserName.svelte';
 	import { ndk } from '$lib/ndk.svelte';
+	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
 
-	let { entry }: { entry: NDKEvent } = $props();
+	let {
+		entry,
+		compareHref = undefined
+	}: {
+		entry: NDKEvent;
+		compareHref?: string;
+	} = $props();
 
 	const topic = $derived(entry.dTag ?? '');
+	const authorRoute = useNip05RouteId(() => entry.pubkey);
 
 	const taggedByEvents = ndk.$subscribe(() => ({
 		filters: [
@@ -24,7 +32,7 @@
 </script>
 
 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-	<a href="/{encodeURIComponent(topic)}/{entry.author.npub}" class="min-w-0 grow">
+	<a href="/{encodeURIComponent(topic)}/{authorRoute.id || entry.author.npub}" class="min-w-0 grow">
 		<UserName pubkey={entry.pubkey} />
 	</a>
 
@@ -33,6 +41,15 @@
 			<span class="text-sm text-muted-foreground">
 				Supported by {deferedToBy.length} defer{deferedToBy.length === 1 ? '' : 's'}
 			</span>
+		{/if}
+
+		{#if compareHref}
+			<a
+				href={compareHref}
+				class="subtle-link shrink text-xs uppercase tracking-[0.24em]"
+			>
+				Compare
+			</a>
 		{/if}
 
 		<a href="/a/{entry.encode()}" class="subtle-link shrink text-xs uppercase tracking-[0.24em]">

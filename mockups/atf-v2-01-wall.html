@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2-01 — The Wall</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;flex-shrink:0}
+.wordmark{font-size:1.3rem;font-style:italic;color:rgba(232,224,212,0.35)}
+.topic-label{font-size:0.55rem;text-transform:uppercase;letter-spacing:0.25em;color:#555}
+.wall{flex:1;display:flex}
+.column{flex:1;display:flex;flex-direction:column;justify-content:center;padding:3rem 2.5rem;border-right:1px solid rgba(255,255,255,0.04);position:relative;transition:background 0.3s ease}
+.column:last-child{border-right:none}
+.column:hover{background:rgba(255,255,255,0.015)}
+.col-author{font-size:0.85rem;font-weight:600;margin-bottom:0.15rem}
+.col-role{font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2rem}
+.col-quote{font-size:1.6rem;font-weight:400;line-height:1.35;letter-spacing:-0.02em;margin-bottom:1.5rem}
+.col-body{font-size:0.78rem;line-height:1.75;color:#777}
+.col-num{position:absolute;top:2.5rem;right:2.5rem;font-size:4rem;color:rgba(255,255,255,0.025);font-weight:400}
+.bottom-bar{padding:1rem 2.5rem;display:flex;align-items:center;justify-content:center;gap:2rem;border-top:1px solid rgba(255,255,255,0.03);flex-shrink:0}
+.bottom-bar span{font-size:0.6rem;color:#444;text-transform:uppercase;letter-spacing:0.1em}
+</style></head><body>
+<div class="top-bar">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="topic-label">3 entries on: Ivermectin</div>
+</div>
+<div class="wall">
+  <div class="column">
+    <div class="col-num">1</div>
+    <div class="col-author">Joe Rogan</div>
+    <div class="col-role">Podcaster</div>
+    <div class="col-quote">"They called a Nobel Prize-winning drug 'horse paste.'"</div>
+    <div class="col-body">Doctors around the world were seeing results. A $2 generic threatened a hundred-billion-dollar vaccine rollout, so they had the media destroy anyone who mentioned it. I took it. I was better in days.</div>
+  </div>
+  <div class="column">
+    <div class="col-num">2</div>
+    <div class="col-author">Anthony Fauci</div>
+    <div class="col-role">Immunologist</div>
+    <div class="col-quote">"The plural of anecdote is not data."</div>
+    <div class="col-body">The randomized, placebo-controlled clinical trials do not show benefit. In vitro activity against a virus does not translate to clinical efficacy. Promoting unproven treatments eroded confidence in vaccines that saved millions of lives.</div>
+  </div>
+  <div class="column">
+    <div class="col-num">3</div>
+    <div class="col-author">Bret Weinstein</div>
+    <div class="col-role">Evolutionary Biologist</div>
+    <div class="col-quote">"Both sides are wrong about what's actually happening."</div>
+    <div class="col-body">The EUA legally required no adequate alternative to exist. The entire vaccine program depended on the answer being "there is no alternative." You don't need a conspiracy — just an incentive structure that made honest evaluation impossible.</div>
+  </div>
+</div>
+<div class="bottom-bar">
+  <span>Same drug</span>
+  <span>·</span>
+  <span>Three perspectives</span>
+  <span>·</span>
+  <span>No canonical version</span>
+</div>
+</body></html>

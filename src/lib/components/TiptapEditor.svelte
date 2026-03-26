@@ -462,20 +462,13 @@
 		</div>
 	{/if}
 
-	<div
-		class={cn(
-			'flex flex-wrap items-center gap-3 px-4 pt-3 text-sm text-muted-foreground',
-			variant === 'compose' && 'compose-editor-meta'
-		)}
-	>
-		<span>{mode === 'rich' ? 'Rich editor' : 'Source editor'}</span>
-		<span>{contentFormat === 'djot' ? 'Djot markup' : 'AsciiDoc markup'}</span>
-		{#if mode === 'raw' && canUseRichMode && preferRich}
+	{#if mode === 'raw' && canUseRichMode && preferRich}
+		<div class={cn('px-4 pt-3 text-sm text-muted-foreground', variant === 'compose' && 'compose-editor-meta')}>
 			<button type="button" class="text-primary hover:underline" onclick={useRichEditor}>
 				Switch back to rich editing
 			</button>
-		{/if}
-	</div>
+		</div>
+	{/if}
 
 	{#if statusMessage}
 		<div
@@ -492,7 +485,7 @@
 	{#if mode === 'rich'}
 		<div
 			bind:this={editorElement}
-			class={variant === 'compose' ? 'px-5 pb-5 sm:px-8' : 'min-h-[200px]'}
+			class={variant === 'compose' ? 'pb-5' : 'min-h-[200px]'}
 		></div>
 	{:else}
 		<textarea
@@ -500,7 +493,7 @@
 			class={cn(
 				'w-full border-0 bg-transparent',
 				variant === 'compose'
-					? 'compose-raw-editor px-5 pb-10 pt-4 sm:px-8'
+					? 'compose-raw-editor pb-10 pt-4'
 					: 'min-h-[320px] rounded-b-xl p-4 font-mono'
 			)}
 			{placeholder}

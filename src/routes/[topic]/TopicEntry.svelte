@@ -6,8 +6,10 @@
 	import Name from '$lib/components/Name.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Card from '$lib/components/ui/card';
+	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
 
 	let { topic, entry }: { topic: string; entry: NDKEvent } = $props();
+	const authorRoute = useNip05RouteId(() => entry.pubkey);
 
 	const wordCount = $derived(entry.content.split(' ').length);
 </script>
@@ -27,7 +29,7 @@
 	</Card.Content>
 
 	<Card.Footer class="gap-1 justify-between">
-		<Button href="/{encodeURIComponent(topic)}/{entry.author.npub}">View</Button>
+		<Button href="/{encodeURIComponent(topic)}/{authorRoute.id || entry.author.npub}">View</Button>
 
 		<Button href="/a/{entry.encode()}/edit">Edit</Button>
 

@@ -2,20 +2,23 @@
 	import { ndk } from '$lib/ndk.svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import { Avatar } from '@nostr-dev-kit/svelte';
-	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
+	import { NDKEvent, NDKKind, type NostrEvent } from '@nostr-dev-kit/ndk';
 	import ArticleComments from '$lib/components/ArticleComments.svelte';
+	import ArticleContentHighlights from '$lib/components/ArticleContentHighlights.svelte';
+	import ArticleHighlights from '$lib/components/ArticleHighlights.svelte';
 	import ArticleOtherAuthors from '$lib/components/ArticleOtherAuthors.svelte';
 	import ArticleToc from '$lib/components/ArticleToc.svelte';
 	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
 	import EntryReactions from './EntryReactions.svelte';
-	import EventContent from '$lib/components/EventContent.svelte';
 	import Input from './ui/input/input.svelte';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import Name from '$lib/components/Name.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { mergeUniqueEvents } from '$lib/highlights/nostr';
 	import { extractMarkupHeadings, extractMarkupTitle } from '$lib/utils/markup';
+	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 
 	let {
 		skipTitle = false,
@@ -32,12 +35,13 @@
 	const title = $derived(
 		event.tagValue('title') || extractMarkupTitle(event.content) || event.dTag || 'Untitled'
 	);
+	const authorRoute = useNip05RouteId(() => event.pubkey);
 	let forkPubkey = $state<string | undefined>(undefined);
 	let fork = $state<NDKEvent | undefined>(undefined);
 	let showRaw = $state(false);
 	let reactionCount = $state<number | undefined>(undefined);
 	let copied = $state(false);
-	let activeView = $state<'content' | 'comments' | 'metadata'>('content');
+	let activeView = $state<'content' | 'comments' | 'highlights' | 'metadata'>('content');
 
 	const fallbackVersions = ndk.$subscribe(() => {
 		if (otherVersions || !event.dTag || !event.kind) return undefined;
@@ -122,6 +126,34 @@
 		subId: 'entry-reactions'
 	}));
 
+	const exactHighlightsSub = ndk.$subscribe(() => {
+		if (!event.id) return undefined;
+
+		return {
+			filters: [{ kinds: [NDKKind.Highlight], '#e': [event.id] }],
+			subId: `article-highlights-exact-${event.id}`
+		};
+	});
+
+	const topicHighlightsSub = ndk.$subscribe(() => {
+		if (!event.dTag) return undefined;
+
+		return {
+			filters: [{ kinds: [NDKKind.Highlight], '#d': [event.dTag] }],
+			subId: `article-highlights-topic-${event.dTag}`
+		};
+	});
+
+	const allHighlights = $derived(mergeUniqueEvents(exactHighlightsSub.events, topicHighlightsSub.events));
+	const hasHighlights = $derived(allHighlights.length > 0);
+	const tabsGridClass = $derived(hasHighlights ? 'grid-cols-4 sm:max-w-xl' : 'grid-cols-3 sm:max-w-md');
+
+	$effect(() => {
+		if (!hasHighlights && activeView === 'highlights') {
+			activeView = 'content';
+		}
+	});
+
 	function formatDate(createdAt?: number) {
 		if (!createdAt) return 'Unknown date';
 		return new Date(createdAt * 1000).toLocaleDateString();
@@ -152,7 +184,7 @@
 
 				<div class="mt-7 flex flex-col gap-5">
 					<div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
-						<a href={'/p/' + event.author.npub} class="flex items-center gap-3">
+						<a href={'/p/' + (authorRoute.id || event.author.npub)} class="flex items-center gap-3">
 							<Avatar
 								{ndk}
 								pubkey={event.pubkey}
@@ -196,22 +228,30 @@
 
 			<div class="mt-4 py-2">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-					<Tabs.List class="grid h-auto w-full grid-cols-3 rounded-full bg-white/6 p-1 sm:max-w-md">
+					<Tabs.List class={`grid h-auto w-full rounded-full bg-white/[0.03] p-1 ${tabsGridClass}`}>
 						<Tabs.Trigger
 							value="content"
-							class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/10 data-[state=active]:shadow-none"
+							class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/[0.06] data-[state=active]:shadow-none"
 						>
 							Content
 						</Tabs.Trigger>
 						<Tabs.Trigger
 							value="comments"
-							class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/10 data-[state=active]:shadow-none"
+							class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/[0.06] data-[state=active]:shadow-none"
 						>
 							Comments
 						</Tabs.Trigger>
+						{#if hasHighlights}
+							<Tabs.Trigger
+								value="highlights"
+								class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/[0.06] data-[state=active]:shadow-none"
+							>
+								Highlights
+							</Tabs.Trigger>
+						{/if}
 						<Tabs.Trigger
 							value="metadata"
-							class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/10 data-[state=active]:shadow-none"
+							class="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] data-[state=active]:bg-white/[0.06] data-[state=active]:shadow-none"
 						>
 							Metadata
 						</Tabs.Trigger>
@@ -245,12 +285,18 @@
 
 			<div class="mt-4">
 				<Tabs.Content value="content" class="mt-0">
-					<EventContent {event} class="article-document" />
+					<ArticleContentHighlights {event} highlights={allHighlights} />
 				</Tabs.Content>
 
 				<Tabs.Content value="comments" class="mt-0">
 					<ArticleComments {event} />
 				</Tabs.Content>
+
+				{#if hasHighlights}
+					<Tabs.Content value="highlights" class="mt-0">
+						<ArticleHighlights {event} highlights={allHighlights} />
+					</Tabs.Content>
+				{/if}
 
 				<Tabs.Content value="metadata" class="mt-0">
 					<p class="eyebrow mb-3">Article metadata</p>
@@ -276,7 +322,7 @@
 						</div>
 
 						{#if showRaw}
-							<pre class="surface-inset overflow-auto rounded-[1.5rem] p-4">
+							<pre class="surface-inset overflow-auto rounded-xl p-4">
 									{JSON.stringify(event.rawEvent(), null, 4)}
 								</pre>
 						{/if}

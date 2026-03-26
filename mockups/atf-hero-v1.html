@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero + Search ATF</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased}
+
+/* ===== HERO ===== */
+.hero{padding:2.5rem 2rem 1.5rem;text-align:center}
+
+.wordmark{font-size:2.8rem;font-style:italic;color:rgba(232,224,212,0.85);font-family:'Georgia',serif;letter-spacing:-0.02em;margin-bottom:0.6rem}
+
+.hero-line{font-size:1.15rem;font-family:'Georgia',serif;color:#777;line-height:1.5;max-width:600px;margin:0 auto}
+.hero-line strong{color:#ccc;font-weight:400}
+
+.rotating-wrap{display:inline;position:relative}
+.rotating-text{color:#999;border-right:2px solid #666;padding-right:2px}
+.rotating-text.done{border-right-color:transparent}
+
+/* ===== DEMO ===== */
+.demo{max-width:900px;margin:0 auto;padding:0 2rem 2rem}
+
+/* Search */
+.search-row{display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-bottom:1rem}
+.search-bar{width:420px;background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:0.5rem 1rem;display:flex;align-items:center;gap:0.5rem}
+.search-icon{color:#555;font-size:0.75rem}
+.search-query{font-size:0.82rem;color:#e8e0d4}
+.search-count{font-size:0.5rem;color:#444}
+
+/* Three columns */
+.entries{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;margin-bottom:0.75rem}
+
+.entry{background:#1a1918;border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:0.9rem;transition:border-color 0.2s}
+.entry:hover{border-color:rgba(255,255,255,0.1)}
+
+.e-author{display:flex;align-items:center;gap:0.45rem;margin-bottom:0.6rem}
+.e-avatar{width:30px;height:30px;border-radius:50%;overflow:hidden;background:#2a2a28;flex-shrink:0}
+.e-avatar img{width:100%;height:100%;object-fit:cover}
+.e-name{font-size:0.65rem;font-weight:600;color:#ccc}
+.e-role{font-size:0.45rem;color:#555}
+
+.e-quote{font-size:0.8rem;line-height:1.4;color:#bbb;font-family:'Georgia',serif;font-style:italic;margin-bottom:0.35rem}
+.e-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+
+.e-body{font-size:0.55rem;line-height:1.5;color:#555}
+
+/* AI Comparison */
+.comp{background:#151514;border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:0.8rem 1rem}
+
+.comp-bar{display:flex;align-items:center;gap:0.4rem;margin-bottom:0.6rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(255,255,255,0.03)}
+.comp-icon{font-size:0.6rem;color:#777}
+.comp-label{font-size:0.55rem;font-weight:600;color:#aaa}
+.comp-faces{margin-left:auto;display:flex}
+.comp-face{width:16px;height:16px;border-radius:50%;border:1.5px solid #151514;margin-left:-3px;overflow:hidden;background:#2a2a28}
+.comp-face img{width:100%;height:100%;object-fit:cover}
+
+.comp-cols{display:grid;grid-template-columns:1fr auto 1fr;gap:0.5rem;align-items:start;margin-bottom:0.5rem}
+
+.comp-main{font-size:0.7rem;line-height:1.65;color:#888}
+.comp-main strong{color:#ccc;font-weight:600}
+
+.comp-split{display:flex;gap:0.3rem;margin:0.4rem 0}
+.cs-card{flex:1;background:rgba(255,255,255,0.02);border-radius:5px;padding:0.35rem 0.4rem}
+.cs-top{display:flex;align-items:center;gap:0.2rem;margin-bottom:0.15rem}
+.cs-av{width:12px;height:12px;border-radius:50%;overflow:hidden;background:#2a2a28}
+.cs-av img{width:100%;height:100%;object-fit:cover}
+.cs-who{font-size:0.45rem;font-weight:600;color:#888}
+.cs-claim{font-size:0.55rem;color:#aaa;line-height:1.35}
+
+.comp-kicker{font-size:0.68rem;color:#bbb;font-family:'Georgia',serif;font-style:italic;padding-left:0.5rem;border-left:2px solid rgba(255,200,100,0.18);margin-top:0.4rem;line-height:1.5}
+</style></head><body>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="hero-line">
+    Wikipedia gives you <span class="rotating-wrap"><span class="rotating-text" id="rotText"></span></span><br>
+    Here, <strong>every entry is a perspective — not a verdict.</strong>
+  </div>
+</section>
+
+<!-- ===== DEMO ===== -->
+<section class="demo">
+  <div class="search-row">
+    <div class="search-bar">
+      <span class="search-icon">⌕</span>
+      <span class="search-query">Ivermectin</span>
+    </div>
+    <span class="search-count">3 entries · no canonical version</span>
+  </div>
+
+  <div class="entries">
+    <div class="entry">
+      <div class="e-author">
+        <div class="e-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+        <div><div class="e-name">Joe Rogan</div><div class="e-role">Podcaster</div></div>
+      </div>
+      <div class="e-quote">"They called it <span class="hot">'horse paste'</span> to protect a hundred-billion-dollar vaccine rollout."</div>
+      <div class="e-body">Nobel Prize-winning drug. $2 generic. Suppressed. I took it — better in days.</div>
+    </div>
+
+    <div class="entry">
+      <div class="e-author">
+        <div class="e-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+        <div><div class="e-name">Anthony Fauci</div><div class="e-role">Immunologist</div></div>
+      </div>
+      <div class="e-quote">"The trials <span class="hot">do not show benefit</span>. The plural of anecdote is not data."</div>
+      <div class="e-body">3,500-patient RCT. Double-blind. No significant benefit. That's how medicine works.</div>
+    </div>
+
+    <div class="entry">
+      <div class="e-author">
+        <div class="e-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+        <div><div class="e-name">Bret Weinstein</div><div class="e-role">Evolutionary Biologist</div></div>
+      </div>
+      <div class="e-quote">"The system was <span class="hot">structurally incapable</span> of honest evaluation."</div>
+      <div class="e-body">EUA required no alternative. Vaccine program depended on it. No conspiracy needed.</div>
+    </div>
+  </div>
+
+  <!-- AI Comparison -->
+  <div class="comp">
+    <div class="comp-bar">
+      <span class="comp-icon">✦</span>
+      <span class="comp-label">AI Comparison</span>
+      <div class="comp-faces">
+        <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+        <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+        <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+      </div>
+    </div>
+
+    <div class="comp-main">Same molecule — <strong>three different conversations</strong>.</div>
+
+    <div class="comp-split">
+      <div class="cs-card">
+        <div class="cs-top"><div class="cs-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div><div class="cs-who">Rogan</div></div>
+        <div class="cs-claim">Suppressed cure. Follow the money.</div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-top"><div class="cs-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div><div class="cs-who">Fauci</div></div>
+        <div class="cs-claim">No benefit in trials. Trust the evidence.</div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-top"><div class="cs-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div><div class="cs-who">Weinstein</div></div>
+        <div class="cs-claim">The system can't answer honestly.</div>
+      </div>
+    </div>
+
+    <div class="comp-main">Deepest split: <strong>the role of the state</strong>. Corruption vs working-as-designed vs structural flaw.</div>
+
+    <div class="comp-kicker">A traditional encyclopedia picks one frame and calls it neutral. Wikifreedia keeps all three.</div>
+  </div>
+</section>
+
+<script>
+const phrases = [
+  "truth by consensus.",
+  "truth flattened by power and access.",
+  "one entry, decided by committee.",
+  "dissent deleted, debate footnoted.",
+];
+
+const el = document.getElementById('rotText');
+let phraseIdx = 0, charIdx = 0, typing = true;
+
+function tick() {
+  const phrase = phrases[phraseIdx];
+  if (typing) {
+    charIdx++;
+    el.textContent = phrase.slice(0, charIdx);
+    if (charIdx >= phrase.length) {
+      typing = false;
+      el.classList.add('done');
+      setTimeout(tick, 2200);
+    } else {
+      setTimeout(tick, 45);
+    }
+  } else {
+    charIdx--;
+    el.textContent = phrase.slice(0, charIdx);
+    if (charIdx <= 0) {
+      typing = true;
+      el.classList.remove('done');
+      phraseIdx = (phraseIdx + 1) % phrases.length;
+      setTimeout(tick, 350);
+    } else {
+      setTimeout(tick, 25);
+    }
+  }
+}
+setTimeout(tick, 500);
+</script>
+</body></html>

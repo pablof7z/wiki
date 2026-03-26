@@ -1,0 +1,753 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Landing V9</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.glow{position:fixed;top:-20vh;left:50%;transform:translateX(-50%);width:1000px;height:700px;border-radius:50%;background:radial-gradient(ellipse,rgba(204,102,68,0.14) 0%,rgba(204,102,68,0.04) 50%,transparent 75%);pointer-events:none;z-index:0}
+
+/* ===== HERO ===== */
+.hero-wrap{height:125vh;position:relative}
+.hero{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;padding-top:56px;position:sticky;top:0;z-index:1;will-change:transform}
+.wordmark{font-size:5.5rem;font-style:italic;color:rgba(232,224,212,0.9);font-family:'Georgia',serif;letter-spacing:-0.03em;margin-bottom:1.5rem;line-height:1}
+.hero-headline{font-size:2.4rem;font-family:'Georgia',serif;color:#e8e0d4;line-height:1.4;max-width:700px;margin:0 auto 1.2rem;font-weight:400;letter-spacing:-0.01em}
+.hero-sub{font-size:1.15rem;font-family:'Georgia',serif;color:#888;line-height:1.7;max-width:600px;margin:0 auto}
+.villain{color:#cc6644}
+
+/* ===== DEMO ===== */
+.demo-perspective{perspective:1200px;perspective-origin:center top;position:relative;z-index:2;margin-top:-45vh;min-height:120vh;overflow:visible}
+.demo{max-width:620px;margin:0 auto;padding:0 2rem 4rem;position:relative;z-index:1;transform-origin:center top;transform:rotateX(55deg) scale(0.88);opacity:0.15;transition:none;will-change:transform,opacity;overflow:visible}
+.demo-body{position:relative;overflow:visible}
+
+.search-bar{background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:0.85rem 1.5rem;display:flex;align-items:center;gap:0.65rem;margin-bottom:0.75rem;transition:border-color 0.3s}
+.search-icon{color:#555;font-size:1rem}
+.search-query{font-size:1.1rem;color:#e8e0d4;transition:opacity 0.3s}
+.search-count{margin-left:auto;font-size:0.6rem;color:#444}
+
+/* Topic tabs */
+.tabs{display:flex;gap:0.4rem;margin-bottom:1.5rem;justify-content:center}
+.tab{font-size:0.65rem;font-weight:600;color:#555;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);padding:0.35rem 0.85rem;border-radius:100px;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.tab:hover{color:#888;border-color:rgba(255,255,255,0.1)}
+.tab.active{color:#e8e0d4;background:rgba(255,200,100,0.08);border-color:rgba(255,200,100,0.2)}
+
+/* Results — crossfade */
+.results-wrap{position:relative;min-height:280px}
+.topic-results{position:absolute;top:0;left:0;right:0;opacity:0;pointer-events:none;transform:translateY(6px);transition:all 0.4s ease}
+.topic-results.active{opacity:1;pointer-events:auto;position:relative;transform:translateY(0)}
+
+.result{padding:0.9rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:44px 1fr;gap:0.85rem;align-items:start;transition:opacity 0.4s ease;border-radius:8px}
+.result:last-of-type{border-bottom:none}
+.result.dimmed{opacity:0.3}
+
+.avatar{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#999}
+.r-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.25rem}
+.r-name{font-size:0.75rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+.r-quote{font-size:0.88rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic}
+.r-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+
+/* Compare */
+.compare-row{display:flex;justify-content:center;margin-top:1.75rem;transition:all 0.3s ease}
+.compare-row.hidden{opacity:0;pointer-events:none;margin-top:0;max-height:0}
+.compare-btn{display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;font-weight:600;color:#e8e0d4;background:rgba(255,200,100,0.08);border:1px solid rgba(255,200,100,0.2);padding:0.65rem 1.75rem;border-radius:100px;cursor:pointer;transition:all 0.2s ease;font-family:inherit}
+.compare-btn:hover{background:rgba(255,200,100,0.14);border-color:rgba(255,200,100,0.35)}
+
+.callout{background:#1c1b18;border:1px solid rgba(255,200,100,0.15);border-radius:14px;padding:1.25rem 1.5rem;position:absolute;top:0;left:calc(100% + 2rem);width:380px;opacity:0;transform:translateX(20px);transition:all 0.6s cubic-bezier(0.22,1,0.36,1);pointer-events:none}
+.callout.visible{opacity:1;transform:translateX(0);pointer-events:auto}
+.callout::before{content:'';position:absolute;top:1.5rem;left:-7px;width:14px;height:14px;background:#1c1b18;border-left:1px solid rgba(255,200,100,0.15);border-bottom:1px solid rgba(255,200,100,0.15);transform:rotate(45deg)}
+
+.callout-bar{display:flex;align-items:center;gap:0.45rem;margin-bottom:0.85rem;padding-bottom:0.65rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+.callout-icon{font-size:0.8rem;color:rgba(255,200,100,0.6)}
+.callout-label{font-size:0.68rem;font-weight:600;color:#ccc}
+.callout-faces{display:flex;margin-left:auto}
+.cf{width:22px;height:22px;border-radius:50%;border:2px solid #1c1b18;margin-left:-5px;display:flex;align-items:center;justify-content:center;font-size:0.38rem;font-weight:700;color:#999}
+
+.c-text{font-size:0.82rem;line-height:1.75;color:#999;margin-bottom:0.6rem}
+.c-text strong{color:#e8e0d4;font-weight:600}
+.fault-lines{display:flex;flex-direction:column;gap:0.5rem;margin:0.85rem 0}
+.fault{padding:0.6rem 0.75rem;border-radius:8px;border-left:3px solid rgba(255,200,100,0.25);background:rgba(255,200,100,0.02)}
+.fault-q{font-size:0.72rem;font-weight:600;color:rgba(255,200,100,0.65);margin-bottom:0.3rem}
+.fault-a{font-size:0.7rem;color:#aaa;line-height:1.55}
+.fault-a span{color:#ccc;font-weight:600}
+.c-kicker{font-size:0.88rem;color:#ccc;font-family:'Georgia',serif;font-style:italic;padding:0.6rem 0.85rem;border-left:3px solid rgba(255,200,100,0.35);margin-top:0.5rem;line-height:1.65}
+.c-kicker strong{color:#e8e0d4;font-weight:600;font-style:normal}
+.cs{display:none}
+.cs.in{display:block}
+.streaming-cursor::after{content:'▊';color:rgba(255,200,100,0.6);animation:blink 0.6s steps(2) infinite;margin-left:1px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ===== SPLIT: WIKIPEDIA vs WIKIFREEDIA ===== */
+.split{display:flex;min-height:100vh;position:relative;z-index:1}
+
+.split-left{flex:1;background:#f5f4f1;color:#222;display:flex;align-items:center;justify-content:center;padding:4rem 3rem}
+.split-left-inner{max-width:420px}
+
+.sl-logo{font-size:0.55rem;text-transform:uppercase;letter-spacing:0.2em;color:#999;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem}
+.sl-logo::before{content:'';display:inline-block;width:20px;height:20px;background:#ccc;border-radius:50%;flex-shrink:0}
+
+.sl-heading{font-size:2rem;font-family:'Georgia',serif;color:#111;margin-bottom:1.25rem;line-height:1.35;font-weight:400}
+
+.sl-items{list-style:none;display:flex;flex-direction:column;gap:0.85rem;margin-bottom:1.5rem}
+.sl-item{font-size:0.85rem;color:#555;line-height:1.6;padding-left:1.25rem;position:relative;font-family:'Georgia',serif}
+.sl-item::before{content:'×';position:absolute;left:0;color:#cc4444;font-weight:700;font-size:1rem;line-height:1.35}
+
+.sl-verdict{font-size:1rem;font-family:'Georgia',serif;color:#999;font-style:italic;line-height:1.6;border-top:1px solid #ddd;padding-top:1.25rem}
+
+.split-right{flex:1;background:#0e0e0c;color:#e8e0d4;display:flex;align-items:center;justify-content:center;padding:4rem 3rem}
+.split-right-inner{max-width:420px}
+
+.sr-logo{font-size:1.8rem;font-style:italic;color:rgba(232,224,212,0.8);font-family:'Georgia',serif;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.6rem}
+
+.sr-heading{font-size:2rem;font-family:'Georgia',serif;color:#e8e0d4;margin-bottom:1.25rem;line-height:1.35;font-weight:400}
+
+.sr-items{list-style:none;display:flex;flex-direction:column;gap:0.85rem;margin-bottom:1.5rem}
+.sr-item{font-size:0.85rem;color:#888;line-height:1.6;padding-left:1.25rem;position:relative;font-family:'Georgia',serif}
+.sr-item::before{content:'✓';position:absolute;left:0;color:rgba(255,200,100,0.7);font-weight:700;font-size:0.85rem;line-height:1.5}
+.sr-item strong{color:#e8e0d4;font-weight:400}
+
+.sr-verdict{font-size:1rem;font-family:'Georgia',serif;color:#666;font-style:italic;line-height:1.6;border-top:1px solid rgba(255,255,255,0.06);padding-top:1.25rem}
+.sr-verdict strong{color:rgba(255,200,100,0.7);font-weight:400}
+
+/* ===== NOSTR SECTION ===== */
+.nostr-section{padding:8rem 2rem;position:relative;z-index:1;text-align:center}
+.nostr-inner{max-width:640px;margin:0 auto}
+
+.nostr-eyebrow{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.25em;color:#444;margin-bottom:1.5rem}
+
+.nostr-heading{font-size:2.2rem;font-family:'Georgia',serif;color:#e8e0d4;margin-bottom:1.5rem;line-height:1.35;font-weight:400}
+
+.nostr-body{font-size:1rem;font-family:'Georgia',serif;color:#777;line-height:1.8;margin-bottom:2rem;text-align:left}
+.nostr-body strong{color:#ccc;font-weight:400}
+.nostr-body em{color:rgba(255,200,100,0.7);font-style:normal}
+
+.nostr-diagram{display:flex;align-items:center;justify-content:center;gap:1.5rem;margin:2.5rem 0;flex-wrap:wrap}
+.nd-box{background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:1rem 1.25rem;text-align:center;min-width:160px}
+.nd-box-label{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.15em;color:#555;margin-bottom:0.5rem}
+.nd-box-value{font-size:0.9rem;color:#ccc;font-family:'Georgia',serif}
+.nd-arrow{font-size:1.2rem;color:#333}
+
+.nostr-kicker{font-size:1.1rem;font-family:'Georgia',serif;color:#888;font-style:italic;line-height:1.6;max-width:500px;margin:0 auto;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.04)}
+.nostr-kicker strong{color:#e8e0d4;font-weight:400}
+
+/* ===== WEB OF TRUST ===== */
+.wot-section{padding:6rem 2rem 8rem;position:relative;z-index:1}
+.wot-inner{max-width:1200px;margin:0 auto}
+
+.wot-header{text-align:center;margin-bottom:4rem}
+.wot-eyebrow{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.25em;color:#444;margin-bottom:1.5rem}
+.wot-heading{font-size:2.2rem;font-family:'Georgia',serif;color:#e8e0d4;margin-bottom:1rem;line-height:1.35;font-weight:400}
+.wot-sub{font-size:1.05rem;font-family:'Georgia',serif;color:#777;line-height:1.7;max-width:600px;margin:0 auto}
+
+/* Two-column: text left, visual right */
+.wot-row{display:grid;grid-template-columns:1fr 1.2fr;gap:4rem;align-items:center;margin-bottom:4rem}
+.wot-row.reverse{direction:rtl}
+.wot-row.reverse > *{direction:ltr}
+
+.wot-text{font-size:0.95rem;font-family:'Georgia',serif;color:#777;line-height:1.8}
+.wot-text strong{color:#ccc;font-weight:400}
+.wot-text em{color:rgba(255,200,100,0.7);font-style:normal}
+.wot-text p{margin-bottom:1rem}
+.wot-text p:last-child{margin-bottom:0}
+
+/* Graph visual */
+.wot-visual{position:relative;overflow:hidden;min-height:440px}
+
+/* SVG trust graph */
+.trust-graph{width:100%;height:420px}
+.trust-graph circle{transition:all 0.3s ease}
+.trust-graph line{stroke:rgba(255,255,255,0.06);stroke-width:1}
+.trust-graph .edge-strong{stroke:rgba(255,200,100,0.2);stroke-width:1.5}
+.trust-graph .edge-weak{stroke:rgba(255,255,255,0.03);stroke-width:1;stroke-dasharray:3,3}
+.trust-graph text{font-family:-apple-system,sans-serif;font-size:14px;fill:#888;font-weight:600}
+
+/* Cluster labels */
+.cluster-label{position:absolute;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.15em;color:#555;pointer-events:none}
+
+/* Flat vs 3D comparison */
+.dimension-compare{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1rem}
+.dim-card{text-align:center}
+.dim-card.flat{}
+.dim-card.threed{}
+.dim-label{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.15em;color:#555;margin-bottom:1rem}
+.dim-label.active{color:rgba(255,200,100,0.6)}
+
+/* Flat visual: single line */
+.flat-visual{height:100px;display:flex;align-items:center;justify-content:center;position:relative}
+.flat-line{width:80%;height:3px;background:#333;position:relative}
+.flat-dot{position:absolute;top:-6px;width:14px;height:14px;border-radius:50%;background:#555}
+.flat-dot.winner{background:#cc6644;box-shadow:0 0 10px rgba(204,102,68,0.3)}
+.flat-arrow{position:absolute;top:-22px;font-size:0.8rem;color:#cc6644;white-space:nowrap}
+
+/* 3D visual: scatter */
+.threed-visual{height:200px;position:relative}
+.td-dot{position:absolute;width:8px;height:8px;border-radius:50%;transition:all 0.3s}
+.td-cluster{position:absolute;border:1px dashed rgba(255,200,100,0.12);border-radius:50%;pointer-events:none}
+.td-label{position:absolute;font-size:0.7rem;color:#666;white-space:nowrap}
+
+.wot-bottom{text-align:center;margin-top:2rem}
+.wot-kicker{font-size:1.1rem;font-family:'Georgia',serif;color:#888;font-style:italic;line-height:1.6;max-width:560px;margin:0 auto}
+.wot-kicker strong{color:#e8e0d4;font-weight:400}
+.nostr-kicker strong{color:#e8e0d4;font-weight:400}
+
+/* ===== MANIFESTO ===== */
+.manifesto{padding:8rem 2rem;position:relative;z-index:1;background:#0a0a08}
+.manifesto-inner{max-width:580px;margin:0 auto}
+
+.manifesto-eyebrow{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.25em;color:rgba(255,200,100,0.4);margin-bottom:2rem;text-align:center}
+
+.manifesto-block{margin-bottom:2.5rem}
+.manifesto-block p{font-size:1.1rem;font-family:'Georgia',serif;color:#888;line-height:1.85;margin-bottom:1rem}
+.manifesto-block p strong{color:#e8e0d4;font-weight:400}
+.manifesto-block p .villain{color:#cc6644}
+
+.manifesto-quote{font-size:1.15rem;font-family:'Georgia',serif;color:#ccc;font-style:italic;line-height:1.7;padding:1rem 1.25rem;border-left:3px solid rgba(255,200,100,0.25);background:rgba(255,200,100,0.02);border-radius:0 8px 8px 0;margin:1.5rem 0}
+.manifesto-quote cite{display:block;font-size:0.7rem;color:#666;font-style:normal;margin-top:0.5rem}
+
+.manifesto-final{font-size:1.4rem;font-family:'Georgia',serif;color:#e8e0d4;line-height:1.5;text-align:center;margin-top:3rem;font-weight:400}
+.manifesto-final em{color:rgba(255,200,100,0.8);font-style:italic}
+
+/* ===== CTA ===== */
+.cta-section{text-align:center;padding:6rem 2rem 8rem;position:relative;z-index:1}
+.cta-text{font-size:1.4rem;font-family:'Georgia',serif;color:#666;margin-bottom:2rem;font-weight:400;line-height:1.5;max-width:450px;margin-left:auto;margin-right:auto}
+.cta-btn{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.9rem;font-weight:600;color:#0e0e0c;background:rgba(232,224,212,0.9);padding:0.85rem 2.5rem;border-radius:100px;cursor:pointer;transition:all 0.2s ease;text-decoration:none;font-family:inherit;border:none}
+.cta-btn:hover{background:#e8e0d4;transform:translateY(-1px)}
+
+/* ===== NAV ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;padding:0 2.5rem;height:56px;background:transparent;border-bottom:1px solid transparent;transition:all 0.4s ease}
+.nav.scrolled{background:rgba(14,14,12,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom-color:rgba(255,255,255,0.06)}
+.nav-logo{font-size:1.3rem;font-style:italic;color:rgba(232,224,212,0.8);font-family:'Georgia',serif;letter-spacing:-0.02em;flex-shrink:0;cursor:pointer;display:flex;align-items:center;gap:0.45rem}
+.nav-links{display:flex;gap:0.25rem;margin-left:auto;align-items:center}
+.nav-link{font-size:0.82rem;font-weight:500;color:#555;padding:0.45rem 0.9rem;border-radius:100px;cursor:pointer;transition:all 0.2s;text-decoration:none;letter-spacing:0.01em;white-space:nowrap}
+.nav-link:hover{color:#999}
+.nav-link.active{color:#ccc;background:rgba(255,255,255,0.05)}
+.nav-cta{font-size:0.82rem;font-weight:600;color:#e8e0d4;background:rgba(255,200,100,0.08);border:1px solid rgba(255,200,100,0.2);padding:0.45rem 1.2rem;border-radius:100px;cursor:pointer;transition:all 0.2s;text-decoration:none;margin-left:0.6rem;white-space:nowrap}
+.nav-cta:hover{background:rgba(255,200,100,0.14);border-color:rgba(255,200,100,0.35)}
+</style></head><body>
+
+<nav class="nav" id="nav">
+  <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})"><svg width="24" height="24" viewBox="0 0 80 80" fill="none"><circle cx="32" cy="36" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.8"/><circle cx="48" cy="36" r="18" stroke="#e8e0d4" stroke-width="3" fill="none" opacity="0.5"/><circle cx="40" cy="50" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.35"/></svg> Wikifreedia</div>
+  <div class="nav-links">
+    <a class="nav-link" href="#demo-section">Demo</a>
+    <a class="nav-link" href="#split-section">Wikipedia vs Us</a>
+    <a class="nav-link" href="#nostr-section">Architecture</a>
+    <a class="nav-link" href="#wot-section">Web of Trust</a>
+    <a class="nav-link" href="#manifesto-section">Manifesto</a>
+    <a class="nav-cta" href="#cta-section">Start exploring</a>
+  </div>
+</nav>
+
+<div class="glow"></div>
+
+<!-- ===== HERO ===== -->
+<div class="hero-wrap">
+<section class="hero" id="hero-section">
+  <div style="margin-bottom:1.25rem"><svg width="64" height="64" viewBox="0 0 80 80" fill="none"><circle cx="32" cy="36" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.8"/><circle cx="48" cy="36" r="18" stroke="#e8e0d4" stroke-width="3" fill="none" opacity="0.5"/><circle cx="40" cy="50" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.35"/></svg></div>
+  <div class="wordmark">Wikifreedia</div>
+  <div class="hero-headline">The encyclopedia that <em>can't</em> pick a side.</div>
+  <div class="hero-sub">Wikipedia lets <span class="villain">anonymous gatekeepers</span> decide what counts as truth — then locks the page and calls it consensus. We think knowledge dies the moment one perspective gets to silence the others.</div>
+</section>
+</div>
+
+<!-- ===== DEMO ===== -->
+<div class="demo-perspective">
+<section class="demo" id="demo-section">
+  <div class="search-bar" id="searchBar">
+    <span class="search-icon">⌕</span>
+    <span class="search-query" id="searchQuery">Ivermectin</span>
+    <span class="search-count" id="searchCount">3 entries</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-topic="ivermectin">Ivermectin</div>
+    <div class="tab" data-topic="capitalism">Capitalism</div>
+    <div class="tab" data-topic="freespeech">Free Speech</div>
+    <div class="tab" data-topic="journalism">Journalism</div>
+  </div>
+
+  <div class="demo-body">
+  <div class="results-wrap">
+    <!-- IVERMECTIN -->
+    <div class="topic-results active" id="topic-ivermectin">
+      <div class="result"><div class="avatar" style="background:#3a2a1a">JR</div><div><div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div><div class="r-quote">Ivermectin is a Nobel Prize-winning antiparasitic drug that was <span class="hot">systematically discredited</span> during the COVID-19 pandemic to protect the commercial viability of emergency-use vaccines…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#1a2a3a">AF</div><div><div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist</span></div><div class="r-quote">Ivermectin is an antiparasitic agent whose proposed use against COVID-19 was <span class="hot">not supported by clinical evidence</span>. The TOGETHER trial (n=3,500) found no significant benefit…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#2a301a">BW</div><div><div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div><div class="r-quote">Ivermectin became the central case study in how <span class="hot">regulatory incentive structures</span> can prevent honest evaluation of repurposed drugs during a public health emergency…</div></div></div>
+    </div>
+
+    <!-- CAPITALISM -->
+    <div class="topic-results" id="topic-capitalism">
+      <div class="result"><div class="avatar" style="background:#2a1a1a">JM</div><div><div class="r-header"><span class="r-name">Javier Milei</span><span class="r-role">President of Argentina</span></div><div class="r-quote">Capitalism is the only system in history that has <span class="hot">lifted billions out of poverty</span>. The state is not the solution — the state is the problem that must be dismantled…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#1a1a2a">TP</div><div><div class="r-header"><span class="r-name">Thomas Piketty</span><span class="r-role">Economist</span></div><div class="r-quote">Without intervention, capitalism <span class="hot">concentrates wealth exponentially</span>. When the rate of return on capital exceeds growth, democracy itself is threatened…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#2a2a1a">NT</div><div><div class="r-header"><span class="r-name">Nassim Taleb</span><span class="r-role">Risk Analyst · Author</span></div><div class="r-quote">The problem isn't capitalism — it's that we replaced it with a system where <span class="hot">losses are socialized</span> and gains are privatized. We have socialism for the rich…</div></div></div>
+    </div>
+
+    <!-- FREE SPEECH -->
+    <div class="topic-results" id="topic-freespeech">
+      <div class="result"><div class="avatar" style="background:#1a2a1a">NC</div><div><div class="r-header"><span class="r-name">Noam Chomsky</span><span class="r-role">Linguist · Political Critic</span></div><div class="r-quote">Free speech that matters is speech that <span class="hot">power finds intolerable</span>. If everyone agrees with you, you aren't testing the principle…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#2a1a2a">JP</div><div><div class="r-header"><span class="r-name">Jordan Peterson</span><span class="r-role">Psychologist</span></div><div class="r-quote">Compelled speech is the most dangerous precedent a free society can set. The state <span class="hot">cannot mandate what you must say</span> and call it progress…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#1a2a2a">bh</div><div><div class="r-header"><span class="r-name">bell hooks</span><span class="r-role">Cultural Critic</span></div><div class="r-quote">"Free speech" as practiced <span class="hot">protects the speech of the dominant class</span>. The freedom to speak means nothing without the power to be heard…</div></div></div>
+    </div>
+
+    <!-- JOURNALISM -->
+    <div class="topic-results" id="topic-journalism">
+      <div class="result"><div class="avatar" style="background:#2a2a2a">JA</div><div><div class="r-header"><span class="r-name">Julian Assange</span><span class="r-role">WikiLeaks Founder</span></div><div class="r-quote">The press doesn't hold power accountable — it <span class="hot">negotiates with it</span>. Real journalism is the act of publishing what someone powerful doesn't want published…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#2a1a1a">TC</div><div><div class="r-header"><span class="r-name">Tucker Carlson</span><span class="r-role">Political Commentator</span></div><div class="r-quote">The media class is an <span class="hot">enforcement arm of the ruling party</span>. They don't report the news — they decide what you're allowed to know…</div></div></div>
+      <div class="result"><div class="avatar" style="background:#1a1a2a">KS</div><div><div class="r-header"><span class="r-name">Kara Swisher</span><span class="r-role">Tech Journalist</span></div><div class="r-quote">The crisis in journalism isn't bias — it's that the <span class="hot">business model collapsed</span>. You can't hold power accountable when your newsroom runs on twelve people…</div></div></div>
+    </div>
+  </div>
+
+  <div class="compare-row" id="compareRow">
+    <button class="compare-btn" id="compareBtn">
+      <span>✦</span> Where do they actually disagree?
+    </button>
+  </div>
+
+  <div class="callout" id="callout">
+    <div class="callout-bar">
+      <span class="callout-icon">✦</span>
+      <span class="callout-label">AI Comparison</span>
+      <div class="callout-faces">
+        <div class="cf" style="background:#3a2a1a">JR</div>
+        <div class="cf" style="background:#1a2a3a">AF</div>
+        <div class="cf" style="background:#2a301a">BW</div>
+      </div>
+    </div>
+    <div class="cs" id="cs1">
+      <div class="c-text">These three entries aren't debating whether ivermectin works. They're debating <strong>whether the institutions that evaluated it can be trusted at all</strong>.</div>
+    </div>
+    <div class="cs" id="cs2">
+      <div class="fault-lines">
+        <div class="fault">
+          <div class="fault-q">Who controls what counts as evidence?</div>
+          <div class="fault-a"><span>Rogan</span> says clinical observation was ignored because it threatened profits. <span>Fauci</span> says only double-blind RCTs count. <span>Weinstein</span> says the incentive structure made honest RCTs impossible in the first place.</div>
+        </div>
+        <div class="fault">
+          <div class="fault-q">Was the suppression deliberate?</div>
+          <div class="fault-a"><span>Rogan</span> says obviously — follow the money. <span>Fauci</span> says there was nothing to suppress. <span>Weinstein</span> says intent is irrelevant when the EUA framework already guarantees the outcome.</div>
+        </div>
+      </div>
+    </div>
+    <div class="cs" id="cs3">
+      <div class="c-kicker">Wikipedia picks Fauci's frame, labels the rest "misinformation," and <strong>locks the page</strong>. Wikifreedia keeps all three — because the disagreement <em>is</em> the knowledge.</div>
+    </div>
+  </div>
+  </div><!-- /demo-body -->
+</section>
+</div><!-- /demo-perspective -->
+
+<!-- ===== SPLIT: WIKIPEDIA vs WIKIFREEDIA ===== -->
+<section class="split" id="split-section">
+  <div class="split-left">
+    <div class="split-left-inner">
+      <div class="sl-logo">Wikipedia</div>
+      <div class="sl-heading">One entry per topic. Controlled by whoever has the most power to enforce it.</div>
+      <ul class="sl-items">
+        <li class="sl-item">Ideological factions run coordinated edit campaigns — then call the result "consensus"</li>
+        <li class="sl-item">Admins weaponize policy to lock pages once their side wins — dissent is "outside the consensus"</li>
+        <li class="sl-item">The FBI and DOE dispute the COVID lab leak article. Wikipedia's editors overrule them both.</li>
+        <li class="sl-item">Both founders say the site can no longer be trusted. The editors who control it don't care.</li>
+      </ul>
+      <div class="sl-verdict">The result: an authoritative-looking page that doesn't document knowledge — it enforces the politics of the people who control the edit button.</div>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="split-right-inner">
+      <div class="sr-logo"><svg width="32" height="32" viewBox="0 0 80 80" fill="none"><circle cx="32" cy="36" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.8"/><circle cx="48" cy="36" r="18" stroke="#e8e0d4" stroke-width="3" fill="none" opacity="0.5"/><circle cx="40" cy="50" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.35"/></svg> Wikifreedia</div>
+      <div class="sr-heading">Every entry is signed. Every perspective competes in the open.</div>
+      <ul class="sr-items">
+        <li class="sr-item">Every entry has a <strong>named author</strong> with a public identity and reputation at stake</li>
+        <li class="sr-item">No entry can be edited or deleted by anyone other than its author</li>
+        <li class="sr-item">AI surfaces the <strong>actual fault lines</strong> between entries — not a fake consensus</li>
+        <li class="sr-item">Readers decide what's credible. The platform <strong>structurally cannot</strong> decide for them</li>
+      </ul>
+      <div class="sr-verdict">The result: you see the full landscape of thought — and the <strong>disagreement becomes the knowledge</strong>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NOSTR / TECHNICAL ===== -->
+<section class="nostr-section" id="nostr-section">
+  <div class="nostr-inner">
+    <div class="nostr-eyebrow">The obvious question</div>
+    <div class="nostr-heading">"What stops Wikifreedia from becoming the next Wikipedia?"</div>
+
+    <div class="nostr-body">
+      <p>Not our good intentions. Not a promise. <strong>The architecture.</strong></p>
+      <p>Entries on Wikifreedia don't live on our servers. They live on an <em>open protocol called Nostr</em> — the same protocol used by millions of people to publish content that no company or government can take down.</p>
+      <p>That means: <strong>we can't edit your entry</strong>. We can't delete it. We can't lock the page. We can't revert your work because an admin disagrees with you. Even if we wanted to — and someday, someone at Wikifreedia might want to — <em>the system won't let them</em>.</p>
+      <p>Wikipedia's corruption isn't a people problem. Good people built it. The problem is that <strong>the architecture allows capture</strong>. A single database, controlled by a single organization, protected by a single set of admins. Of course it got captured. Any system that <em>can</em> be captured <em>will</em> be.</p>
+      <p>Wikifreedia is built so that capture is <strong>structurally impossible</strong>. Not because we're better people — because the protocol doesn't have an admin button.</p>
+    </div>
+
+    <div class="nostr-kicker">Wikipedia's problem was never the editors. It was that the architecture <strong>gave editors the power to become gatekeepers</strong>. We removed the gate.</div>
+  </div>
+</section>
+
+<!-- ===== WEB OF TRUST ===== -->
+<section class="wot-section" id="wot-section">
+  <div class="wot-inner">
+    <div class="wot-header">
+      <div class="wot-eyebrow">The hard question</div>
+      <div class="wot-heading">"Without gatekeepers, won't it just be chaos?"</div>
+      <div class="wot-sub">No editorial board. No admins. No locks. So what stops Wikifreedia from drowning in spam, conspiracy theories, and hate speech?</div>
+    </div>
+
+    <!-- Row 1: Trust graph + text -->
+    <div class="wot-row">
+      <div class="wot-text">
+        <p>Wikipedia's answer: appoint an <em>editorial priesthood</em> to decide what's true. The result is a political body with political incentives pretending to be neutral.</p>
+        <p>Our answer: <strong>Web of Trust</strong>. Instead of an editorial board deciding whose voice counts, <em>you</em> decide — by choosing who you trust. Your trust network filters the noise. The more people in your chain vouch for an author, the more visible that author's work becomes <strong>to you</strong>.</p>
+        <p>No one is silenced. No one is banned. But spam doesn't propagate — because <strong>no one trusts spammers</strong>.</p>
+      </div>
+      <div class="wot-visual">
+        <svg class="trust-graph" viewBox="0 0 340 280">
+          <!-- Cluster A: left — warm tones (medical skeptics) -->
+          <circle cx="60" cy="100" r="18" fill="rgba(204,102,68,0.25)" stroke="rgba(204,102,68,0.4)" stroke-width="1.5"/>
+          <circle cx="95" cy="75" r="12" fill="rgba(204,102,68,0.15)" stroke="rgba(204,102,68,0.25)" stroke-width="1"/>
+          <circle cx="40" cy="140" r="10" fill="rgba(204,102,68,0.12)" stroke="rgba(204,102,68,0.2)" stroke-width="1"/>
+          <circle cx="100" cy="130" r="8" fill="rgba(204,102,68,0.1)" stroke="rgba(204,102,68,0.15)" stroke-width="1"/>
+          <circle cx="70" cy="60" r="6" fill="rgba(204,102,68,0.08)" stroke="rgba(204,102,68,0.12)" stroke-width="1"/>
+          <!-- edges cluster A -->
+          <line x1="60" y1="100" x2="95" y2="75" class="edge-strong"/>
+          <line x1="60" y1="100" x2="40" y2="140" class="edge-strong"/>
+          <line x1="60" y1="100" x2="100" y2="130" class="edge-strong"/>
+          <line x1="95" y1="75" x2="70" y2="60" class="edge-strong"/>
+
+          <!-- Cluster B: right — cool tones (institutional science) -->
+          <circle cx="270" cy="110" r="16" fill="rgba(100,140,200,0.2)" stroke="rgba(100,140,200,0.35)" stroke-width="1.5"/>
+          <circle cx="300" cy="80" r="11" fill="rgba(100,140,200,0.12)" stroke="rgba(100,140,200,0.2)" stroke-width="1"/>
+          <circle cx="245" cy="145" r="9" fill="rgba(100,140,200,0.1)" stroke="rgba(100,140,200,0.15)" stroke-width="1"/>
+          <circle cx="290" cy="140" r="7" fill="rgba(100,140,200,0.08)" stroke="rgba(100,140,200,0.12)" stroke-width="1"/>
+          <circle cx="260" cy="75" r="6" fill="rgba(100,140,200,0.08)" stroke="rgba(100,140,200,0.12)" stroke-width="1"/>
+          <!-- edges cluster B -->
+          <line x1="270" y1="110" x2="300" y2="80" class="edge-strong" style="stroke:rgba(100,140,200,0.2)"/>
+          <line x1="270" y1="110" x2="245" y2="145" class="edge-strong" style="stroke:rgba(100,140,200,0.2)"/>
+          <line x1="270" y1="110" x2="290" y2="140" class="edge-strong" style="stroke:rgba(100,140,200,0.2)"/>
+          <line x1="300" y1="80" x2="260" y2="75" class="edge-strong" style="stroke:rgba(100,140,200,0.2)"/>
+
+          <!-- Cluster C: center-bottom — green tones (independent analysts) -->
+          <circle cx="170" cy="210" r="14" fill="rgba(120,180,100,0.15)" stroke="rgba(120,180,100,0.25)" stroke-width="1.5"/>
+          <circle cx="145" cy="240" r="9" fill="rgba(120,180,100,0.1)" stroke="rgba(120,180,100,0.15)" stroke-width="1"/>
+          <circle cx="200" cy="235" r="8" fill="rgba(120,180,100,0.08)" stroke="rgba(120,180,100,0.12)" stroke-width="1"/>
+          <circle cx="170" cy="260" r="5" fill="rgba(120,180,100,0.06)" stroke="rgba(120,180,100,0.1)" stroke-width="1"/>
+          <!-- edges cluster C -->
+          <line x1="170" y1="210" x2="145" y2="240" class="edge-strong" style="stroke:rgba(120,180,100,0.2)"/>
+          <line x1="170" y1="210" x2="200" y2="235" class="edge-strong" style="stroke:rgba(120,180,100,0.2)"/>
+          <line x1="145" y1="240" x2="170" y2="260" class="edge-strong" style="stroke:rgba(120,180,100,0.2)"/>
+
+          <!-- Cross-cluster weak links (disagreement bridges) -->
+          <line x1="100" y1="130" x2="170" y2="210" class="edge-weak"/>
+          <line x1="245" y1="145" x2="170" y2="210" class="edge-weak"/>
+          <line x1="95" y1="75" x2="260" y2="75" class="edge-weak"/>
+
+          <!-- Spam node: isolated, no connections -->
+          <circle cx="30" cy="240" r="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <circle cx="320" cy="230" r="3" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <circle cx="310" cy="250" r="3" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+          <!-- Cluster labels -->
+          <text x="55" y="40" fill="#cc6644" opacity="0.5">skeptics</text>
+          <text x="250" y="55" fill="rgba(100,140,200,0.5)">institutional</text>
+          <text x="155" y="195" fill="rgba(120,180,100,0.5)">independent</text>
+          <text x="10" y="265" fill="rgba(255,255,255,0.12)" font-size="12">spam</text>
+          <text x="293" y="265" fill="rgba(255,255,255,0.12)" font-size="12">spam</text>
+        </svg>
+        <div class="cluster-label" style="bottom:0.75rem;left:1rem;color:rgba(255,255,255,0.15);font-size:0.8rem">Isolated nodes = invisible. No trust = no reach.</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Flat vs 3D comparison -->
+    <div class="wot-row reverse">
+      <div class="wot-text">
+        <p>Wikipedia flattens every topic into a <strong>single line</strong> — one version wins, the rest are erased. That's not knowledge. That's a vote disguised as truth.</p>
+        <p>Wikifreedia captures the <em>full topology</em> of a subject: clusters of powerful, conflicting perspectives. Each cluster is internally coherent and externally contested. You don't get a single answer — you get a <strong>map of the disagreement</strong>, with every faction visible, every argument traceable.</p>
+        <p>Flat truth is propaganda. Three-dimensional truth is <strong>knowledge you can actually navigate</strong>.</p>
+      </div>
+      <div>
+        <div class="dimension-compare">
+          <div class="dim-card flat">
+            <div class="dim-label">Wikipedia</div>
+            <div class="flat-visual">
+              <div class="flat-line">
+                <div class="flat-dot winner" style="left:62%">
+                  <div class="flat-arrow">← "consensus"</div>
+                </div>
+                <div class="flat-dot" style="left:20%;opacity:0.25"></div>
+                <div class="flat-dot" style="left:85%;opacity:0.15"></div>
+              </div>
+            </div>
+            <div style="font-size:0.8rem;color:#555;margin-top:0.75rem">One dot survives. The rest: "misinformation."</div>
+          </div>
+          <div class="dim-card threed">
+            <div class="dim-label active">Wikifreedia</div>
+            <div class="threed-visual">
+              <!-- Warm cluster -->
+              <div class="td-dot" style="left:15%;top:25%;width:14px;height:14px;background:rgba(204,102,68,0.4)"></div>
+              <div class="td-dot" style="left:25%;top:15%;width:9px;height:9px;background:rgba(204,102,68,0.25)"></div>
+              <div class="td-dot" style="left:10%;top:45%;width:7px;height:7px;background:rgba(204,102,68,0.2)"></div>
+              <div class="td-cluster" style="left:5%;top:8%;width:100px;height:80px;border-color:rgba(204,102,68,0.1)"></div>
+
+              <!-- Cool cluster -->
+              <div class="td-dot" style="left:65%;top:35%;width:12px;height:12px;background:rgba(100,140,200,0.35)"></div>
+              <div class="td-dot" style="left:78%;top:25%;width:8px;height:8px;background:rgba(100,140,200,0.2)"></div>
+              <div class="td-dot" style="left:72%;top:55%;width:7px;height:7px;background:rgba(100,140,200,0.15)"></div>
+              <div class="td-cluster" style="left:58%;top:15%;width:90px;height:75px;border-color:rgba(100,140,200,0.1)"></div>
+
+              <!-- Green cluster -->
+              <div class="td-dot" style="left:40%;top:70%;width:10px;height:10px;background:rgba(120,180,100,0.3)"></div>
+              <div class="td-dot" style="left:50%;top:80%;width:7px;height:7px;background:rgba(120,180,100,0.2)"></div>
+              <div class="td-cluster" style="left:32%;top:60%;width:75px;height:55px;border-color:rgba(120,180,100,0.1)"></div>
+            </div>
+            <div style="font-size:0.8rem;color:#666;margin-top:0.75rem">Every cluster visible. Every tension navigable.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wot-bottom">
+      <div class="wot-kicker">We don't flatten knowledge into a single answer. We give you the tools to <strong>navigate the full landscape</strong> — and decide for yourself what's true.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MANIFESTO ===== -->
+<section class="manifesto" id="manifesto-section">
+  <div class="manifesto-inner">
+    <div class="manifesto-eyebrow">Why we built this</div>
+
+    <div class="manifesto-block">
+      <p><strong>"We wanted to give a voice to the voiceless, but what emerged was one of the most effective organs of Establishment propaganda in history."</strong></p>
+      <p>That's not us talking. That's Larry Sanger — the man who co-founded Wikipedia.</p>
+    </div>
+
+    <div class="manifesto-block">
+      <p>Wikipedia has <span class="villain">833 administrators, 16 bureaucrats, and 15 arbitration committee members</span>. Of the 62 most powerful accounts, 85% are anonymous. No one knows who these people are, who pays them, or what agendas they serve.</p>
+      <p>Sanger suspects many of them are paid operatives. WikiScanner found edits coming from CIA headquarters in Langley — <strong>removing Iraq War casualty counts, deleting satellite images of Guantanamo Bay</strong>. The FBI edited articles too. As Sanger puts it: <em>"Intelligence agencies use Wikipedia as a one-stop shop to make people believe things."</em></p>
+    </div>
+
+    <div class="manifesto-quote">
+      "Wikipedia is completely dishonest and completely controlled on questions that matter. The word for it is propaganda."
+      <cite>— Larry Sanger, co-founder of Wikipedia, Tucker Carlson Show, 2025</cite>
+    </div>
+
+    <div class="manifesto-block">
+      <p>Since 2017, Wikipedia has maintained a <span class="villain">source blacklist</span> that bans Fox News, the New York Post, the Daily Caller, the Epoch Times, and The Federalist. If your defenders only exist in blacklisted sources, you will not be defended. The blacklist was created right after Trump's election. Coincidence.</p>
+      <p>The COVID lab leak article asserted, in Wikipedia's own voice, that "there is no evidence supporting laboratory involvement" — a claim now disputed by the FBI and the Department of Energy. On the talk page, prior "consensus" was brandished to <span class="villain">reject including updated intelligence findings</span>. The Gaza genocide article asserts Israel committed genocide, with almost no coverage of dissenting views — including those of both Wikipedia founders.</p>
+    </div>
+
+    <div class="manifesto-block">
+      <p>This is not a broken process. <strong>This is the process working exactly as designed.</strong> Wikipedia's own neutrality policy says "articles must not take sides" — and then its consensus mechanism does nothing but pick sides, call the winner "neutral," and lock the page.</p>
+      <p>We didn't build Wikifreedia because we think we're smarter than Wikipedia's editors. We built it because <strong>no one should have that power</strong>. Not them. Not us. Not anyone.</p>
+    </div>
+
+    <div class="manifesto-quote">
+      "The power to declare what is known is nearly the power to rule the world. No small group — no person, corporation, oligarchy, or cadre of insiders — should wield such power."
+      <cite>— Larry Sanger, Encyclosphere address, 2019</cite>
+    </div>
+
+    <div class="manifesto-block">
+      <p>Knowledge isn't a single document that gets voted on. It's a living argument between people who see the world differently. The moment you flatten that into one "neutral" page, you haven't created knowledge — <span class="villain">you've created propaganda with citations</span>.</p>
+    </div>
+
+    <div class="manifesto-final">Wikifreedia exists because <em>the disagreement is the knowledge</em>.</div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section" id="cta-section">
+  <div class="cta-text">Read. Write. Disagree. No one gets the last word.</div>
+  <button class="cta-btn">Start exploring</button>
+</section>
+
+<script>
+// Tab switching
+const tabs = document.querySelectorAll('.tab');
+const topicPanels = document.querySelectorAll('.topic-results');
+const searchQuery = document.getElementById('searchQuery');
+const searchCount = document.getElementById('searchCount');
+const compareRow = document.getElementById('compareRow');
+const callout = document.getElementById('callout');
+
+const topicNames = {
+  ivermectin: 'Ivermectin',
+  capitalism: 'Capitalism',
+  freespeech: 'Free Speech',
+  journalism: 'Journalism',
+};
+const topicCounts = {
+  ivermectin: '3 entries',
+  capitalism: '3 entries',
+  freespeech: '3 entries',
+  journalism: '3 entries',
+};
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const topic = tab.dataset.topic;
+
+    // Reset comparison state
+    callout.classList.remove('visible');
+    compareRow.classList.remove('hidden');
+    document.querySelectorAll('.result').forEach(r => r.classList.remove('dimmed'));
+    ['cs1','cs2','cs3'].forEach(id => document.getElementById(id).classList.remove('in'));
+
+    // Switch tabs
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    // Switch content
+    topicPanels.forEach(p => p.classList.remove('active'));
+    document.getElementById('topic-' + topic).classList.add('active');
+
+    // Update search bar
+    searchQuery.textContent = topicNames[topic];
+    searchCount.textContent = topicCounts[topic];
+  });
+});
+
+// Compare button
+const btn = document.getElementById('compareBtn');
+const results_ivermectin = document.querySelectorAll('#topic-ivermectin .result');
+const streams = ['cs1','cs2','cs3'];
+
+// Streaming text effect
+function streamElement(el, callback) {
+  const original = el.innerHTML;
+  // Build list of text nodes with their HTML context
+  const parts = [];
+  const walk = (node) => {
+    for (const child of node.childNodes) {
+      if (child.nodeType === 3) { // text node
+        for (const ch of child.textContent) parts.push({ type: 'char', char: ch });
+      } else if (child.nodeType === 1) { // element
+        parts.push({ type: 'open', tag: child.tagName.toLowerCase(), attrs: child.attributes });
+        walk(child);
+        parts.push({ type: 'close', tag: child.tagName.toLowerCase() });
+      }
+    }
+  };
+  const temp = document.createElement('div');
+  temp.innerHTML = original;
+  walk(temp);
+
+  el.innerHTML = '';
+  el.classList.add('streaming-cursor');
+  let html = '';
+  let i = 0;
+  const speed = 18;
+
+  function tick() {
+    if (i >= parts.length) {
+      el.classList.remove('streaming-cursor');
+      if (callback) callback();
+      return;
+    }
+    const p = parts[i++];
+    if (p.type === 'char') {
+      html += p.char;
+    } else if (p.type === 'open') {
+      let attrStr = '';
+      for (let a = 0; a < p.attrs.length; a++) attrStr += ` ${p.attrs[a].name}="${p.attrs[a].value}"`;
+      html += `<${p.tag}${attrStr}>`;
+    } else {
+      html += `</${p.tag}>`;
+    }
+    el.innerHTML = html;
+    if (p.type === 'char') {
+      setTimeout(tick, speed + Math.random() * 15);
+    } else {
+      tick(); // tags are instant
+    }
+  }
+  tick();
+}
+
+function streamSection(sectionEl, callback) {
+  sectionEl.classList.add('in');
+  const streamables = sectionEl.querySelectorAll('.c-text, .fault-q, .fault-a, .c-kicker');
+  if (streamables.length === 0) { if (callback) callback(); return; }
+  let idx = 0;
+  function next() {
+    if (idx >= streamables.length) { if (callback) callback(); return; }
+    streamElement(streamables[idx++], next);
+  }
+  next();
+}
+
+let streaming = false;
+btn.addEventListener('click', () => {
+  const isVisible = callout.classList.contains('visible');
+  if (isVisible) {
+    callout.classList.remove('visible');
+    // Reset all sections by reloading original content
+    location.reload();
+    return;
+  }
+  if (streaming) return;
+  streaming = true;
+
+  callout.classList.add('visible');
+  // Stream sections sequentially
+  streamSection(document.getElementById('cs1'), () => {
+    streamSection(document.getElementById('cs2'), () => {
+      streamSection(document.getElementById('cs3'), () => {
+        streaming = false;
+      });
+    });
+  });
+});
+
+// Nav: smooth scroll + scroll spy
+document.querySelectorAll('.nav-link, .nav-cta').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+const nav = document.getElementById('nav');
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = [
+  { id: 'demo-section', el: document.getElementById('demo-section') },
+  { id: 'split-section', el: document.getElementById('split-section') },
+  { id: 'nostr-section', el: document.getElementById('nostr-section') },
+  { id: 'wot-section', el: document.getElementById('wot-section') },
+  { id: 'manifesto-section', el: document.getElementById('manifesto-section') },
+];
+
+// 3D cylinder unroll for demo section
+const demo = document.querySelector('.demo');
+const heroWrap = document.querySelector('.hero-wrap');
+const hero = document.querySelector('.hero');
+
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+
+  // Nav background on scroll
+  nav.classList.toggle('scrolled', scrollY > 80);
+
+  // Highlight active section
+  let current = '';
+  for (const s of sections) {
+    if (s.el.offsetTop - 120 <= scrollY) current = s.id;
+  }
+  navLinks.forEach(link => {
+    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+  });
+
+  // Hero: parallax drift upward to clear room for demo
+  hero.style.transform = `translateY(-${scrollY * 0.35}px)`;
+
+  // Demo: scroll-driven 3D unroll
+  const scrollRange = window.innerHeight * 0.4;
+  const t = Math.max(0, Math.min(1, scrollY / scrollRange));
+
+  const rotateX = 55 * (1 - t);
+  const scale = 0.88 + 0.12 * t;
+  const opacity = 0.15 + 0.85 * t;
+
+  demo.style.transform = `rotateX(${rotateX}deg) scale(${scale})`;
+  demo.style.opacity = opacity;
+}, { passive: true });
+</script>
+</body></html>

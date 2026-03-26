@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H2 — Scroll Split (Ivermectin)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Georgia', serif; background: #111; color: #e8e0d4; }
+
+  .scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: rgba(255,255,255,0.15); z-index: 100; }
+
+  /* Topic picker */
+  .topic-picker {
+    position: fixed;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.4rem;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .topic-picker.visible { opacity: 1; }
+  .topic-pill {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.35rem 0.75rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #555;
+    background: rgba(17,17,17,0.8);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  .topic-pill:hover { border-color: rgba(255,255,255,0.2); color: #999; }
+  .topic-pill.active { border-color: rgba(255,255,255,0.25); color: #ccc; }
+
+  .phase-label {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #444;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  /* ===== SECTION 1: Single article ===== */
+  .section-article { height: 300vh; position: relative; }
+
+  .sticky-article {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 2rem; overflow: hidden;
+  }
+
+  .wordmark {
+    font-size: 3.5rem; font-weight: 400; letter-spacing: -0.02em;
+    font-style: italic; margin-bottom: 0.3rem; transition: opacity 0.4s ease;
+  }
+  .subtitle {
+    font-size: 0.85rem; color: #666; margin-bottom: 2.5rem; transition: opacity 0.4s ease;
+    max-width: 460px; text-align: center; line-height: 1.6;
+  }
+
+  .article-container { position: relative; width: 560px; transition: all 0.1s linear; }
+
+  .unified-card {
+    background: #1a1918; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 2rem; transition: all 0.1s linear;
+    transform-origin: center center;
+  }
+  .card-eyebrow { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.2em; color: #555; margin-bottom: 0.4rem; }
+  .card-title { font-size: 1.6rem; margin-bottom: 1.2rem; }
+  .card-body { font-size: 0.82rem; line-height: 1.85; color: #aaa; }
+  .card-body p { margin-bottom: 0.8rem; }
+  .author-line { font-size: 0.7rem; color: #555; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); transition: opacity 0.3s ease; }
+
+  .scroll-cue {
+    position: absolute; bottom: 3rem; display: flex; flex-direction: column;
+    align-items: center; gap: 0.5rem; transition: opacity 0.5s ease;
+  }
+  .scroll-cue-text { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: #444; }
+  .scroll-arrow {
+    width: 10px; height: 10px; border-right: 1px solid #444; border-bottom: 1px solid #444;
+    transform: rotate(45deg); animation: bob 2s infinite;
+  }
+  @keyframes bob { 0%,100% { transform: rotate(45deg); } 50% { transform: rotate(45deg) translate(3px,3px); } }
+
+  /* ===== SECTION 2: Three perspectives ===== */
+  .section-perspectives { height: 400vh; position: relative; }
+
+  .sticky-perspectives {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; align-items: center; justify-content: center; gap: 1.2rem; padding: 2rem;
+  }
+
+  .perspective-card {
+    width: 310px; background: #1a1918; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 1.5rem;
+    opacity: 0; transform: translateY(40px) scale(0.95);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .perspective-card.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+  .p-author { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .p-avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: #2a2a28;
+    display: flex; align-items: center; justify-content: center; font-size: 0.55rem; color: #777;
+  }
+  .p-name { font-size: 0.75rem; font-weight: 600; }
+  .p-role { font-size: 0.6rem; color: #666; }
+  .p-eyebrow { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.15em; color: #555; margin-bottom: 0.3rem; }
+  .p-title { font-size: 1.1rem; margin-bottom: 0.75rem; }
+  .p-body { font-size: 0.72rem; line-height: 1.75; color: #999; }
+  .p-body .diff { color: #999; background: transparent; padding: 1px 0; transition: all 0.5s ease; }
+  .perspective-card.highlight-diffs .diff { background: rgba(255, 200, 100, 0.08); color: #e8e0d4; }
+
+  /* ===== SECTION 3: Comparison ===== */
+  .section-comparison { height: 250vh; position: relative; }
+
+  .sticky-comparison {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;
+  }
+
+  .comparison-box {
+    max-width: 620px; background: #1a1918; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 2rem;
+    opacity: 0; transform: translateY(20px); transition: all 0.6s ease;
+  }
+  .comparison-box.visible { opacity: 1; transform: translateY(0); }
+  .comp-label { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.2em; color: #666; margin-bottom: 1rem; }
+  .comp-text { font-size: 0.85rem; line-height: 1.8; color: #aaa; }
+  .comp-text strong { color: #e8e0d4; font-weight: 600; }
+  .comp-cta { margin-top: 1.5rem; text-align: center; }
+  .comp-cta-text { font-size: 0.9rem; color: #888; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="phase-label" id="phaseLabel">A single article</div>
+
+<div class="topic-picker" id="topicPicker">
+  <button class="topic-pill active">Ivermectin</button>
+  <button class="topic-pill">Capitalism</button>
+  <button class="topic-pill">Free Speech</button>
+  <button class="topic-pill">Journalism</button>
+</div>
+
+<!-- PHASE 1 -->
+<div class="section-article" id="sectionArticle">
+  <div class="sticky-article" id="stickyArticle">
+    <div class="wordmark" id="wordmark">Wikifreedia</div>
+    <div class="subtitle" id="tagline">What does an encyclopedia entry on "Ivermectin" say? That depends entirely on who wrote it.</div>
+
+    <div class="article-container">
+      <div class="unified-card" id="unifiedCard">
+        <div class="card-eyebrow">Encyclopedia Entry</div>
+        <div class="card-title">Ivermectin</div>
+        <div class="card-body">
+          <p>Ivermectin is an antiparasitic drug discovered in the 1970s, awarded the Nobel Prize in 2015 for its role in treating river blindness and lymphatic filariasis. During the COVID-19 pandemic, it became the subject of intense debate over its potential antiviral properties.</p>
+          <p>Some physicians reported positive clinical outcomes using ivermectin as an early treatment for COVID-19, while public health authorities cautioned that large-scale randomized controlled trials had not demonstrated clear efficacy. Regulatory agencies issued warnings against its use outside approved indications.</p>
+          <p>The controversy extended beyond pharmacology into questions about institutional trust, media coverage, and the relationship between regulatory bodies and pharmaceutical companies.</p>
+        </div>
+        <div class="author-line" id="authorLine">— Standard encyclopedic summary</div>
+      </div>
+    </div>
+
+    <div class="scroll-cue" id="scrollCue">
+      <span class="scroll-cue-text">Scroll to see who actually wrote it</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div class="section-perspectives" id="sectionPerspectives">
+  <div class="sticky-perspectives">
+    <!-- Rogan -->
+    <div class="perspective-card" id="cardA">
+      <div class="p-author">
+        <div class="p-avatar">JR</div>
+        <div>
+          <div class="p-name">Joe Rogan</div>
+          <div class="p-role">Podcaster · Commentator</div>
+        </div>
+      </div>
+      <div class="p-eyebrow">Ivermectin</div>
+      <div class="p-title">Ivermectin</div>
+      <div class="p-body">
+        Ivermectin is a Nobel Prize-winning drug that <span class="diff">doctors around the world were using to treat COVID with real results — and the establishment freaked out</span>. Why? Follow the money.<br><br>
+        You can't get emergency use authorization for a vaccine if there's an adequate existing treatment. <span class="diff">A $2 generic drug threatened a multi-billion dollar vaccine rollout, so they called it "horse paste" and had the media destroy anyone who mentioned it</span>.<br><br>
+        I took it when I got COVID, along with monoclonal antibodies and other treatments. <span class="diff">I was better in days. Millions of people in India and Japan used it. But we're not allowed to talk about that.</span>
+      </div>
+    </div>
+
+    <!-- Fauci -->
+    <div class="perspective-card" id="cardB">
+      <div class="p-author">
+        <div class="p-avatar">AF</div>
+        <div>
+          <div class="p-name">Anthony Fauci</div>
+          <div class="p-role">Immunologist · Public Health</div>
+        </div>
+      </div>
+      <div class="p-eyebrow">Ivermectin</div>
+      <div class="p-title">Ivermectin</div>
+      <div class="p-body">
+        Ivermectin is an important antiparasitic medication, but <span class="diff">the randomized, placebo-controlled clinical trials — the gold standard of evidence — have not demonstrated a statistically significant benefit for COVID-19</span>.<br><br>
+        Anecdotes and observational studies are not sufficient evidence to recommend a drug during a pandemic. <span class="diff">The proper pathway is rigorous clinical trials reviewed by independent experts, not podcast testimonials or ideologically motivated physicians</span>.<br><br>
+        <span class="diff">Promoting unproven treatments erodes confidence in the interventions we know work — vaccines that went through proper Phase III trials and saved millions of lives.</span>
+      </div>
+    </div>
+
+    <!-- Weinstein -->
+    <div class="perspective-card" id="cardC">
+      <div class="p-author">
+        <div class="p-avatar">BW</div>
+        <div>
+          <div class="p-name">Bret Weinstein</div>
+          <div class="p-role">Evolutionary Biologist</div>
+        </div>
+      </div>
+      <div class="p-eyebrow">Ivermectin</div>
+      <div class="p-title">Ivermectin</div>
+      <div class="p-body">
+        The ivermectin question isn't really about ivermectin — <span class="diff">it's about whether the regulatory framework is structurally capable of evaluating a cheap generic during an emergency where billions of dollars are at stake</span>.<br><br>
+        The Emergency Use Authorization legally required that "no adequate, approved, and available alternatives" exist. <span class="diff">This created a structural incentive to dismiss any potential early treatment — the entire vaccine program depended on there being no alternative</span>.<br><br>
+        <span class="diff">Both "it's a miracle drug" and "it's horse paste" are wrong. The real scandal is that we built a system incapable of honestly evaluating the question.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div class="section-comparison" id="sectionComparison">
+  <div class="sticky-comparison">
+    <div class="comparison-box" id="compBox">
+      <div class="comp-label">AI-Assisted Comparison</div>
+      <div class="comp-text">
+        All three authors discuss the same molecule — but they're having three different conversations. <strong>Rogan</strong> frames ivermectin as a suppressed cure, evidence of institutional corruption. <strong>Fauci</strong> frames it as a case study in why we need rigorous evidence standards. <strong>Weinstein</strong> reframes the entire question: the regulatory structure itself made honest evaluation impossible.<br><br>
+        On evidence: Rogan trusts clinical observation and personal experience. Fauci trusts randomized controlled trials. Weinstein questions whether the incentive structure allowed honest trials to happen at all.<br><br>
+        A traditional encyclopedia would choose one of these frames and present it as "the answer." <strong>Wikifreedia keeps all three — because understanding the disagreement IS the knowledge.</strong>
+      </div>
+      <div class="comp-cta">
+        <div class="comp-cta-text">Every entry is a perspective, not a verdict.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:30vh"></div>
+
+<script>
+function isInView(el) { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }
+function getProgress(el) { const r = el.getBoundingClientRect(); const t = el.offsetHeight - innerHeight; return t <= 0 ? 0 : Math.max(0, Math.min(1, -r.top / t)); }
+function lerp(a,b,t) { return a + (b-a)*t; }
+
+const sA = document.getElementById('sectionArticle');
+const sP = document.getElementById('sectionPerspectives');
+const sC = document.getElementById('sectionComparison');
+
+function onScroll() {
+  const total = document.documentElement.scrollHeight - innerHeight;
+  const prog = scrollY / total;
+  document.getElementById('scrollProgress').style.width = `${prog*100}%`;
+  document.getElementById('topicPicker').classList.toggle('visible', scrollY > 100);
+  document.getElementById('scrollCue').style.opacity = scrollY < 50 ? '1' : '0';
+
+  if (isInView(sA)) {
+    const p = getProgress(sA);
+    document.getElementById('wordmark').style.opacity = Math.max(0, 1 - p*3);
+    document.getElementById('tagline').style.opacity = Math.max(0, 1 - p*3);
+    if (p < 0.5) {
+      document.getElementById('unifiedCard').style.transform = 'scale(1)';
+      document.getElementById('unifiedCard').style.opacity = '1';
+      document.getElementById('phaseLabel').textContent = 'A single article';
+    } else {
+      const s = (p-0.5)*2;
+      document.getElementById('unifiedCard').style.transform = `scale(${lerp(1,0.85,s)})`;
+      document.getElementById('unifiedCard').style.opacity = lerp(1,0.3,s);
+      document.getElementById('authorLine').style.opacity = Math.max(0,1-s*2);
+      document.getElementById('phaseLabel').textContent = 'But who wrote it?';
+    }
+  }
+
+  if (isInView(sP)) {
+    const p = getProgress(sP);
+    document.getElementById('phaseLabel').textContent = 'Three perspectives emerge';
+    if (p > 0.05) document.getElementById('cardA').classList.add('visible');
+    if (p > 0.15) document.getElementById('cardB').classList.add('visible');
+    if (p > 0.25) document.getElementById('cardC').classList.add('visible');
+    if (p > 0.5) {
+      ['cardA','cardB','cardC'].forEach(id => document.getElementById(id).classList.add('highlight-diffs'));
+      document.getElementById('phaseLabel').textContent = 'Where they diverge';
+    }
+  } else {
+    ['cardA','cardB','cardC'].forEach(id => document.getElementById(id).classList.remove('visible','highlight-diffs'));
+  }
+
+  if (isInView(sC)) {
+    if (getProgress(sC) > 0.1) {
+      document.getElementById('compBox').classList.add('visible');
+      document.getElementById('phaseLabel').textContent = 'Understanding the disagreement IS the knowledge';
+    }
+  } else {
+    document.getElementById('compBox').classList.remove('visible');
+  }
+}
+
+addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+</script>
+</body>
+</html>

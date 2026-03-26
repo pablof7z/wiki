@@ -33,6 +33,7 @@
 	});
 
 	const topicEntries = $derived(getRenderableTopicEntries(entries.events));
+	const entriesLoaded = $derived(entries.eosed || topicEntries.length > 0);
 	const requestedEntryIds = $derived(
 		parseComparisonEventIds($page.url.searchParams.get(COMPARISON_QUERY_PARAM))
 	);
@@ -58,17 +59,6 @@
 			(heading) => heading.level >= 2 && heading.level <= 3
 		)
 	);
-
-	$effect(() => {
-		if (!topicEntries.length) return;
-		if (arraysEqual(requestedEntryIds, selectedEntryIds)) return;
-
-		void goto(buildTopicComparisonHref(topic, selectedEntryIds), {
-			replaceState: true,
-			noScroll: true,
-			keepFocus: true
-		});
-	});
 
 	$effect(() => {
 		const requestEventIds = [...selectedEntryIds];
@@ -144,10 +134,6 @@
 		}
 	}
 
-	function arraysEqual(left: string[], right: string[]) {
-		return left.length === right.length && left.every((value, index) => value === right[index]);
-	}
-
 	function updateSelection(nextEntryIds: string[]) {
 		const sanitizedEntryIds = sanitizeComparisonEventIds(topicEntries, nextEntryIds);
 
@@ -190,6 +176,8 @@
 			<ArticleComparison
 				{topic}
 				entries={selectedEntries}
+				{entriesLoaded}
+				availableEntryCount={topicEntries.length}
 				{comparisonResult}
 				comparisonError={comparisonError}
 				{isComparing}

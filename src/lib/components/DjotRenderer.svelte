@@ -11,11 +11,13 @@
 	let {
 		content,
 		renderer = defaultContentRenderer,
-		class: className = ''
+		class: className = '',
+		onRootChange = undefined
 	}: {
 		content: string;
 		renderer?: ContentRenderer;
 		class?: string;
+		onRootChange?: (rootElement: HTMLDivElement | undefined) => void;
 	} = $props();
 
 	function escapeHtml(value: string) {
@@ -113,6 +115,7 @@
 
 	onMount(() => {
 		return () => {
+			onRootChange?.(undefined);
 			unmountMountedComponents();
 		};
 	});
@@ -126,6 +129,10 @@
 		}
 
 		void hydrateRenderedContent();
+	});
+
+	$effect(() => {
+		onRootChange?.(contentElement);
 	});
 </script>
 

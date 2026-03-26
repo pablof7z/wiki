@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07 — Spotlight</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#050504;color:#e8e0d4;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.12);z-index:10}
+.canvas{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+/* All text is nearly invisible until spotlight hits it */
+.text-block{position:absolute;max-width:420px;transition:opacity 1s ease}
+.text-block .quote{font-size:1.5rem;font-weight:400;line-height:1.45;letter-spacing:-0.01em;color:rgba(232,224,212,0.03);transition:color 1s ease}
+.text-block .who{font-size:0.7rem;color:rgba(232,224,212,0.02);margin-top:0.75rem;font-weight:600;transition:color 1s ease}
+.text-block.lit .quote{color:rgba(232,224,212,0.9)}
+.text-block.lit .who{color:rgba(232,224,212,0.4)}
+.text-block.dim .quote{color:rgba(232,224,212,0.06)}
+.text-block.dim .who{color:rgba(232,224,212,0.04)}
+.tb1{top:15%;left:8%}
+.tb2{top:35%;right:6%;text-align:right}
+.tb3{bottom:12%;left:20%}
+.center-title{font-size:5rem;font-weight:400;color:rgba(232,224,212,0.03);letter-spacing:-0.03em;pointer-events:none;transition:color 1s ease;position:relative;z-index:1}
+.center-title.glow{color:rgba(232,224,212,0.06)}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="canvas">
+  <div class="center-title" id="centerTitle">Ivermectin</div>
+  <div class="text-block tb1" id="tb1">
+    <div class="quote">"They called a Nobel Prize-winning drug 'horse paste' to protect a hundred-billion-dollar vaccine rollout."</div>
+    <div class="who">Joe Rogan</div>
+  </div>
+  <div class="text-block tb2" id="tb2">
+    <div class="quote">"The randomized controlled trials do not show benefit. The plural of anecdote is not data."</div>
+    <div class="who">Anthony Fauci</div>
+  </div>
+  <div class="text-block tb3" id="tb3">
+    <div class="quote">"The system was structurally incapable of honest evaluation. You don't need a conspiracy — just an incentive structure."</div>
+    <div class="who">Bret Weinstein</div>
+  </div>
+</div>
+<script>
+const blocks=[document.getElementById('tb1'),document.getElementById('tb2'),document.getElementById('tb3')];
+const title=document.getElementById('centerTitle');
+let current=-1;
+
+function spotlight(idx){
+  blocks.forEach((b,i)=>{
+    b.classList.remove('lit','dim');
+    if(i===idx)b.classList.add('lit');
+    else if(current>=0)b.classList.add('dim');
+  });
+  title.classList.toggle('glow',idx>=0);
+  current=idx;
+}
+
+// Sequence: darkness → each spotlight → all dim (you saw three truths)
+const seq=[
+  {idx:0,delay:1500},
+  {idx:1,delay:4500},
+  {idx:2,delay:7500},
+  {idx:-1,delay:10500}, // all fade to ghost
+];
+seq.forEach(({idx,delay})=>setTimeout(()=>spotlight(idx),delay));
+// After full sequence, loop
+setTimeout(()=>{
+  const loop=()=>{
+    spotlight(0);
+    setTimeout(()=>spotlight(1),3000);
+    setTimeout(()=>spotlight(2),6000);
+    setTimeout(()=>{spotlight(-1);setTimeout(loop,2000)},9000);
+  };
+  loop();
+},12500);
+</script></body></html>

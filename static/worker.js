@@ -8231,6 +8231,10 @@ var SCHEMA = {
 // src/db/migrations.ts
 var CURRENT_VERSION = 5;
 async function getCurrentVersion(db) {
+  const schemaVersionTable = await db.exec("SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_version' LIMIT 1");
+  if (!schemaVersionTable[0]?.values?.length) {
+    return 0;
+  }
   try {
     const result = await db.exec("SELECT version FROM schema_version LIMIT 1");
     if (result && result.length > 0 && result[0].values && result[0].values.length > 0) {

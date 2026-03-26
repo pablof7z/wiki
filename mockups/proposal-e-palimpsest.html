@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal E — The Palimpsest</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 0.4rem;
+    z-index: 10;
+    position: relative;
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 3.5rem;
+    max-width: 480px;
+    text-align: center;
+    line-height: 1.6;
+    z-index: 10;
+    position: relative;
+  }
+
+  .palimpsest-stage {
+    position: relative;
+    width: 600px;
+    height: 360px;
+    cursor: default;
+  }
+
+  .text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    border-radius: 12px;
+  }
+
+  .text-layer .layer-author {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+    transition: all 0.8s ease;
+  }
+
+  .text-layer .layer-body {
+    font-size: 0.95rem;
+    line-height: 1.9;
+    transition: all 0.8s ease;
+  }
+
+  /* Layer 1 — Smith (bottom, slight left offset) */
+  .layer-smith {
+    transform: translate(-8px, 4px);
+    color: rgba(232, 224, 212, 0.07);
+    z-index: 1;
+  }
+  .layer-smith .layer-author { color: rgba(232, 224, 212, 0.1); }
+
+  /* Layer 2 — Marx (middle, slight right offset) */
+  .layer-marx {
+    transform: translate(8px, -2px);
+    color: rgba(232, 224, 212, 0.07);
+    z-index: 2;
+  }
+  .layer-marx .layer-author { color: rgba(232, 224, 212, 0.1); }
+
+  /* Layer 3 — Rothbard (top, centered) */
+  .layer-rothbard {
+    transform: translate(0px, 0px);
+    color: rgba(232, 224, 212, 0.07);
+    z-index: 3;
+  }
+  .layer-rothbard .layer-author { color: rgba(232, 224, 212, 0.1); }
+
+  /* Focused states */
+  .layer-smith.focused {
+    color: rgba(232, 224, 212, 0.9);
+    transform: translate(0px, 0px);
+    z-index: 10;
+  }
+  .layer-smith.focused .layer-author { color: rgba(232, 224, 212, 0.6); }
+
+  .layer-marx.focused {
+    color: rgba(232, 224, 212, 0.9);
+    transform: translate(0px, 0px);
+    z-index: 10;
+  }
+  .layer-marx.focused .layer-author { color: rgba(232, 224, 212, 0.6); }
+
+  .layer-rothbard.focused {
+    color: rgba(232, 224, 212, 0.9);
+    transform: translate(0px, 0px);
+    z-index: 10;
+  }
+  .layer-rothbard.focused .layer-author { color: rgba(232, 224, 212, 0.6); }
+
+  /* Receding states (when another is focused) */
+  .text-layer.receded {
+    color: rgba(232, 224, 212, 0.04);
+  }
+  .text-layer.receded .layer-author { color: rgba(232, 224, 212, 0.05); }
+
+  /* Navigation */
+  .layer-nav {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    z-index: 10;
+    position: relative;
+  }
+
+  .nav-item {
+    background: none;
+    border: none;
+    color: #444;
+    font-family: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-item:hover {
+    color: #888;
+  }
+
+  .nav-item.active {
+    color: #ccc;
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  .hint {
+    font-size: 0.65rem;
+    color: #333;
+    margin-top: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    z-index: 10;
+    position: relative;
+    transition: opacity 0.5s ease;
+  }
+
+  .bottom-note {
+    position: fixed;
+    bottom: 3rem;
+    font-size: 0.75rem;
+    color: #444;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 400px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+<p class="tagline">No entry here has a canonical version.</p>
+
+<div class="palimpsest-stage" id="stage">
+  <div class="text-layer layer-smith" id="layerSmith">
+    <div class="layer-author">Adam Smith · Classical Economics</div>
+    <div class="layer-body">Capitalism is a natural extension of humanity's propensity to exchange. When individuals pursue self-interest, an invisible hand guides markets toward outcomes that benefit all of society. The state should enforce contracts and protect property — nothing more.</div>
+  </div>
+
+  <div class="text-layer layer-marx" id="layerMarx">
+    <div class="layer-author">Karl Marx · Political Economy</div>
+    <div class="layer-body">Capitalism is a system of exploitation in which the owners of production extract surplus value from workers, paying them less than they produce. The state enforces this arrangement. The apparent freedom of the market disguises a fundamental domination.</div>
+  </div>
+
+  <div class="text-layer layer-rothbard" id="layerRothbard">
+    <div class="layer-author">Murray Rothbard · Austrian Economics</div>
+    <div class="layer-body">Capitalism in its pure form is voluntary exchange rooted in self-ownership. What exists today is corporatism — government corruption of the market. The state is not capitalism's guardian but its greatest enemy. A free market needs no state at all.</div>
+  </div>
+</div>
+
+<div class="layer-nav">
+  <button class="nav-item" onclick="focusLayer('smith')" id="navSmith">Adam Smith</button>
+  <button class="nav-item" onclick="focusLayer('marx')" id="navMarx">Karl Marx</button>
+  <button class="nav-item" onclick="focusLayer('rothbard')" id="navRothbard">Murray Rothbard</button>
+  <button class="nav-item" onclick="focusLayer(null)" id="navAll">All layers</button>
+</div>
+
+<div class="hint" id="hint">Hover a name to surface one voice from the palimpsest</div>
+
+<div class="bottom-note">Three accounts written on the same page.<br>Each one claims to describe what capitalism <em>is</em>.</div>
+
+<script>
+const layers = {
+  smith: document.getElementById('layerSmith'),
+  marx: document.getElementById('layerMarx'),
+  rothbard: document.getElementById('layerRothbard')
+};
+
+const navs = {
+  smith: document.getElementById('navSmith'),
+  marx: document.getElementById('navMarx'),
+  rothbard: document.getElementById('navRothbard'),
+  all: document.getElementById('navAll')
+};
+
+let currentFocus = null;
+let autoCycleInterval = null;
+const cycleOrder = ['smith', 'marx', 'rothbard', null];
+let cycleIdx = 0;
+
+function focusLayer(name) {
+  currentFocus = name;
+
+  // Reset all
+  Object.values(layers).forEach(l => {
+    l.classList.remove('focused', 'receded');
+  });
+  Object.values(navs).forEach(n => n.classList.remove('active'));
+
+  if (name === null) {
+    // Show all as ghostly overlay
+    navs.all.classList.add('active');
+    document.getElementById('hint').textContent = 'Three versions. Same page. No canonical truth.';
+  } else {
+    // Focus one, recede others
+    layers[name].classList.add('focused');
+    Object.keys(layers).forEach(key => {
+      if (key !== name) layers[key].classList.add('receded');
+    });
+    navs[name].classList.add('active');
+    document.getElementById('hint').textContent = `Reading: ${navs[name].textContent}'s perspective`;
+  }
+}
+
+// Auto-cycle through perspectives
+function startAutoCycle() {
+  autoCycleInterval = setInterval(() => {
+    cycleIdx = (cycleIdx + 1) % cycleOrder.length;
+    focusLayer(cycleOrder[cycleIdx]);
+  }, 3000);
+}
+
+// Start with all layers visible, then cycle
+setTimeout(startAutoCycle, 1500);
+
+// Stop auto-cycle on any interaction
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (autoCycleInterval) {
+      clearInterval(autoCycleInterval);
+      autoCycleInterval = null;
+    }
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wikifreedia — Narrative Landing</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: #0e0e0c;
+    color: #e8e0d4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .scroll-progress {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: rgba(255,255,255,0.12); z-index: 200;
+  }
+
+  /* ============================================
+     ABOVE THE FOLD — The Conflict
+     ============================================ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    position: relative;
+  }
+
+  .hero-wordmark {
+    font-size: 2.2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    color: rgba(232, 224, 212, 0.4);
+    margin-bottom: 3.5rem;
+  }
+
+  .hero-topic {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: #555;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-title {
+    font-size: 3.2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin-bottom: 3rem;
+  }
+
+  .hero-quotes {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 620px;
+    width: 100%;
+  }
+
+  .hero-quote {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .quote-attribution {
+    text-align: right;
+    padding-top: 0.15rem;
+  }
+
+  .quote-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ccc;
+    margin-bottom: 0.15rem;
+  }
+
+  .quote-role {
+    font-size: 0.55rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+  }
+
+  .quote-text {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #aaa;
+    font-style: italic;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    padding-left: 1.25rem;
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+  .scroll-cue.hidden { opacity: 0; }
+  .scroll-cue-text {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #444;
+  }
+  .scroll-arrow {
+    width: 10px; height: 10px;
+    border-right: 1px solid #444;
+    border-bottom: 1px solid #444;
+    transform: rotate(45deg);
+    animation: bob 2s infinite;
+  }
+  @keyframes bob {
+    0%,100% { transform: rotate(45deg); }
+    50% { transform: rotate(45deg) translate(3px, 3px); }
+  }
+
+  /* ============================================
+     SCROLL SECTIONS — shared
+     ============================================ */
+  .scroll-section {
+    position: relative;
+  }
+
+  .sticky-frame {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  /* ============================================
+     BEAT 1 — The Old Model
+     ============================================ */
+  .beat1 { height: 250vh; }
+
+  .old-model-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: #555;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: all 0.7s ease;
+  }
+  .old-model-label.visible { opacity: 1; transform: translateY(0); }
+
+  .old-model-heading {
+    font-size: 2rem;
+    font-weight: 400;
+    text-align: center;
+    max-width: 500px;
+    line-height: 1.4;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.7s ease 0.1s;
+  }
+  .old-model-heading.visible { opacity: 1; transform: translateY(0); }
+
+  .old-model-heading em {
+    font-style: italic;
+    color: #999;
+  }
+
+  .fake-wiki {
+    max-width: 520px;
+    background: #f8f9fa;
+    border: 1px solid #a2a9b1;
+    border-radius: 2px;
+    padding: 1.5rem 1.75rem;
+    color: #202122;
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    opacity: 0;
+    transform: translateY(15px) scale(0.97);
+    transition: all 0.7s ease 0.2s;
+  }
+  .fake-wiki.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+  .fake-wiki-title {
+    font-size: 1.4rem;
+    font-weight: 400;
+    font-family: 'Linux Libertine', 'Georgia', serif;
+    border-bottom: 1px solid #a2a9b1;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.75rem;
+    color: #000;
+  }
+
+  .fake-wiki-body {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: #333;
+  }
+
+  .fake-wiki-body .ref {
+    color: #0645ad;
+    font-size: 0.6rem;
+    vertical-align: super;
+    cursor: default;
+  }
+
+  .fake-wiki-lock {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.6rem;
+    color: #72777d;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eaecf0;
+  }
+
+  /* ============================================
+     BEAT 2 — The Problem
+     ============================================ */
+  .beat2 { height: 250vh; }
+
+  .problem-heading {
+    font-size: 1.8rem;
+    font-weight: 400;
+    text-align: center;
+    max-width: 520px;
+    line-height: 1.45;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.7s ease;
+  }
+  .problem-heading.visible { opacity: 1; transform: translateY(0); }
+
+  .problem-subtext {
+    font-size: 0.9rem;
+    color: #777;
+    text-align: center;
+    max-width: 440px;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.6s ease 0.15s;
+  }
+  .problem-subtext.visible { opacity: 1; transform: translateY(0); }
+
+  /* ============================================
+     BEAT 3 — The Wikifreedia Model
+     ============================================ */
+  .beat3 { height: 300vh; }
+
+  .model-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: #555;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: all 0.7s ease;
+  }
+  .model-label.visible { opacity: 1; transform: translateY(0); }
+
+  .model-heading {
+    font-size: 2rem;
+    font-weight: 400;
+    text-align: center;
+    max-width: 540px;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.7s ease 0.1s;
+  }
+  .model-heading.visible { opacity: 1; transform: translateY(0); }
+
+  .model-sub {
+    font-size: 0.95rem;
+    color: #888;
+    text-align: center;
+    max-width: 460px;
+    line-height: 1.65;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.6s ease 0.2s;
+  }
+  .model-sub.visible { opacity: 1; transform: translateY(0); }
+
+  .model-principles {
+    display: flex;
+    gap: 2rem;
+    max-width: 700px;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.7s ease 0.3s;
+  }
+  .model-principles.visible { opacity: 1; transform: translateY(0); }
+
+  .principle {
+    flex: 1;
+    text-align: center;
+  }
+  .principle-num {
+    font-size: 1.6rem;
+    color: rgba(255,255,255,0.1);
+    margin-bottom: 0.5rem;
+  }
+  .principle-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #ccc;
+  }
+  .principle-desc {
+    font-size: 0.7rem;
+    color: #777;
+    line-height: 1.55;
+  }
+
+  /* ============================================
+     BEAT 4 — More Topics
+     ============================================ */
+  .beat4 { height: 300vh; }
+
+  .topics-heading {
+    font-size: 1.4rem;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.7s ease;
+  }
+  .topics-heading.visible { opacity: 1; transform: translateY(0); }
+
+  .topic-row {
+    display: flex;
+    gap: 1.5rem;
+    max-width: 900px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .topic-row.visible { opacity: 1; transform: translateY(0); }
+
+  .topic-card {
+    flex: 1;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+
+  .tc-topic {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #555;
+    margin-bottom: 0.4rem;
+  }
+
+  .tc-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .tc-quote {
+    font-size: 0.65rem;
+    line-height: 1.5;
+    color: #888;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    padding-left: 0.6rem;
+    border-left: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .tc-author {
+    font-size: 0.55rem;
+    color: #666;
+    font-weight: 600;
+    font-style: normal;
+    padding-left: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ============================================
+     BEAT 5 — CTA / Search
+     ============================================ */
+  .beat5 { height: 200vh; }
+
+  .cta-heading {
+    font-size: 2rem;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.7s ease;
+  }
+  .cta-heading.visible { opacity: 1; transform: translateY(0); }
+
+  .cta-sub {
+    font-size: 0.9rem;
+    color: #777;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.15s;
+  }
+  .cta-sub.visible { opacity: 1; }
+
+  .cta-search {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 500px;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px;
+    padding: 0.15rem 0.25rem 0.15rem 1.25rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.6s ease 0.25s;
+  }
+  .cta-search.visible { opacity: 1; transform: translateY(0); }
+
+  .cta-search input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #e8e0d4;
+    font-family: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    padding: 0.6rem 0;
+  }
+  .cta-search input::placeholder { color: #555; }
+
+  .cta-search button {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.3s ease;
+  }
+  .cta-search button:hover { background: rgba(255,255,255,0.15); }
+
+  .cta-pills {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.4s;
+  }
+  .cta-pills.visible { opacity: 1; }
+
+  .cta-pill {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #666;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+  .cta-pill:hover { border-color: rgba(255,255,255,0.2); color: #aaa; }
+
+  /* Divider between beats */
+  .beat-divider {
+    width: 1px;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.06), transparent);
+    margin: 0 auto;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .beat-divider.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- ========== ABOVE THE FOLD ========== -->
+<section class="hero">
+  <div class="hero-wordmark">Wikifreedia</div>
+
+  <div class="hero-topic">3 entries · 1 topic</div>
+  <h1 class="hero-title">Ivermectin</h1>
+
+  <div class="hero-quotes">
+    <div class="hero-quote">
+      <div class="quote-attribution">
+        <div class="quote-name">Joe Rogan</div>
+        <div class="quote-role">Podcaster</div>
+      </div>
+      <div class="quote-text">"They called a Nobel Prize-winning drug 'horse paste' to protect a hundred-billion-dollar vaccine rollout."</div>
+    </div>
+
+    <div class="hero-quote">
+      <div class="quote-attribution">
+        <div class="quote-name">Anthony Fauci</div>
+        <div class="quote-role">Immunologist</div>
+      </div>
+      <div class="quote-text">"The randomized controlled trials do not show benefit. The plural of anecdote is not data."</div>
+    </div>
+
+    <div class="hero-quote">
+      <div class="quote-attribution">
+        <div class="quote-name">Bret Weinstein</div>
+        <div class="quote-role">Evolutionary Biologist</div>
+      </div>
+      <div class="quote-text">"The system was structurally incapable of an honest evaluation. You don't need a conspiracy — just an incentive structure."</div>
+    </div>
+  </div>
+
+  <div class="scroll-cue" id="scrollCue">
+    <span class="scroll-cue-text">Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ========== BEAT 1 — The Old Model ========== -->
+<section class="scroll-section beat1" id="beat1">
+  <div class="sticky-frame">
+    <div class="old-model-label" id="b1label">The old model</div>
+    <div class="old-model-heading" id="b1heading">
+      Wikipedia: one entry, one truth,<br>decided by <em>consensus</em>.
+    </div>
+    <div class="fake-wiki" id="fakeWiki">
+      <div class="fake-wiki-title">Ivermectin</div>
+      <div class="fake-wiki-body">
+        Ivermectin is an antiparasitic drug used to treat several neglected tropical diseases.<span class="ref">[1]</span> During the COVID-19 pandemic, misinformation about ivermectin as a treatment spread widely on social media.<span class="ref">[2]</span> Health authorities including the FDA, EMA, and WHO advised against its use for COVID-19 outside of clinical trials, as systematic reviews found insufficient evidence of benefit.<span class="ref">[3]</span><span class="ref">[4]</span>
+      </div>
+      <div class="fake-wiki-lock">
+        🔒 This article is semi-protected due to persistent vandalism.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== BEAT 2 — The Problem ========== -->
+<section class="scroll-section beat2" id="beat2">
+  <div class="sticky-frame">
+    <div class="problem-heading" id="b2heading">
+      But whose consensus?<br>
+      On contested topics, "neutral" is a political choice disguised as objectivity.
+    </div>
+    <div class="problem-subtext" id="b2sub">
+      Three people looked at the same molecule and described three different realities. A traditional encyclopedia picks one and deletes the other two.
+    </div>
+  </div>
+</section>
+
+<!-- ========== BEAT 3 — The Wikifreedia Model ========== -->
+<section class="scroll-section beat3" id="beat3">
+  <div class="sticky-frame">
+    <div class="model-label" id="b3label">A different model</div>
+    <div class="model-heading" id="b3heading">
+      Wikifreedia: no "official" entry<br>can exist.
+    </div>
+    <div class="model-sub" id="b3sub">
+      Truth is not discovered by consensus. It emerges from integrating opposites — from tracing how competing accounts sharpen one another.
+    </div>
+    <div class="model-principles" id="b3principles">
+      <div class="principle">
+        <div class="principle-num">01</div>
+        <div class="principle-title">Every entry is a perspective</div>
+        <div class="principle-desc">Written by a real person, from their worldview. No anonymous "neutral" voice.</div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">02</div>
+        <div class="principle-title">Multiple versions coexist</div>
+        <div class="principle-desc">Same topic, different authors, fundamentally different accounts. All preserved.</div>
+      </div>
+      <div class="principle">
+        <div class="principle-num">03</div>
+        <div class="principle-title">Differences are the knowledge</div>
+        <div class="principle-desc">AI-assisted comparison shows where perspectives diverge — and why it matters.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== BEAT 4 — More Topics ========== -->
+<section class="scroll-section beat4" id="beat4">
+  <div class="sticky-frame">
+    <div class="topics-heading" id="b4heading">This isn't one controversial topic.<br>It's how knowledge works.</div>
+    <div class="topic-row" id="b4row">
+      <!-- Capitalism -->
+      <div class="topic-card">
+        <div class="tc-topic">3 entries</div>
+        <div class="tc-title">Capitalism</div>
+
+        <div class="tc-quote">"The state is not the solution — the state is the problem. Long live freedom, dammit!"</div>
+        <div class="tc-author">— Javier Milei</div>
+
+        <div class="tc-quote">"When the rate of return on capital exceeds growth, the past devours the future."</div>
+        <div class="tc-author">— Thomas Piketty</div>
+
+        <div class="tc-quote">"Capitalism without bankruptcy is like Catholicism without hell."</div>
+        <div class="tc-author">— Nassim Taleb</div>
+      </div>
+
+      <!-- Free Speech -->
+      <div class="topic-card">
+        <div class="tc-topic">3 entries</div>
+        <div class="tc-title">Free Speech</div>
+
+        <div class="tc-quote">"The smart way to keep people passive is to strictly limit the spectrum of acceptable opinion."</div>
+        <div class="tc-author">— Noam Chomsky</div>
+
+        <div class="tc-quote">"The alternative to free speech is compelled speech, and compelled speech is tyranny."</div>
+        <div class="tc-author">— Jordan Peterson</div>
+
+        <div class="tc-quote">"To speak as an act of resistance is quite different from ordinary talk."</div>
+        <div class="tc-author">— bell hooks</div>
+      </div>
+
+      <!-- Journalism -->
+      <div class="topic-card">
+        <div class="tc-topic">3 entries</div>
+        <div class="tc-title">Journalism</div>
+
+        <div class="tc-quote">"If wars can be started by lies, peace can be started by truth."</div>
+        <div class="tc-author">— Julian Assange</div>
+
+        <div class="tc-quote">"The media's job is no longer to inform you. It's to tell you what to think."</div>
+        <div class="tc-author">— Tucker Carlson</div>
+
+        <div class="tc-quote">"We let the platforms eat the business model while we argued about objectivity."</div>
+        <div class="tc-author">— Kara Swisher</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== BEAT 5 — CTA ========== -->
+<section class="scroll-section beat5" id="beat5">
+  <div class="sticky-frame">
+    <div class="cta-heading" id="b5heading">Wikifreedia</div>
+    <div class="cta-sub" id="b5sub">Search a topic. Read every perspective.</div>
+    <div class="cta-search" id="b5search">
+      <input type="text" placeholder="Search a topic, person, or idea">
+      <button>↗</button>
+    </div>
+    <div class="cta-pills" id="b5pills">
+      <button class="cta-pill">People</button>
+      <button class="cta-pill">Philosophy</button>
+      <button class="cta-pill">Nostr</button>
+      <button class="cta-pill">Religion</button>
+      <button class="cta-pill">Cryptocurrency</button>
+      <button class="cta-pill">Corruption</button>
+    </div>
+  </div>
+</section>
+
+<div style="height:30vh"></div>
+
+<script>
+function isInView(el) {
+  const r = el.getBoundingClientRect();
+  return r.top < innerHeight && r.bottom > 0;
+}
+
+function getProgress(el) {
+  const r = el.getBoundingClientRect();
+  const t = el.offsetHeight - innerHeight;
+  return t <= 0 ? 0 : Math.max(0, Math.min(1, -r.top / t));
+}
+
+function show(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('visible');
+}
+
+function onScroll() {
+  const total = document.documentElement.scrollHeight - innerHeight;
+  document.getElementById('scrollProgress').style.width = `${(scrollY/total)*100}%`;
+  document.getElementById('scrollCue').classList.toggle('hidden', scrollY > 80);
+
+  // Beat 1
+  if (isInView(document.getElementById('beat1'))) {
+    const p = getProgress(document.getElementById('beat1'));
+    if (p > 0.05) show('b1label');
+    if (p > 0.1) show('b1heading');
+    if (p > 0.2) show('fakeWiki');
+  }
+
+  // Beat 2
+  if (isInView(document.getElementById('beat2'))) {
+    const p = getProgress(document.getElementById('beat2'));
+    if (p > 0.05) show('b2heading');
+    if (p > 0.15) show('b2sub');
+  }
+
+  // Beat 3
+  if (isInView(document.getElementById('beat3'))) {
+    const p = getProgress(document.getElementById('beat3'));
+    if (p > 0.05) show('b3label');
+    if (p > 0.08) show('b3heading');
+    if (p > 0.15) show('b3sub');
+    if (p > 0.25) show('b3principles');
+  }
+
+  // Beat 4
+  if (isInView(document.getElementById('beat4'))) {
+    const p = getProgress(document.getElementById('beat4'));
+    if (p > 0.05) show('b4heading');
+    if (p > 0.15) show('b4row');
+  }
+
+  // Beat 5
+  if (isInView(document.getElementById('beat5'))) {
+    const p = getProgress(document.getElementById('beat5'));
+    if (p > 0.05) show('b5heading');
+    if (p > 0.1) show('b5sub');
+    if (p > 0.15) show('b5search');
+    if (p > 0.25) show('b5pills');
+  }
+}
+
+addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+</body>
+</html>

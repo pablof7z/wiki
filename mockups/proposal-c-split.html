@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal C — The Split</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+
+  .tagline {
+    font-size: 0.95rem;
+    color: #999;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+  }
+
+  .split-stage {
+    width: 960px;
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  /* Unified article (before split) */
+  .unified-article {
+    background: #1a1a18;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .unified-article.splitting {
+    background: transparent;
+    border-color: transparent;
+    padding: 0;
+  }
+
+  .unified-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    transition: all 0.6s ease;
+  }
+
+  .unified-article.splitting .unified-header {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .unified-topic {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .unified-title {
+    font-size: 1.8rem;
+    font-weight: 400;
+  }
+
+  /* The blended content (before split) */
+  .blended-content {
+    max-width: 540px;
+    margin: 0 auto;
+    transition: all 0.6s ease;
+  }
+
+  .unified-article.splitting .blended-content {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .blended-content p {
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #aaa;
+    margin-bottom: 1rem;
+  }
+
+  /* The three columns (after split) */
+  .split-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    transition: opacity 0.6s ease 0.3s;
+  }
+
+  .unified-article.splitting .split-columns {
+    opacity: 1;
+    height: auto;
+    overflow: visible;
+  }
+
+  .split-col {
+    background: #1a1a18;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transform: translateY(20px);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .unified-article.splitting .split-col {
+    transform: translateY(0);
+  }
+
+  .unified-article.splitting .split-col:nth-child(1) { transition-delay: 0.15s; }
+  .unified-article.splitting .split-col:nth-child(2) { transition-delay: 0.3s; }
+  .unified-article.splitting .split-col:nth-child(3) { transition-delay: 0.45s; }
+
+  .col-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .col-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: #888;
+    flex-shrink: 0;
+  }
+
+  .col-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .col-school {
+    font-size: 0.6rem;
+    color: #666;
+  }
+
+  .col-topic {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #555;
+    margin-bottom: 0.5rem;
+  }
+
+  .col-title {
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 0.75rem;
+  }
+
+  .col-body {
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: #999;
+  }
+
+  /* Diff annotations that appear between columns */
+  .diff-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease 1.2s;
+  }
+
+  .unified-article.splitting .diff-markers {
+    opacity: 1;
+  }
+
+  /* Divergence highlights in split columns */
+  .diverge {
+    transition: all 0.6s ease 1s;
+  }
+
+  .unified-article.splitting .diverge {
+    background: rgba(255, 200, 100, 0.08);
+    color: #e8e0d4;
+    padding: 2px 4px;
+    border-radius: 2px;
+  }
+
+  /* Connecting lines between divergent points */
+  .connect-line {
+    position: absolute;
+    height: 1px;
+    background: rgba(255, 200, 100, 0.15);
+    transform-origin: left center;
+    opacity: 0;
+    transition: opacity 0.4s ease 1.5s;
+  }
+
+  .unified-article.splitting .connect-line {
+    opacity: 1;
+  }
+
+  /* Bottom annotation */
+  .split-annotation {
+    text-align: center;
+    margin-top: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.5s ease 1.5s;
+  }
+
+  .unified-article.splitting ~ .split-annotation {
+    opacity: 1;
+  }
+
+  .annotation-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .annotation-text {
+    font-size: 0.8rem;
+    color: #888;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .reveal-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #ccc;
+    padding: 0.7rem 2rem;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+  }
+  .reveal-btn:hover {
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+  }
+
+  .state-hint {
+    font-size: 0.7rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    transition: all 0.5s ease;
+  }
+
+  /* Tear effect */
+  .tear-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.2s;
+  }
+
+  .tear-line:nth-child(1) { left: 33.33%; }
+  .tear-line:nth-child(2) { left: 66.66%; }
+
+  .unified-article.splitting .tear-line {
+    opacity: 1;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 4px,
+      rgba(255,255,255,0.04) 4px,
+      rgba(255,255,255,0.04) 8px
+    );
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <p class="tagline">No entry here has a canonical version. Truth is not discovered by consensus, but by integrating opposites and tracing how competing accounts sharpen one another.</p>
+
+  <div class="state-hint" id="stateHint">What does an encyclopedia entry on "Capitalism" look like?</div>
+
+  <div class="split-stage">
+    <div class="unified-article" id="article">
+      <!-- Unified view -->
+      <div class="unified-header">
+        <div class="unified-topic">Encyclopedia Entry</div>
+        <div class="unified-title">Capitalism</div>
+      </div>
+
+      <div class="blended-content">
+        <p>Capitalism is an economic system characterized by private ownership of the means of production and the operation of markets for the allocation of goods and services. Under capitalism, investment decisions are made by private actors, and prices are determined by competition in free markets.</p>
+        <p>The system has been the subject of extensive analysis and critique since its emergence. Its proponents argue that it generates prosperity through competition and innovation, while its critics contend that it produces inequality, exploitation, and periodic crises. The role of the state within capitalism remains one of the most contested questions in political economy.</p>
+        <p style="text-align:center; color:#555; font-size:0.7rem; margin-top:1rem;">— Standard encyclopedic summary —</p>
+      </div>
+
+      <!-- Split view -->
+      <div class="split-columns">
+        <div class="split-col">
+          <div class="col-author">
+            <div class="col-avatar">AS</div>
+            <div>
+              <div class="col-name">Adam Smith</div>
+              <div class="col-school">Classical Economics</div>
+            </div>
+          </div>
+          <div class="col-topic">Capitalism</div>
+          <div class="col-title">Capitalism</div>
+          <div class="col-body">
+            Capitalism is a natural extension of humanity's propensity to truck, barter, and exchange. When individuals freely pursue self-interest, <span class="diverge">an invisible hand guides markets toward socially beneficial outcomes</span>.<br><br>
+            The division of labor multiplies wealth beyond what planning could achieve. <span class="diverge">The state's role is limited but necessary: enforce contracts, protect property, provide public goods</span>. Beyond that, intervention distorts price signals.
+          </div>
+        </div>
+
+        <div class="split-col">
+          <div class="col-author">
+            <div class="col-avatar">KM</div>
+            <div>
+              <div class="col-name">Karl Marx</div>
+              <div class="col-school">Political Economy</div>
+            </div>
+          </div>
+          <div class="col-topic">Capitalism</div>
+          <div class="col-title">Capitalism</div>
+          <div class="col-body">
+            Capitalism is a mode of production defined by private ownership and exploitation of wage labor. Market freedom masks a fundamental asymmetry: <span class="diverge">the capitalist extracts surplus value, paying workers less than they produce</span>.<br><br>
+            This isn't a flaw — it's the mechanism. <span class="diverge">The state is an instrument of class domination, enforcing bourgeois property relations</span>. Accumulation concentrates wealth until contradictions become unsustainable.
+          </div>
+        </div>
+
+        <div class="split-col">
+          <div class="col-author">
+            <div class="col-avatar">MR</div>
+            <div>
+              <div class="col-name">Murray Rothbard</div>
+              <div class="col-school">Austrian Economics</div>
+            </div>
+          </div>
+          <div class="col-topic">Capitalism</div>
+          <div class="col-title">Capitalism</div>
+          <div class="col-body">
+            Pure capitalism is voluntary exchange rooted in self-ownership and property rights. What exists today is corporatism — <span class="diverge">a corrupt partnership between big business and government, not true capitalism</span>.<br><br>
+            Every intervention — taxation, regulation — distorts markets and causes the problems it claims to fix. <span class="diverge">The state is capitalism's greatest threat. A free market needs no state at all</span>.
+          </div>
+        </div>
+      </div>
+
+      <div class="tear-line"></div>
+      <div class="tear-line"></div>
+    </div>
+
+    <div class="split-annotation" id="annotation">
+      <div class="annotation-label">LLM-Assisted Comparison</div>
+      <div class="annotation-text">
+        All three authors define capitalism — but <strong>Smith</strong> sees the state as a limited partner,
+        <strong>Marx</strong> sees it as an oppressor's tool, and <strong>Rothbard</strong> sees it as the enemy itself.
+        The "neutral" summary above erases these distinctions entirely.
+      </div>
+    </div>
+  </div>
+
+  <button class="reveal-btn" id="revealBtn" onclick="toggleSplit()">Break it apart</button>
+</div>
+
+<script>
+let split = false;
+
+function toggleSplit() {
+  split = !split;
+  const article = document.getElementById('article');
+  const btn = document.getElementById('revealBtn');
+  const hint = document.getElementById('stateHint');
+
+  article.classList.toggle('splitting', split);
+
+  if (split) {
+    btn.textContent = 'Show the "neutral" version';
+    hint.textContent = 'But who wrote it matters';
+  } else {
+    btn.textContent = 'Break it apart';
+    hint.textContent = 'What does an encyclopedia entry on "Capitalism" look like?';
+  }
+}
+
+// Auto-trigger
+setTimeout(() => {
+  if (!split) toggleSplit();
+}, 3000);
+</script>
+
+</body>
+</html>

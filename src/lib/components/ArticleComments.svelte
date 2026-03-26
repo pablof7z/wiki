@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { ndk } from '$lib/ndk.svelte';
-	import type { NDKEvent, NostrEvent } from '@nostr-dev-kit/ndk';
-	import { NDKEvent as NDKCommentEvent } from '@nostr-dev-kit/ndk';
+	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import { Avatar } from '@nostr-dev-kit/svelte';
+	import { createNip22CommentEvent, isDirectReplyToRoot } from '$lib/comments/nip22';
 	import Name from './Name.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Textarea } from '$lib/components/ui/textarea';
 
 	let { event }: { event: NDKEvent } = $props();
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 	let newComment = $state('');
 	let showComposer = $state(false);
 	let submitting = $state(false);
@@ -20,18 +20,14 @@
 		if (!rootAddress) return undefined;
 
 		return {
-			filters: [{ kinds: [1111 as number], '#A': [rootAddress] }],
+			filters: [{ kinds: [1111 as number], ...event.nip22Filter() }],
 			subId: `article-comments-${event.id}`
 		};
 	});
 
 	const comments = $derived.by(() => {
 		return Array.from(commentsSub.events ?? [])
-			.filter((comment) => {
-				const parentAddress = comment.getMatchingTags('a')[0]?.[1];
-				const parentEventId = comment.getMatchingTags('e')[0]?.[1];
-				return parentAddress === rootAddress || parentEventId === event.id;
-			})
+			.filter((comment) => isDirectReplyToRoot(comment, event))
 			.sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0));
 	});
 
@@ -46,22 +42,12 @@
 		submitting = true;
 
 		try {
-			const comment = new NDKCommentEvent(ndk, {
-				kind: 1111,
-				content: newComment.trim()
-			} as NostrEvent);
-
-			comment.tags.push(['A', rootAddress, relayHint]);
-			comment.tags.push(['K', String(event.kind ?? 30818)]);
-			comment.tags.push(['P', event.pubkey, relayHint]);
-			comment.tags.push(['a', rootAddress, relayHint]);
-			comment.tags.push(['k', String(event.kind ?? 30818)]);
-			comment.tags.push(['p', event.pubkey, relayHint]);
-
-			if (event.id) {
-				comment.tags.push(['e', event.id, relayHint, event.pubkey]);
-			}
-
+			const comment = createNip22CommentEvent(ndk, {
+				root: event,
+				parent: event,
+				content: newComment
+			});
+			comment.author = currentUser;
 			await comment.publish();
 			newComment = '';
 			showComposer = false;

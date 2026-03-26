@@ -1,0 +1,90 @@
+# The Encyclopedia That Couldn't Stay Free
+
+> "The power to declare what is known is nearly the power to rule the world.
+> No small group — no person, corporation, oligarchy, or cadre of insiders — should wield such power."
+> — Larry Sanger, co-founder of Wikipedia, Encyclosphere address, 2019
+
+Wikipedia was built on a beautiful premise: anyone can contribute to the sum of human knowledge. That premise lasted about a decade. What remains is something its own co-founder now calls _"one of the most effective organs of Establishment propaganda in history."_
+
+This isn't a polemic. It's a diagnosis. And the disease is architectural.
+
+## Consensus as Weapon
+
+> "Wikipedia is completely dishonest and completely controlled on questions that matter.
+> The word for it is propaganda."
+> — Larry Sanger, Tucker Carlson Show, 2025
+
+Wikipedia's neutrality policy states that _"articles must not take sides."_ The enforcement mechanism for this policy is consensus — a word that sounds democratic until you watch how it actually works.
+
+A faction of editors coordinates to establish a position. Once established, that position becomes "the consensus." All subsequent edits must conform to it or be reverted. The page is then locked. Dissent is labeled "outside the consensus" and removed.
+
+This is not a failure of the policy. It is the policy working exactly as designed. Consensus doesn't prevent bias — it _launders_ it. The winning faction gets to call its position "neutral," and the losers get to watch their edits disappear.
+
+The result is an authoritative-looking document that doesn't record knowledge. It enforces the politics of whoever had the patience and coordination to outlast the other side.
+
+## The Anonymous Oligarchy
+
+> "Intelligence agencies use Wikipedia as a one-stop shop to make people believe things."
+> — Larry Sanger
+
+Wikipedia has 833 administrators, 16 bureaucrats, and 15 arbitration committee members. Of the 62 most powerful accounts on the platform, 85% are anonymous. No one knows who these people are. No one knows who pays them. No one knows what agendas they serve.
+
+This is not a transparency problem. It is a _power_ problem.
+
+WikiScanner — a tool that matched anonymous Wikipedia edits to their originating IP addresses — found edits coming from CIA headquarters in Langley: removing Iraq War casualty counts, deleting satellite images of Guantanamo Bay. The FBI edited articles too. Congressional staffers edited articles about their own members. Corporate PR departments edited articles about their own companies.
+
+When anyone can edit but only a shadow bureaucracy decides what _stays_, the edit button is theater. The real power belongs to whoever controls the revert button.
+
+## The Blacklist
+
+In 2017, shortly after Trump's election, Wikipedia introduced a source blacklist. Fox News, the New York Post, the Daily Caller, the Epoch Times, The Federalist — all banned as reliable sources. If the only outlets covering your defense are on the blacklist, you will not be defended. Your side of the story structurally cannot enter the article.
+
+This is not editorial judgment. It is political architecture. The blacklist doesn't evaluate claims — it pre-filters which _voices_ are allowed to make claims. By the time "consensus" is reached, half the evidence has already been excluded from the room.
+
+A system that selects its inputs will always confirm its priors. That's not knowledge production. That's an echo chamber with citations.
+
+## When Institutions Disagree with the Editors
+
+The COVID lab leak hypothesis offers the clearest case study. Wikipedia's article asserted, in the encyclopedia's own editorial voice, that _"there is no evidence supporting laboratory involvement"_ — even as the FBI and the Department of Energy both concluded that a lab leak was the most likely origin.
+
+On the talk page, editors invoked prior consensus to reject including the updated intelligence findings. Two federal agencies with access to classified evidence were overruled by anonymous volunteers citing their own previous edits.
+
+The Gaza genocide article presents the inverse pathology. It asserts that Israel committed genocide, with almost no coverage of dissenting views — including those of both Wikipedia founders. The article reads as advocacy, not encyclopedia prose, and the consensus mechanism ensures it stays that way.
+
+These are not edge cases. They are the system performing as designed. When consensus is the arbiter, the question is never _what is true_ — it is _who showed up to the talk page_.
+
+## The Architecture Problem
+
+> "Fix the money, fix the web."
+> — Gigi
+
+Every critique of Wikipedia eventually arrives at the same dead end: _the people running it should do better._ But the problem was never the people. Good people built Wikipedia. Idealistic people. The problem is that the architecture _permits capture_ — and any architecture that permits capture will, given enough time and enough stakes, be captured.
+
+A single database. A single organization. A single set of administrators. A single consensus mechanism that converts political coordination into "neutral" encyclopedic voice. This is a system _designed_ to be captured, even if no one intended it.
+
+The lesson is the same one Bitcoin taught us about money: you cannot solve a power problem with better people. You solve it with better architecture. Systems that _can_ be corrupted _will_ be corrupted. The only durable answer is to build systems where corruption is structurally impossible — where the protocol itself has no admin button, no revert privilege, no consensus mechanism that can be gamed by the patient and the funded.
+
+Freedom is a property of the system, not a promise made by its operators.
+
+## The Shape of Knowledge
+
+Wikipedia's deepest failure is philosophical. It treats knowledge as a noun — a static artifact that can be finalized, locked, and served. But knowledge is a _verb_. It is the ongoing, adversarial, irreducible process of people who see the world differently arguing about what is true.
+
+The moment you flatten that process into a single "neutral" page, you haven't produced knowledge. You've produced propaganda with footnotes. You've taken a three-dimensional landscape of thought — with its tensions, contradictions, and unresolved questions — and collapsed it into a single point chosen by whoever controlled the edit war.
+
+Real knowledge lives in the disagreement. It lives in the _space between_ Rogan and Fauci and Weinstein, not in whichever one Wikipedia's anonymous editors decided to canonize. The tensions between perspectives aren't noise to be filtered out. They _are_ the signal.
+
+An encyclopedia worth building wouldn't flatten that signal. It would _map_ it — every faction visible, every argument traceable, every bias declared. Not one truth, but the full topology of what humans believe and why. Navigable, not narrated. Explored, not enforced.
+
+## The Way Forward
+
+> "Cypherpunks write code."
+> — Eric Hughes
+
+The answer isn't to reform Wikipedia. You cannot reform an architecture. You replace it.
+
+The answer is to build an encyclopedia where entries are signed by named authors with reputations at stake. Where no entry can be edited or deleted by anyone other than its author. Where the platform _structurally cannot_ decide what's true — because the protocol doesn't have that capability.
+
+The answer is to let knowledge be what it has always been: a living argument between people who disagree. And to build the tools that let readers navigate that argument for themselves — not a single page that pretends the argument is over.
+
+The sea is vast. The old maps are wrong. Time to chart new waters.

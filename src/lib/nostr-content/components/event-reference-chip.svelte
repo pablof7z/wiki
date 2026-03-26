@@ -45,12 +45,22 @@
 		return truncate(event.encode(), 32);
 	});
 
-	const href = $derived(event.kind === 30818 ? `/a/${event.encode()}` : `nostr:${event.encode()}`);
+	const href = $derived.by(() => {
+		if (event.kind === 30818) {
+			return `/a/${event.encode()}`;
+		}
+
+		if (event.kind === NDKKind.Highlight) {
+			return `/e/${event.encode()}`;
+		}
+
+		return `nostr:${event.encode()}`;
+	});
 </script>
 
 <a
 	href={href}
-	class={`inline-flex max-w-full items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 align-middle text-left no-underline transition-colors hover:bg-muted/40 ${className}`}
+	class={`inline-flex max-w-full items-center gap-3 rounded-2xl px-3 py-2 align-middle text-left no-underline transition-colors hover:bg-muted/40 ${className}`}
 >
 	<span class="rounded-full bg-muted px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
 		{kindLabel(event.kind)}

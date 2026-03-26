@@ -18,25 +18,25 @@
 
 	let {
 		entries,
+		events = undefined,
 		entriesVisible = $bindable(0),
 		entriesNotVisible = $bindable(0),
 		paginationKey = ''
 	}: {
-		entries: Subscription<NDKEvent>;
+		entries?: Subscription<NDKEvent>;
+		events?: NDKEvent[];
 		entriesVisible?: number;
 		entriesNotVisible?: number;
 		paginationKey?: string;
 	} = $props();
 
 	let currentPage = $state(1);
+	const sourceEvents = $derived(events ?? entries?.events ?? []);
 
 	const topicGroups = $derived.by(() => {
 		const byDtag = new Map<string, NDKEvent[]>();
-		const events = entries.events;
 
-		if (!events) return [] as TopicGroup[];
-
-		events.forEach((entry) => {
+		sourceEvents.forEach((entry) => {
 			const dTag = entry.dTag;
 			const pubkey = entry.pubkey;
 			const deferred = entry.getMatchingTags('a').some((t) => t[3] === 'defer');
@@ -106,23 +106,20 @@
 	$effect(() => {
 		let visible = 0;
 		let notVisible = 0;
-		const events = entries.events;
 
-		if (events) {
-			events.forEach((entry) => {
-				const dTag = entry.dTag;
-				const pubkey = entry.pubkey;
-				const deferred = entry.getMatchingTags('a').some((t) => t[3] === 'defer');
+		sourceEvents.forEach((entry) => {
+			const dTag = entry.dTag;
+			const pubkey = entry.pubkey;
+			const deferred = entry.getMatchingTags('a').some((t) => t[3] === 'defer');
 
-				if (!dTag || deferred) return;
+			if (!dTag || deferred) return;
 
-				if ($wotEnabled && !isInWoT(pubkey)) {
-					notVisible++;
-				} else {
-					visible++;
-				}
-			});
-		}
+			if ($wotEnabled && !isInWoT(pubkey)) {
+				notVisible++;
+			} else {
+				visible++;
+			}
+		});
 
 		entriesVisible = visible;
 		entriesNotVisible = notVisible;
@@ -130,7 +127,7 @@
 </script>
 
 {#if topicGroups.length === 0}
-	<div class="surface-inset rounded-[1.5rem] px-5 py-6 text-sm text-muted-foreground">
+	<div class="surface-inset rounded-xl px-5 py-6 text-sm text-muted-foreground">
 		No entries match this view yet.
 	</div>
 {:else}
@@ -150,8 +147,7 @@
 				<div class="section-row section-row-link group">
 					<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 						<a href="/{encodeURIComponent(topicGroup.topic)}" class="min-w-0 flex-1">
-							<div class="eyebrow mb-2">Topic</div>
-							<div class="display-wordmark text-[1.8rem] leading-none sm:text-[2rem]">
+							<div class="display-wordmark text-[1.15rem] leading-none sm:text-[1.25rem]">
 								{topicGroup.topic}
 							</div>
 							<div class="mt-3 truncate text-sm text-muted-foreground">

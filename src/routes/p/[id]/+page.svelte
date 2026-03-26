@@ -1,30 +1,33 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { ndk } from '$lib/ndk.svelte';
-	import { NDKKind, type Hexpubkey, type NDKEvent, type NDKUserProfile } from '@nostr-dev-kit/ndk';
+	import { NDKEvent, NDKKind, type Hexpubkey, type NDKUserProfile } from '@nostr-dev-kit/ndk';
 	import { NDKSubscriptionCacheUsage } from '@nostr-dev-kit/ndk';
 	import NdkAvatar from '$lib/components/NdkAvatar.svelte';
 	import MergeRequestItem from './MergeRequestItem.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
+	import { buildProfileTopicSummaries, type ProfileTopicSummary } from '$lib/profile-topics';
+	import {
+		applyCachedNip05ToProfile,
+		getCachedPubkeyForNip05,
+		rememberUserProfileNip05
+	} from '$lib/utils/nip05-cache';
 	import { prettifyNip05 } from '$lib/utils/nip05';
+	import type { PageData } from './$types';
 
-	type AuthoredTopic = {
-		event: NDKEvent;
-		versionCount: number;
-		isDeferred: boolean;
-		wordCount: number;
-		summary?: string;
-		category?: string;
-	};
+	let { data }: { data: PageData } = $props();
 
 	const RECOMMENDED_AUTHOR_LIST_KIND = 10101;
 	const userId = $derived($page.params.id || '');
 	const dateFormat = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' });
 	const compactNumber = new Intl.NumberFormat('en-US');
 
-	let userPubkey = $state<string | undefined>(undefined);
-	let resolvedNpub = $state<string | undefined>(undefined);
-	let userProfile = $state<NDKUserProfile | undefined>(undefined);
+	let hydrated = $state(false);
+	let fetchedUserPubkey = $state<string | undefined>(undefined);
+	let fetchedResolvedNpub = $state<string | undefined>(undefined);
+	let fetchedUserProfile = $state<NDKUserProfile | undefined>(undefined);
+	let resolvingUserIdentity = $state(false);
 	let followedPubkeys = $state<Set<Hexpubkey>>(new Set());
 	let recommendedAuthorPubkeys = $state<Set<Hexpubkey>>(new Set());
 	let loadingSocialLists = $state(false);
@@ -33,42 +36,69 @@
 	let socialActionMessage = $state<string | undefined>(undefined);
 	let socialActionError = $state<string | undefined>(undefined);
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 	let isReadOnlySession = $derived(Boolean(currentUser && ndk.$sessions?.isReadOnly()));
+	const userPubkey = $derived(fetchedUserPubkey ?? data.seed?.userPubkey);
+	const resolvedNpub = $derived(fetchedResolvedNpub ?? data.seed?.resolvedNpub);
+	const userProfile = $derived(
+		applyCachedNip05ToProfile(userPubkey, fetchedUserProfile ?? data.seed?.userProfile ?? undefined)
+	);
+
+	$effect(() => {
+		hydrated = true;
+	});
+
+	$effect(() => {
+		rememberUserProfileNip05(userPubkey, userProfile);
+	});
 
 	$effect(() => {
 		const identifier = userId;
+		const seed = data.seed;
 
-		userPubkey = undefined;
-		resolvedNpub = undefined;
-		userProfile = undefined;
+		fetchedUserPubkey = undefined;
+		fetchedResolvedNpub = undefined;
+		fetchedUserProfile = undefined;
+		resolvingUserIdentity = Boolean(identifier) && !seed?.userPubkey;
 		if (!identifier) return;
 
 		let cancelled = false;
+		const cachedPubkey = getCachedPubkeyForNip05(identifier);
+		const userPromise = cachedPubkey
+			? Promise.resolve(ndk.getUser({ pubkey: cachedPubkey }))
+			: ndk.fetchUser(identifier);
 
-		ndk
-			.fetchUser(identifier)
+		userPromise
 			.then((user) => {
 				if (cancelled || !user) return;
 
-				userPubkey = user.pubkey;
-				resolvedNpub = user.npub;
-				userProfile = user.profile;
+				user.profile = applyCachedNip05ToProfile(user.pubkey, user.profile);
+				fetchedUserPubkey = user.pubkey;
+				fetchedResolvedNpub = user.npub;
+				fetchedUserProfile = user.profile;
+				rememberUserProfileNip05(user.pubkey, user.profile);
 
 				return user
 					.fetchProfile({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY })
 					.then((fetchedProfile) => {
 						if (cancelled) return;
-						userProfile = fetchedProfile ?? user.profile;
+						const nextProfile = applyCachedNip05ToProfile(user.pubkey, fetchedProfile ?? user.profile);
+						fetchedUserProfile = nextProfile;
+						rememberUserProfileNip05(user.pubkey, nextProfile);
 					})
 					.catch(() => {
 						if (cancelled) return;
-						userProfile = user.profile;
+						fetchedUserProfile = user.profile;
+						rememberUserProfileNip05(user.pubkey, user.profile);
 					});
 			})
 			.catch(() => {
 				if (cancelled) return;
-				resolvedNpub = identifier.startsWith('npub1') ? identifier : undefined;
+				fetchedResolvedNpub = identifier.startsWith('npub1') ? identifier : undefined;
+			})
+			.finally(() => {
+				if (cancelled) return;
+				resolvingUserIdentity = false;
 			});
 
 		return () => {
@@ -113,7 +143,7 @@
 	});
 
 	const entriesSub = ndk.$subscribe(() => {
-		if (!userPubkey) return undefined;
+		if (!browser || !userPubkey) return undefined;
 
 		return {
 			filters: [{ kinds: [30818 as number], authors: [userPubkey] }],
@@ -122,7 +152,7 @@
 	});
 
 	const mergeRequestsSub = ndk.$subscribe(() => {
-		if (!userPubkey) return undefined;
+		if (!browser || !userPubkey) return undefined;
 
 		return {
 			filters: [{ kinds: [818 as number], '#p': [userPubkey] }],
@@ -130,50 +160,37 @@
 		};
 	});
 
-	const entries = $derived(Array.from(entriesSub.events ?? []));
+	const seededEvents = $derived.by(() => {
+		if (!hydrated) return [];
+
+		return (data.seedEvents ?? []).map((event) => new NDKEvent(ndk, event));
+	});
+
+	const entries = $derived.by(() => {
+		if (!hydrated) return [];
+
+		const mergedEntries = new Map<string, NDKEvent>();
+
+		for (const entry of seededEvents) {
+			mergedEntries.set(entry.id, entry);
+		}
+
+		for (const entry of entriesSub.events ?? []) {
+			mergedEntries.set(entry.id, entry);
+		}
+
+		return Array.from(mergedEntries.values());
+	});
 	const mergeRequests = $derived(Array.from(mergeRequestsSub.events ?? []));
 
 	const authoredTopics = $derived.by(() => {
-		const latestByTopic = new Map<string, AuthoredTopic>();
-
-		for (const entry of entries) {
-			const dTag = entry.dTag;
-			if (!dTag) continue;
-
-			const existing = latestByTopic.get(dTag);
-			const createdAt = entry.created_at ?? 0;
-			const isDeferred = entry.getMatchingTags('a').some((tag) => tag[3] === 'defer');
-			const normalizedContent = entry.content.replace(/\s+/g, ' ').trim();
-			const summary =
-				normalizedContent.length > 0
-					? `${normalizedContent.slice(0, 220)}${normalizedContent.length > 220 ? '...' : ''}`
-					: undefined;
-
-			if (!existing) {
-				latestByTopic.set(dTag, {
-					event: entry,
-					versionCount: 1,
-					isDeferred,
-					wordCount: countWords(entry.content),
-					summary,
-					category: entry.tagValue('c') ?? undefined
-				});
-				continue;
-			}
-
-			if (createdAt > (existing.event.created_at ?? 0)) {
-				existing.event = entry;
-				existing.isDeferred = isDeferred;
-				existing.wordCount = countWords(entry.content);
-				existing.summary = summary;
-				existing.category = entry.tagValue('c') ?? undefined;
-			}
-
-			existing.versionCount += 1;
+		if (!hydrated) {
+			return (data.authoredTopics ?? []) as ProfileTopicSummary[];
 		}
 
-		return Array.from(latestByTopic.values()).sort(
-			(a, b) => (b.event.created_at ?? 0) - (a.event.created_at ?? 0)
+		return buildProfileTopicSummaries(
+			entries.map((entry) => entry.rawEvent()),
+			profileRouteId
 		);
 	});
 
@@ -182,11 +199,19 @@
 	const recentMergeRequests = $derived(
 		[...mergeRequests].sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0)).slice(0, 4)
 	);
+	const loadingPublishedTopics = $derived(
+		hydrated &&
+			publishedTopics.length === 0 &&
+			(resolvingUserIdentity || (Boolean(userPubkey) && !entriesSub.eosed))
+	);
 	const hasSidebarContent = $derived(
 		deferredTopics.length > 0 || recentMergeRequests.length > 0
 	);
 
-	const profileRouteId = $derived(resolvedNpub || userId || userPubkey || '');
+	const profileRouteId = $derived(
+		(userProfile?.nip05 ? prettifyNip05(userProfile.nip05) : undefined) ||
+		resolvedNpub || userId || userPubkey || ''
+	);
 	const bannerUrl = $derived(normalizeProfileText(userProfile?.banner));
 	const about = $derived(normalizeProfileText(userProfile?.about));
 	const displayName = $derived(
@@ -217,12 +242,6 @@
 		Boolean(socialActionError || socialActionMessage || (!currentUser && showProfileActions) || isReadOnlySession)
 	);
 
-	function countWords(content: string): number {
-		const normalized = content.trim();
-		if (!normalized) return 0;
-		return normalized.split(/\s+/).length;
-	}
-
 	function formatDate(value?: number): string {
 		if (!value) return 'Unknown date';
 		return dateFormat.format(new Date(value * 1000));
@@ -248,10 +267,6 @@
 		if (!trimmed) return undefined;
 		if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
 		return `https://${trimmed}`;
-	}
-
-	function titleFor(topic: AuthoredTopic): string {
-		return topic.event.tagValue('title') || topic.event.dTag || 'Untitled';
 	}
 
 	function socialStatusText(): string | undefined {
@@ -314,14 +329,12 @@
 </script>
 
 <PageContainer class="space-y-6">
-	<section class="glass-panel relative overflow-hidden rounded-[2.8rem] p-0">
+	<section class="glass-panel relative overflow-hidden rounded-2xl p-0">
 		{#if bannerUrl}
 			<img src={bannerUrl} alt="" class="absolute inset-0 h-full w-full object-cover opacity-35" />
 		{/if}
 
-		<div class="absolute inset-0 bg-gradient-to-br from-black/85 via-black/76 to-black/52"></div>
-		<div class="absolute -left-16 top-12 h-40 w-40 rounded-full bg-white/[0.06] blur-3xl"></div>
-		<div class="absolute bottom-0 right-0 h-56 w-56 rounded-full bg-white/[0.05] blur-3xl"></div>
+		<div class="absolute inset-0 bg-black/70"></div>
 
 		<div class="relative px-5 py-5 sm:px-7 sm:py-6 lg:px-8 lg:py-7">
 			<div
@@ -338,7 +351,6 @@
 					/>
 
 					<div class="min-w-0">
-						<p class="eyebrow mb-2">Profile</p>
 						<h1 class="text-[clamp(2.2rem,5.5vw,3.9rem)] leading-[0.92]">{displayName}</h1>
 
 						{#if handle || nip05 || resolvedNpub}
@@ -467,80 +479,58 @@
 		</div>
 	</section>
 
-		<div class={hasSidebarContent ? 'grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_340px]' : 'grid gap-6'}>
-			<section class="glass-panel rounded-[2rem] px-6 py-6 sm:px-8">
-			{#if publishedTopics.length === 0}
-				<div class="surface-inset rounded-[1.6rem] px-5 py-6 text-sm text-muted-foreground">
+			<div class={hasSidebarContent ? 'grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_340px]' : 'grid gap-6'}>
+			<section>
+			{#if loadingPublishedTopics}
+				<div class="surface-inset rounded-xl px-5 py-6 text-sm text-muted-foreground">
+					Loading published entries...
+				</div>
+			{:else if publishedTopics.length === 0}
+				<div class="surface-inset rounded-xl px-5 py-6 text-sm text-muted-foreground">
 					No published entries from this author yet.
 				</div>
-			{:else}
-				<div class="section-list">
-					{#each publishedTopics as topic (topic.event.id)}
-						<article class="section-row section-row-link">
-							<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-								<div class="min-w-0">
-									<a
-										href="/{encodeURIComponent(topic.event.dTag ?? '')}/{profileRouteId}"
-										class="block"
-									>
-										<h3 class="display-wordmark text-[1.8rem] leading-none sm:text-[2.05rem]">
-											{titleFor(topic)}
-										</h3>
-									</a>
-
-									{#if topic.summary}
-										<p class="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
-											{topic.summary}
-										</p>
-									{/if}
-								</div>
-
-								<div class="flex flex-wrap gap-2 lg:max-w-[15rem] lg:justify-end">
-									{#if topic.versionCount > 1}
-										<span
-											class="chrome-pill rounded-full px-3 py-1.5 text-xs text-muted-foreground"
-										>
-											{topic.versionCount} versions
-										</span>
-									{/if}
+				{:else}
+					<div class="section-list">
+						{#each publishedTopics as topic (topic.id)}
+							<a href={topic.entryHref} class="section-row section-row-link block">
+								<div class="flex items-baseline justify-between gap-4">
+									<h3 class="display-wordmark text-[1.1rem] leading-tight sm:text-[1.2rem]">
+										{topic.title}
+									</h3>
 									{#if topic.category}
-										<span
-											class="chrome-pill rounded-full px-3 py-1.5 text-xs text-muted-foreground"
-										>
-											{topic.category}
-										</span>
+										<span class="shrink-0 text-xs text-muted-foreground">{topic.category}</span>
 									{/if}
 								</div>
+								<div class="mt-1.5 flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+									<span>{formatDate(topic.createdAt)}</span>
+									<span class="opacity-40">&middot;</span>
+									<span>{formatCount(topic.wordCount)} words</span>
+									{#if topic.versionCount > 1}
+									<span class="opacity-40">&middot;</span>
+									<span>{topic.versionCount} versions</span>
+								{/if}
 							</div>
-
-							<div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-								<span>Updated {formatDate(topic.event.created_at)}</span>
-								<span>{formatCount(topic.wordCount)} words</span>
-							</div>
-						</article>
+						</a>
 					{/each}
 				</div>
 			{/if}
 		</section>
 
 			{#if hasSidebarContent}
-				<section class="glass-panel rounded-[2rem] px-6 py-6">
-					<div class="section-list">
-						{#if deferredTopics.length > 0}
-							<div class="section-row">
-								<p class="eyebrow mb-3">Deferred topics</p>
-								<div class="section-list mt-4">
-									{#each deferredTopics.slice(0, 5) as topic (topic.event.id)}
-										<a
-											href="/{encodeURIComponent(topic.event.dTag ?? '')}/{profileRouteId}"
-											class="section-row section-row-link block"
-										>
-											<div class="font-medium text-foreground">{titleFor(topic)}</div>
-											<div class="mt-2 text-sm text-muted-foreground">
-												Updated {formatDate(topic.event.created_at)}
-											</div>
-										</a>
-									{/each}
+				<section>
+						<div class="section-list">
+							{#if deferredTopics.length > 0}
+								<div class="section-row">
+									<p class="eyebrow mb-3">Deferred topics</p>
+									<div class="section-list mt-4">
+										{#each deferredTopics.slice(0, 5) as topic (topic.id)}
+											<a href={topic.entryHref} class="section-row section-row-link block">
+												<div class="font-medium text-foreground">{topic.title}</div>
+												<div class="mt-2 text-sm text-muted-foreground">
+													Updated {formatDate(topic.createdAt)}
+												</div>
+											</a>
+										{/each}
 								</div>
 							</div>
 						{/if}

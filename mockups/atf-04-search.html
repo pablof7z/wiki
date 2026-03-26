@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 — Search Result</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.search-bar{width:580px;background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:100px;padding:0.75rem 1.5rem;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem}
+.search-icon{color:#555;font-size:0.9rem}
+.search-text{font-size:0.9rem;color:#e8e0d4}
+.result-box{width:580px;min-height:200px;position:relative}
+.result{position:absolute;top:0;left:0;right:0;background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:1.5rem;opacity:0;transform:translateY(6px);transition:all 0.4s ease}
+.result.active{opacity:1;transform:translateY(0)}
+.result-url{font-size:0.7rem;color:#4a9;margin-bottom:0.3rem;font-family:monospace}
+.result-title{font-size:1.1rem;color:#8ab4f8;margin-bottom:0.5rem;font-weight:400}
+.result-snippet{font-size:0.8rem;line-height:1.65;color:#999}
+.result-snippet b{color:#e8e0d4;font-weight:400}
+.result-source{margin-top:0.75rem;font-size:0.6rem;color:#555;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.04)}
+.counter{margin-top:1.5rem;font-size:0.65rem;color:#444;font-family:'Georgia',serif}
+.counter .num{color:#888;font-weight:600;font-size:0.8rem}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2);font-family:'Georgia',serif}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="search-bar">
+  <span class="search-icon">⌕</span>
+  <span class="search-text">Ivermectin</span>
+</div>
+<div class="result-box">
+  <div class="result active" id="r0">
+    <div class="result-url">wikifreedia.xyz/a/ivermectin · Joe Rogan</div>
+    <div class="result-title">Ivermectin — Joe Rogan</div>
+    <div class="result-snippet">A Nobel Prize-winning drug that <b>doctors were using with real results — until the establishment panicked</b>. They called it "horse paste" to protect a hundred-billion-dollar vaccine rollout.</div>
+    <div class="result-source">Version 1 of 3</div>
+  </div>
+  <div class="result" id="r1">
+    <div class="result-url">wikifreedia.xyz/a/ivermectin · Anthony Fauci</div>
+    <div class="result-title">Ivermectin — Anthony Fauci</div>
+    <div class="result-snippet">An antiparasitic with <b>no demonstrated benefit for COVID-19 in randomized controlled trials</b>. The plural of anecdote is not data. Promoting unproven treatments eroded vaccine confidence.</div>
+    <div class="result-source">Version 2 of 3</div>
+  </div>
+  <div class="result" id="r2">
+    <div class="result-url">wikifreedia.xyz/a/ivermectin · Bret Weinstein</div>
+    <div class="result-title">Ivermectin — Bret Weinstein</div>
+    <div class="result-snippet">The question isn't whether it works — <b>it's whether the regulatory system was structurally capable of finding out</b>. The EUA required no adequate alternative to exist. Both sides are wrong.</div>
+    <div class="result-source">Version 3 of 3</div>
+  </div>
+</div>
+<div class="counter" id="counter">Showing result <span class="num">1</span> of <span class="num">3</span> perspectives</div>
+<script>
+const results=[document.getElementById('r0'),document.getElementById('r1'),document.getElementById('r2')];
+let c=0;
+setInterval(()=>{
+  results[c].classList.remove('active');
+  c=(c+1)%3;
+  results[c].classList.add('active');
+  document.querySelector('.counter').innerHTML=`Showing result <span class="num">${c+1}</span> of <span class="num">3</span> perspectives`;
+},3000);
+</script></body></html>

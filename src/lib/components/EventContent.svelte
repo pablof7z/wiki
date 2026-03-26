@@ -6,16 +6,18 @@
 	let {
 		event,
 		renderer,
-		class: className = ''
+		class: className = '',
+		onRootChange = undefined
 	}: {
 		event: NDKEvent;
 		renderer?: ContentRenderer;
 		class?: string;
+		onRootChange?: (rootElement: HTMLDivElement | undefined) => void;
 	} = $props();
 
 	const content = $derived(event.content || '');
 </script>
 
 <div class="font-sans text-foreground/86 {className}">
-	<DjotRenderer {content} {renderer} />
+	<DjotRenderer {content} {renderer} {onRootChange} />
 </div>

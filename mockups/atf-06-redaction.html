@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 — Redaction</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2)}
+.document{width:540px;padding:2.5rem}
+.doc-title{font-size:2rem;margin-bottom:1.5rem;font-weight:400}
+.doc-body{font-size:0.92rem;line-height:2.2;color:#bbb}
+.redact-group{position:relative;display:inline}
+.redact-original{transition:all 0.4s ease}
+.redact-original.hidden{color:transparent}
+.redact-bar{position:absolute;top:0;left:-2px;right:-2px;bottom:0;background:#e8e0d4;transform:scaleX(0);transform-origin:left;transition:transform 0.3s ease;border-radius:1px}
+.redact-bar.active{transform:scaleX(1)}
+.redact-bar.lifting{transform:scaleX(1) scaleY(0.1) translateY(100%);opacity:0.3}
+.bleed{position:absolute;top:0;left:0;right:0;font-size:0.92rem;color:#e8e0d4;opacity:0;transition:opacity 0.5s ease;white-space:nowrap}
+.bleed.visible{opacity:1}
+.bleed-author{font-size:0.55rem;color:#666;text-transform:uppercase;letter-spacing:0.08em;vertical-align:super;margin-left:0.3rem}
+.phase-note{position:fixed;bottom:3rem;font-size:0.7rem;color:#444;text-align:center;left:50%;transform:translateX(-50%);transition:opacity 0.4s ease}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="document">
+  <div class="doc-title">Ivermectin</div>
+  <div class="doc-body">
+    Ivermectin is
+    <span class="redact-group" id="rg1">
+      <span class="redact-original" id="ro1">an antiparasitic drug with no proven benefit for COVID-19.</span>
+      <span class="redact-bar" id="rb1"></span>
+      <span class="bleed" id="bl1a">a Nobel Prize-winning drug they suppressed for profit.<span class="bleed-author">Rogan</span></span>
+    </span>
+
+    The evidence
+    <span class="redact-group" id="rg2">
+      <span class="redact-original" id="ro2">from randomized trials is clear and settled.</span>
+      <span class="redact-bar" id="rb2"></span>
+      <span class="bleed" id="bl2a">was produced by a system with a financial stake in the outcome.<span class="bleed-author">Weinstein</span></span>
+    </span>
+
+    Public health authorities
+    <span class="redact-group" id="rg3">
+      <span class="redact-original" id="ro3">correctly warned against unproven treatments.</span>
+      <span class="redact-bar" id="rb3"></span>
+      <span class="bleed" id="bl3a">silenced dissenting doctors to protect vaccine EUAs.<span class="bleed-author">Rogan</span></span>
+    </span>
+
+    The debate is about
+    <span class="redact-group" id="rg4">
+      <span class="redact-original" id="ro4">misinformation spreading on social media.</span>
+      <span class="redact-bar" id="rb4"></span>
+      <span class="bleed" id="bl4a">whether honest evaluation was structurally possible.<span class="bleed-author">Weinstein</span></span>
+    </span>
+  </div>
+</div>
+<div class="phase-note" id="note">The "official" version</div>
+<script>
+const sequence=[
+  {delay:2000,bar:'rb1',orig:'ro1',bleed:'bl1a',note:'Redacted. Another version bleeds through.'},
+  {delay:4000,bar:'rb2',orig:'ro2',bleed:'bl2a',note:'Redacted again.'},
+  {delay:6000,bar:'rb3',orig:'ro3',bleed:'bl3a',note:'The original disappears.'},
+  {delay:8000,bar:'rb4',orig:'ro4',bleed:'bl4a',note:'Whose version survives?'},
+];
+sequence.forEach(({delay,bar,orig,bleed,note})=>{
+  // Redact
+  setTimeout(()=>{
+    document.getElementById(bar).classList.add('active');
+    document.getElementById(note?'note':'note').textContent=note;
+  },delay);
+  // Lift bar, reveal bleed
+  setTimeout(()=>{
+    document.getElementById(bar).classList.add('lifting');
+    document.getElementById(orig).classList.add('hidden');
+    document.getElementById(bleed).classList.add('visible');
+  },delay+600);
+});
+</script></body></html>

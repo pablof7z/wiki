@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 — Three Strips</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2);z-index:10}
+.strips{display:flex;height:100vh}
+.strip{flex:1;display:flex;flex-direction:column;justify-content:center;padding:2.5rem;border-right:1px solid rgba(255,255,255,0.03);position:relative;transition:flex 0.5s ease}
+.strip:last-child{border-right:none}
+.strip:hover{flex:1.3}
+.strip-author{font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:#555;font-weight:600;margin-bottom:0.3rem}
+.strip-role{font-size:0.5rem;color:#444;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:0.08em}
+.strip-title{font-size:1.3rem;margin-bottom:1rem;color:#e8e0d4}
+.strip-body{font-size:0.78rem;line-height:1.8;color:#777}
+.strip-body .hot{color:#bbb}
+.strip-num{position:absolute;bottom:2rem;left:2.5rem;font-size:5rem;color:rgba(255,255,255,0.02);font-weight:400}
+.divider-label{position:absolute;top:50%;right:-0.5rem;transform:translateY(-50%) rotate(90deg);font-size:0.45rem;text-transform:uppercase;letter-spacing:0.2em;color:#333;white-space:nowrap}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="strips">
+  <div class="strip">
+    <div class="strip-author">Joe Rogan</div>
+    <div class="strip-role">Podcaster</div>
+    <div class="strip-title">Ivermectin</div>
+    <div class="strip-body">A Nobel Prize-winning drug that doctors were using with real results. <span class="hot">They called it "horse paste" to protect a hundred-billion-dollar vaccine rollout.</span> I took it. I was better in days. CNN called my prescribed medication "horse dewormer." That tells you everything about where their incentives lie.</div>
+    <div class="strip-num">1</div>
+    <div class="divider-label">same topic</div>
+  </div>
+  <div class="strip">
+    <div class="strip-author">Anthony Fauci</div>
+    <div class="strip-role">Immunologist</div>
+    <div class="strip-title">Ivermectin</div>
+    <div class="strip-body">An antiparasitic with no demonstrated benefit for COVID-19. <span class="hot">The plural of anecdote is not data.</span> The TOGETHER trial — 3,500 patients, double-blind — showed no significant benefit. That is how medicine works. Promoting unproven treatments eroded vaccine confidence.</div>
+    <div class="strip-num">2</div>
+    <div class="divider-label">same topic</div>
+  </div>
+  <div class="strip">
+    <div class="strip-author">Bret Weinstein</div>
+    <div class="strip-role">Evolutionary Biologist</div>
+    <div class="strip-title">Ivermectin</div>
+    <div class="strip-body">The question isn't whether it works — it's whether the system could find out. <span class="hot">The EUA required no adequate alternative to exist. The vaccine program depended on the answer being no.</span> Both "miracle cure" and "horse paste" are wrong. We built a system incapable of asking honestly.</div>
+    <div class="strip-num">3</div>
+  </div>
+</div>
+</body></html>

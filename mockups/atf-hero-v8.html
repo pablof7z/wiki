@@ -1,0 +1,360 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero V8</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.glow{position:fixed;top:-20vh;left:50%;transform:translateX(-50%);width:1000px;height:700px;border-radius:50%;background:radial-gradient(ellipse,rgba(204,102,68,0.14) 0%,rgba(204,102,68,0.04) 50%,transparent 75%);pointer-events:none;z-index:0}
+
+/* ===== HERO ===== */
+.hero{height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;z-index:1}
+
+.wordmark{font-size:5.5rem;font-style:italic;color:rgba(232,224,212,0.9);font-family:'Georgia',serif;letter-spacing:-0.03em;margin-bottom:1.5rem;line-height:1}
+
+.hero-headline{font-size:2.4rem;font-family:'Georgia',serif;color:#e8e0d4;line-height:1.4;max-width:700px;margin:0 auto 1.2rem;font-weight:400;letter-spacing:-0.01em}
+
+.hero-sub{font-size:1.15rem;font-family:'Georgia',serif;color:#888;line-height:1.7;max-width:600px;margin:0 auto}
+.hero-sub strong{color:#e8e0d4;font-weight:400}
+.villain{color:#cc6644}
+
+/* ===== DEMO ===== */
+.demo{max-width:620px;margin:0 auto;padding:0 2rem 6rem;position:relative;z-index:1}
+
+.search-bar{background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:0.85rem 1.5rem;display:flex;align-items:center;gap:0.65rem;margin-bottom:0.4rem}
+.search-icon{color:#555;font-size:1rem}
+.search-query{font-size:1.1rem;color:#e8e0d4}
+.search-count{margin-left:auto;font-size:0.6rem;color:#444}
+.search-meta{font-size:0.52rem;color:#383838;margin-bottom:1.25rem}
+
+/* Results */
+.results-wrap{position:relative}
+
+.result{padding:0.9rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:44px 1fr;gap:0.85rem;align-items:start;transition:opacity 0.4s ease;border-radius:8px}
+.result:last-of-type{border-bottom:none}
+.result.dimmed{opacity:0.3}
+
+.avatar{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#999}
+.avatar.jr{background:#3a2a1a}
+.avatar.af{background:#1a2a3a}
+.avatar.bw{background:#2a301a}
+
+.r-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.25rem}
+.r-name{font-size:0.75rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+.r-quote{font-size:0.88rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic}
+.r-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+
+/* Compare button */
+.compare-row{display:flex;justify-content:center;margin-top:1.75rem;transition:all 0.3s ease}
+.compare-row.hidden{opacity:0;pointer-events:none;margin-top:0;max-height:0}
+.compare-btn{display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;font-weight:600;color:#e8e0d4;background:rgba(255,200,100,0.08);border:1px solid rgba(255,200,100,0.2);padding:0.65rem 1.75rem;border-radius:100px;cursor:pointer;transition:all 0.2s ease;font-family:inherit}
+.compare-btn:hover{background:rgba(255,200,100,0.14);border-color:rgba(255,200,100,0.35)}
+.compare-btn .sparkle{font-size:0.9rem}
+
+/* Callout */
+.callout{background:#1c1b18;border:1px solid rgba(255,200,100,0.15);border-radius:14px;padding:1.25rem 1.5rem;position:relative;max-height:0;overflow:hidden;opacity:0;transition:all 0.6s cubic-bezier(0.22,1,0.36,1);margin-top:0}
+.callout.visible{max-height:800px;opacity:1;margin-top:1.25rem}
+
+.callout::before{content:'';position:absolute;top:-7px;left:50%;width:14px;height:14px;background:#1c1b18;border-left:1px solid rgba(255,200,100,0.15);border-top:1px solid rgba(255,200,100,0.15);transform:translateX(-50%) rotate(45deg)}
+
+.callout-bar{display:flex;align-items:center;gap:0.45rem;margin-bottom:0.85rem;padding-bottom:0.65rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+.callout-icon{font-size:0.8rem;color:rgba(255,200,100,0.6)}
+.callout-label{font-size:0.68rem;font-weight:600;color:#ccc}
+.callout-faces{display:flex;margin-left:auto}
+.cf{width:22px;height:22px;border-radius:50%;border:2px solid #1c1b18;margin-left:-5px;display:flex;align-items:center;justify-content:center;font-size:0.38rem;font-weight:700;color:#999}
+.cf.jr{background:#3a2a1a}
+.cf.af{background:#1a2a3a}
+.cf.bw{background:#2a301a}
+
+.c-text{font-size:0.82rem;line-height:1.75;color:#999;margin-bottom:0.6rem}
+.c-text strong{color:#e8e0d4;font-weight:600}
+
+.fault-lines{display:flex;flex-direction:column;gap:0.5rem;margin:0.85rem 0}
+.fault{padding:0.6rem 0.75rem;border-radius:8px;border-left:3px solid rgba(255,200,100,0.25);background:rgba(255,200,100,0.02)}
+.fault-q{font-size:0.72rem;font-weight:600;color:rgba(255,200,100,0.65);margin-bottom:0.3rem}
+.fault-a{font-size:0.7rem;color:#aaa;line-height:1.55}
+.fault-a span{color:#ccc;font-weight:600}
+
+.c-kicker{font-size:0.88rem;color:#ccc;font-family:'Georgia',serif;font-style:italic;padding:0.6rem 0.85rem;border-left:3px solid rgba(255,200,100,0.35);margin-top:0.5rem;line-height:1.65}
+.c-kicker strong{color:#e8e0d4;font-weight:600;font-style:normal}
+
+.cs{opacity:0;transform:translateY(6px);transition:all 0.4s ease}
+.cs.in{opacity:1;transform:translateY(0)}
+
+/* ===== SCROLL TOPICS ===== */
+.topics-intro{text-align:center;padding:6rem 2rem 3rem;position:relative;z-index:1}
+.topics-intro-text{font-size:1.6rem;font-family:'Georgia',serif;color:#666;line-height:1.5;max-width:550px;margin:0 auto}
+.topics-intro-text strong{color:#e8e0d4;font-weight:400}
+
+.topic-section{position:relative;height:200vh;z-index:1}
+.topic-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+
+.topic-card{width:620px;opacity:0;transform:translateY(40px);transition:all 0.8s cubic-bezier(0.22,1,0.36,1)}
+.topic-card.visible{opacity:1;transform:translateY(0)}
+
+.topic-label{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.25em;color:#444;margin-bottom:1rem}
+
+.topic-title{font-size:2rem;font-family:'Georgia',serif;color:#e8e0d4;margin-bottom:1.5rem;font-weight:400;letter-spacing:-0.01em}
+
+.topic-entries{display:flex;flex-direction:column;gap:0}
+
+.topic-entry{padding:0.85rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:40px 1fr;gap:0.8rem;align-items:start}
+.topic-entry:last-child{border-bottom:none}
+
+.t-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#999}
+
+.t-name{font-size:0.72rem;font-weight:600;color:#ccc}
+.t-role{font-size:0.48rem;color:#555}
+.t-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.2rem}
+.t-quote{font-size:0.85rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic}
+.t-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+
+.topic-tension{margin-top:1rem;padding:0.75rem 0.85rem;border-radius:8px;border-left:3px solid rgba(255,200,100,0.25);background:rgba(255,200,100,0.02)}
+.topic-tension-q{font-size:0.7rem;font-weight:600;color:rgba(255,200,100,0.6);margin-bottom:0.25rem}
+.topic-tension-a{font-size:0.7rem;color:#aaa;line-height:1.55}
+.topic-tension-a span{color:#ccc;font-weight:600}
+
+/* ===== CTA ===== */
+.cta-section{text-align:center;padding:8rem 2rem;position:relative;z-index:1}
+.cta-text{font-size:1.8rem;font-family:'Georgia',serif;color:#e8e0d4;margin-bottom:1.5rem;font-weight:400;line-height:1.4;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-btn{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.9rem;font-weight:600;color:#0e0e0c;background:rgba(232,224,212,0.9);padding:0.8rem 2.25rem;border-radius:100px;cursor:pointer;transition:all 0.2s ease;text-decoration:none;font-family:inherit;border:none}
+.cta-btn:hover{background:#e8e0d4;transform:translateY(-1px)}
+</style></head><body>
+
+<div class="glow"></div>
+<section class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="hero-headline">The encyclopedia that <em>can't</em> pick a side.</div>
+  <div class="hero-sub">Wikipedia lets <span class="villain">anonymous gatekeepers</span> decide what counts as truth — then locks the page and calls it consensus. We think knowledge dies the moment one perspective gets to silence the others.</div>
+</section>
+
+<section class="demo">
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <span class="search-query">Ivermectin</span>
+    <span class="search-count">3 entries</span>
+  </div>
+  <div class="search-meta">3 authors · no canonical version</div>
+
+  <div class="results-wrap">
+    <div class="result" id="r0">
+      <div class="avatar jr">JR</div>
+      <div>
+        <div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div>
+        <div class="r-quote">Ivermectin is a Nobel Prize-winning antiparasitic drug that was <span class="hot">systematically discredited</span> during the COVID-19 pandemic to protect the commercial viability of emergency-use vaccines…</div>
+      </div>
+    </div>
+
+    <div class="result" id="r1">
+      <div class="avatar af">AF</div>
+      <div>
+        <div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist</span></div>
+        <div class="r-quote">Ivermectin is an antiparasitic agent whose proposed use against COVID-19 was <span class="hot">not supported by clinical evidence</span>. The TOGETHER trial (n=3,500) found no significant benefit…</div>
+      </div>
+    </div>
+
+    <div class="result" id="r2">
+      <div class="avatar bw">BW</div>
+      <div>
+        <div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div>
+        <div class="r-quote">Ivermectin became the central case study in how <span class="hot">regulatory incentive structures</span> can prevent honest evaluation of repurposed drugs during a public health emergency…</div>
+      </div>
+    </div>
+
+    <div class="compare-row" id="compareRow">
+      <button class="compare-btn" id="compareBtn">
+        <span class="sparkle">✦</span> Where do they actually disagree?
+      </button>
+    </div>
+
+    <div class="callout" id="callout">
+      <div class="callout-bar">
+        <span class="callout-icon">✦</span>
+        <span class="callout-label">AI Comparison</span>
+        <div class="callout-faces">
+          <div class="cf jr">JR</div>
+          <div class="cf af">AF</div>
+          <div class="cf bw">BW</div>
+        </div>
+      </div>
+
+      <div class="cs" id="cs1">
+        <div class="c-text">These three entries aren't debating whether ivermectin works. They're debating <strong>whether the institutions that evaluated it can be trusted at all</strong>.</div>
+      </div>
+
+      <div class="cs" id="cs2">
+        <div class="fault-lines">
+          <div class="fault">
+            <div class="fault-q">Who controls what counts as evidence?</div>
+            <div class="fault-a"><span>Rogan</span> says clinical observation was ignored because it threatened profits. <span>Fauci</span> says only double-blind RCTs count. <span>Weinstein</span> says the incentive structure made honest RCTs impossible in the first place.</div>
+          </div>
+          <div class="fault">
+            <div class="fault-q">Was the suppression deliberate?</div>
+            <div class="fault-a"><span>Rogan</span> says obviously — follow the money. <span>Fauci</span> says there was nothing to suppress. <span>Weinstein</span> says intent is irrelevant when the EUA framework already guarantees the outcome.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cs" id="cs3">
+        <div class="c-kicker">Wikipedia picks Fauci's frame, labels the rest "misinformation," and <strong>locks the page</strong>. Wikifreedia keeps all three — because the disagreement <em>is</em> the knowledge.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MORE TOPICS ===== -->
+<div class="topics-intro">
+  <div class="topics-intro-text">It's not just medicine. <strong>Every contested topic looks like this.</strong></div>
+</div>
+
+<!-- CAPITALISM -->
+<section class="topic-section" id="ts0">
+  <div class="topic-sticky">
+    <div class="topic-card" id="tc0">
+      <div class="topic-label">Search: Capitalism</div>
+      <div class="topic-title">Three entries. Three economies.</div>
+      <div class="topic-entries">
+        <div class="topic-entry">
+          <div class="t-av" style="background:#2a1a1a">JM</div>
+          <div>
+            <div class="t-header"><span class="t-name">Javier Milei</span><span class="t-role">President of Argentina</span></div>
+            <div class="t-quote">Capitalism is the only system in history that has <span class="hot">lifted billions out of poverty</span>. The state is not the solution — the state is the problem…</div>
+          </div>
+        </div>
+        <div class="topic-entry">
+          <div class="t-av" style="background:#1a1a2a">TP</div>
+          <div>
+            <div class="t-header"><span class="t-name">Thomas Piketty</span><span class="t-role">Economist</span></div>
+            <div class="t-quote">Without intervention, capitalism <span class="hot">concentrates wealth exponentially</span>. When the rate of return on capital exceeds growth, democracy itself is threatened…</div>
+          </div>
+        </div>
+        <div class="topic-entry">
+          <div class="t-av" style="background:#2a2a1a">NT</div>
+          <div>
+            <div class="t-header"><span class="t-name">Nassim Taleb</span><span class="t-role">Risk Analyst</span></div>
+            <div class="t-quote">The problem is not capitalism — it's that we've replaced it with a system where <span class="hot">losses are socialized</span> and gains are privatized…</div>
+          </div>
+        </div>
+      </div>
+      <div class="topic-tension">
+        <div class="topic-tension-q">Is capitalism failing — or being prevented from working?</div>
+        <div class="topic-tension-a"><span>Milei</span> says regulation is the disease. <span>Piketty</span> says deregulation is. <span>Taleb</span> says both miss the point — the real problem is that elites eliminated their own downside risk.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FREE SPEECH -->
+<section class="topic-section" id="ts1">
+  <div class="topic-sticky">
+    <div class="topic-card" id="tc1">
+      <div class="topic-label">Search: Free Speech</div>
+      <div class="topic-title">Three entries. Three limits.</div>
+      <div class="topic-entries">
+        <div class="topic-entry">
+          <div class="t-av" style="background:#1a2a1a">NC</div>
+          <div>
+            <div class="t-header"><span class="t-name">Noam Chomsky</span><span class="t-role">Linguist · Political Critic</span></div>
+            <div class="t-quote">Free speech that matters is speech that <span class="hot">power finds intolerable</span>. If everyone agrees with you, you're not testing the principle…</div>
+          </div>
+        </div>
+        <div class="topic-entry">
+          <div class="t-av" style="background:#2a1a2a">JP</div>
+          <div>
+            <div class="t-header"><span class="t-name">Jordan Peterson</span><span class="t-role">Psychologist</span></div>
+            <div class="t-quote">Compelled speech is the most dangerous precedent. The state <span class="hot">cannot mandate what you must say</span> and call it progress…</div>
+          </div>
+        </div>
+        <div class="topic-entry">
+          <div class="t-av" style="background:#1a2a2a">bh</div>
+          <div>
+            <div class="t-header"><span class="t-name">bell hooks</span><span class="t-role">Cultural Critic</span></div>
+            <div class="t-quote">"Free speech" as practiced protects the <span class="hot">speech of the dominant class</span>. The freedom to speak means nothing without the power to be heard…</div>
+          </div>
+        </div>
+      </div>
+      <div class="topic-tension">
+        <div class="topic-tension-q">Whose speech is actually being silenced?</div>
+        <div class="topic-tension-a"><span>Chomsky</span> says the powerful silence dissent through manufactured consent. <span>Peterson</span> says the progressive left silences dissent through compelled language. <span>hooks</span> says the entire framework is built to amplify those who already have power.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNALISM -->
+<section class="topic-section" id="ts2">
+  <div class="topic-sticky">
+    <div class="topic-card" id="tc2">
+      <div class="topic-label">Search: Journalism</div>
+      <div class="topic-title">Three entries. Three fourth estates.</div>
+      <div class="topic-entries">
+        <div class="topic-entry">
+          <div class="t-av" style="background:#2a2a2a">JA</div>
+          <div>
+            <div class="t-header"><span class="t-name">Julian Assange</span><span class="t-role">WikiLeaks Founder</span></div>
+            <div class="t-quote">The press doesn't hold power accountable — it <span class="hot">negotiates with it</span>. Real journalism is the publication of what someone powerful doesn't want published…</div>
+          </div>
+        </div>
+        <div class="topic-entry">
+          <div class="t-av" style="background:#2a1a1a">TC</div>
+          <div>
+            <div class="t-header"><span class="t-name">Tucker Carlson</span><span class="t-role">Political Commentator</span></div>
+            <div class="t-quote">The media class is an <span class="hot">enforcement arm of the ruling party</span>. They don't report the news — they decide what you're allowed to know…</div>
+          </div>
+        </div>
+        <div class="topic-entry">
+          <div class="t-av" style="background:#1a1a2a">KS</div>
+          <div>
+            <div class="t-header"><span class="t-name">Kara Swisher</span><span class="t-role">Tech Journalist</span></div>
+            <div class="t-quote">The crisis in journalism isn't bias — it's that the <span class="hot">business model collapsed</span>. You can't hold power accountable when your newsroom runs on twelve people…</div>
+          </div>
+        </div>
+      </div>
+      <div class="topic-tension">
+        <div class="topic-tension-q">Is the press captured — or just broke?</div>
+        <div class="topic-tension-a"><span>Assange</span> says it was always captured — access journalism is a leash. <span>Carlson</span> says it's ideologically captured by the left. <span>Swisher</span> says the real enemy is the economics — when Google takes the ad revenue, independence dies.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-text">Every one of these topics has a locked Wikipedia page and an open Wikifreedia.</div>
+  <button class="cta-btn">Start reading</button>
+</section>
+
+<script>
+const btn = document.getElementById('compareBtn');
+const compareRow = document.getElementById('compareRow');
+const callout = document.getElementById('callout');
+const results = [document.getElementById('r0'), document.getElementById('r1'), document.getElementById('r2')];
+const streams = ['cs1','cs2','cs3'];
+
+btn.addEventListener('click', () => {
+  results.forEach(r => r.classList.add('dimmed'));
+  compareRow.classList.add('hidden');
+
+  setTimeout(() => {
+    callout.classList.add('visible');
+    streams.forEach((id, i) => {
+      setTimeout(() => document.getElementById(id).classList.add('in'), (i + 1) * 500);
+    });
+  }, 200);
+});
+
+// Scroll-reveal topic cards
+const topicCards = [document.getElementById('tc0'), document.getElementById('tc1'), document.getElementById('tc2')];
+const topicSections = [document.getElementById('ts0'), document.getElementById('ts1'), document.getElementById('ts2')];
+
+function onScroll() {
+  topicSections.forEach((sec, i) => {
+    const rect = sec.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.5 && rect.bottom > 0) {
+      topicCards[i].classList.add('visible');
+    }
+  });
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+</script>
+</body></html>

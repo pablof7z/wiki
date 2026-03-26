@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATF — Typewriter Clash</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0e0e0c;
+    color: #e8e0d4;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wordmark {
+    position: fixed;
+    top: 2rem;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: rgba(232,224,212,0.25);
+    letter-spacing: -0.01em;
+  }
+
+  .stage {
+    text-align: center;
+    max-width: 780px;
+    padding: 0 2rem;
+  }
+
+  .prompt-line {
+    font-size: 2.8rem;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+  }
+
+  .fixed-part { color: #e8e0d4; }
+
+  .completion-area {
+    position: relative;
+    display: inline;
+  }
+
+  /* Each completion stacked in same position */
+  .completion {
+    display: inline;
+    position: relative;
+  }
+
+  .completion .text {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .completion .text.entering {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .completion .text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .completion .text.exiting {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 0.75em;
+    background: rgba(255,255,255,0.5);
+    margin-left: 3px;
+    vertical-align: baseline;
+    animation: blink 0.9s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .author-line {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+    color: #555;
+    height: 1.2em;
+    transition: opacity 0.3s ease;
+  }
+
+  .author-line .name {
+    color: #999;
+    font-weight: 600;
+  }
+
+  .author-line .role {
+    color: #555;
+    margin-left: 0.3rem;
+  }
+
+  /* Ghost completions — previous ones linger faintly */
+  .ghosts {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: center;
+    min-height: 80px;
+  }
+
+  .ghost-line {
+    font-size: 0.8rem;
+    color: rgba(232,224,212,0.06);
+    font-style: italic;
+    transition: all 0.8s ease;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .ghost-line.recent { color: rgba(232,224,212,0.1); }
+
+  /* Scroll cue */
+  .scroll-cue {
+    position: fixed;
+    bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .scroll-cue-text { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em; color: #333; }
+  .scroll-arrow {
+    width: 8px; height: 8px; border-right: 1px solid #333; border-bottom: 1px solid #333;
+    transform: rotate(45deg); animation: bob 2s infinite;
+  }
+  @keyframes bob { 0%,100% { transform: rotate(45deg); } 50% { transform: rotate(45deg) translate(2px,2px); } }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+
+<div class="stage">
+  <div class="prompt-line">
+    <span class="fixed-part">Ivermectin is </span><span class="completion"><span class="text visible" id="completionText"></span><span class="cursor"></span></span>
+  </div>
+  <div class="author-line" id="authorLine">
+    — <span class="name" id="authorName"></span><span class="role" id="authorRole"></span>
+  </div>
+
+  <div class="ghosts" id="ghosts"></div>
+</div>
+
+<div class="scroll-cue">
+  <span class="scroll-cue-text">Scroll</span>
+  <div class="scroll-arrow"></div>
+</div>
+
+<script>
+const perspectives = [
+  {
+    text: "a Nobel Prize-winning drug they called 'horse paste' to protect a hundred-billion-dollar vaccine rollout.",
+    author: "Joe Rogan",
+    role: "Podcaster",
+  },
+  {
+    text: "an antiparasitic with no demonstrated benefit for COVID-19 in randomized controlled trials.",
+    author: "Anthony Fauci",
+    role: "Immunologist",
+  },
+  {
+    text: "a cheap generic the system was structurally incapable of honestly evaluating.",
+    author: "Bret Weinstein",
+    role: "Evolutionary Biologist",
+  }
+];
+
+let current = 0;
+let ghostLines = [];
+const completionText = document.getElementById('completionText');
+const authorName = document.getElementById('authorName');
+const authorRole = document.getElementById('authorRole');
+const ghostsContainer = document.getElementById('ghosts');
+
+// Type character by character
+async function typeText(text) {
+  completionText.textContent = '';
+  for (let i = 0; i < text.length; i++) {
+    completionText.textContent += text[i];
+    // Variable speed: faster for spaces/common chars, slower for punctuation
+    const char = text[i];
+    const delay = char === ' ' ? 20 : char === '.' || char === ',' || char === '—' ? 80 : 25;
+    await sleep(delay);
+  }
+}
+
+async function eraseText() {
+  const text = completionText.textContent;
+  for (let i = text.length; i >= 0; i--) {
+    completionText.textContent = text.substring(0, i);
+    await sleep(12);
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function addGhost(text, author) {
+  // Update existing ghosts opacity
+  const existing = ghostsContainer.querySelectorAll('.ghost-line');
+  existing.forEach(g => g.classList.remove('recent'));
+
+  const ghost = document.createElement('div');
+  ghost.className = 'ghost-line recent';
+  ghost.textContent = `"${text}" — ${author}`;
+
+  if (ghostsContainer.firstChild) {
+    ghostsContainer.insertBefore(ghost, ghostsContainer.firstChild);
+  } else {
+    ghostsContainer.appendChild(ghost);
+  }
+
+  // Keep only last 2
+  while (ghostsContainer.children.length > 2) {
+    ghostsContainer.removeChild(ghostsContainer.lastChild);
+  }
+}
+
+async function cycle() {
+  const p = perspectives[current];
+
+  // Set author
+  authorName.textContent = p.author;
+  authorRole.textContent = ` · ${p.role}`;
+
+  // Type it out
+  await typeText(p.text);
+
+  // Pause to read
+  await sleep(2800);
+
+  // Add to ghosts before erasing
+  addGhost(p.text, p.author);
+
+  // Erase
+  await eraseText();
+  await sleep(300);
+
+  // Next
+  current = (current + 1) % perspectives.length;
+  cycle();
+}
+
+// Start
+cycle();
+</script>
+</body>
+</html>

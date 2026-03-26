@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 — Glitch</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2)}
+.card{width:560px;background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:2rem 2.2rem;position:relative;overflow:hidden}
+.eyebrow{font-size:0.55rem;text-transform:uppercase;letter-spacing:0.2em;color:#555;margin-bottom:0.4rem}
+.title{font-size:1.6rem;margin-bottom:1rem}
+.body{font-size:0.82rem;line-height:1.85;color:#aaa;position:relative;min-height:140px}
+.layer{position:absolute;top:0;left:0;right:0;transition:clip-path 0.15s ease,opacity 0.15s ease}
+.author-tag{margin-top:1.2rem;font-size:0.65rem;color:#555;border-top:1px solid rgba(255,255,255,0.04);padding-top:0.75rem;transition:opacity 0.3s ease}
+.author-tag .name{color:#888;font-weight:600}
+.scanline{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.04);pointer-events:none;z-index:10}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="card">
+  <div class="eyebrow">Encyclopedia Entry</div>
+  <div class="title">Ivermectin</div>
+  <div class="body" id="body">
+    <div class="layer" id="l0" style="opacity:1">A Nobel Prize-winning drug that doctors around the world were using to treat COVID with real results — until the establishment panicked. They called it "horse paste" to protect a hundred-billion-dollar vaccine rollout. Follow the money.</div>
+    <div class="layer" id="l1" style="opacity:0">An antiparasitic with no demonstrated benefit for COVID-19 in randomized controlled trials. In vitro activity does not equal clinical efficacy. The gold-standard evidence is clear: the trials do not show benefit. Anecdotes are not data.</div>
+    <div class="layer" id="l2" style="opacity:0">A cheap generic drug the regulatory system was structurally incapable of honestly evaluating. The EUA required no adequate alternative to exist. The vaccine program depended on the answer being no. You don't need a conspiracy — just an incentive structure.</div>
+  </div>
+  <div class="author-tag">— <span class="name" id="authorName">Joe Rogan</span></div>
+  <div class="scanline" id="scanline"></div>
+</div>
+<script>
+const layers=[document.getElementById('l0'),document.getElementById('l1'),document.getElementById('l2')];
+const authors=['Joe Rogan','Anthony Fauci','Bret Weinstein'];
+const nameEl=document.getElementById('authorName');
+const scanline=document.getElementById('scanline');
+let current=0;
+
+function glitchTo(next){
+  const steps=8;
+  let step=0;
+  const interval=setInterval(()=>{
+    step++;
+    // Random clip-path slices
+    const y1=Math.random()*100;
+    const y2=y1+Math.random()*30;
+    layers[current].style.clipPath=`inset(${y1}% 0 ${100-y2}% 0)`;
+    layers[next].style.clipPath=`inset(${100-y2}% 0 ${y1}% 0)`;
+    layers[next].style.opacity='1';
+    scanline.style.top=`${Math.random()*100}%`;
+    scanline.style.opacity='1';
+
+    if(step>=steps){
+      clearInterval(interval);
+      layers[current].style.clipPath='';
+      layers[current].style.opacity='0';
+      layers[next].style.clipPath='';
+      layers[next].style.opacity='1';
+      scanline.style.opacity='0';
+      nameEl.textContent=authors[next];
+      current=next;
+    }
+  },60);
+}
+
+setInterval(()=>glitchTo((current+1)%3),3500);
+</script></body></html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATF — Contested Word</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0e0e0c;
+    color: #e8e0d4;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wordmark {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    font-style: italic;
+    color: rgba(232,224,212,0.25);
+    letter-spacing: -0.01em;
+    z-index: 10;
+  }
+
+  .field {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .center-word {
+    font-size: 6rem;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    position: relative;
+    z-index: 2;
+    user-select: none;
+  }
+
+  /* Orbiting words */
+  .orbit-word {
+    position: absolute;
+    font-size: 0.85rem;
+    color: rgba(232,224,212,0.06);
+    white-space: nowrap;
+    transition: color 0.8s ease, transform 0.3s ease;
+    cursor: default;
+    user-select: none;
+    z-index: 1;
+  }
+
+  .orbit-word:hover {
+    color: rgba(232,224,212,0.35) !important;
+    transform: scale(1.1);
+  }
+
+  /* Author clusters */
+  .orbit-word[data-voice="rogan"] { }
+  .orbit-word[data-voice="fauci"] { }
+  .orbit-word[data-voice="weinstein"] { }
+
+  /* Attribution labels */
+  .voice-label {
+    position: absolute;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(232,224,212,0.08);
+    transition: color 0.8s ease;
+    pointer-events: none;
+  }
+
+  /* Tension lines connecting opposing words */
+  .tension-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .tension-line {
+    stroke: rgba(255,255,255,0.02);
+    stroke-width: 0.5;
+    stroke-dasharray: 3 5;
+  }
+
+  .scroll-cue {
+    position: fixed;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    z-index: 10;
+  }
+  .scroll-cue-text { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em; color: #333; }
+  .scroll-arrow {
+    width: 8px; height: 8px; border-right: 1px solid #333; border-bottom: 1px solid #333;
+    transform: rotate(45deg); animation: bob 2s infinite;
+  }
+  @keyframes bob { 0%,100% { transform: rotate(45deg); } 50% { transform: rotate(45deg) translate(2px,2px); } }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+
+<div class="field" id="field">
+  <svg class="tension-svg" id="tensionSvg"></svg>
+  <div class="center-word">Ivermectin</div>
+</div>
+
+<div class="scroll-cue">
+  <span class="scroll-cue-text">Scroll</span>
+  <div class="scroll-arrow"></div>
+</div>
+
+<script>
+const words = [
+  // Rogan cluster — top left
+  { text: '"horse paste"', x: 18, y: 22, voice: 'rogan', size: 1.1 },
+  { text: 'Nobel Prize', x: 12, y: 35, voice: 'rogan', size: 1.0 },
+  { text: 'suppressed', x: 25, y: 15, voice: 'rogan', size: 0.9 },
+  { text: 'follow the money', x: 8, y: 48, voice: 'rogan', size: 0.85 },
+  { text: '$2 generic', x: 30, y: 40, voice: 'rogan', size: 0.8 },
+  { text: 'censored', x: 15, y: 58, voice: 'rogan', size: 0.75 },
+  { text: 'I was better in days', x: 5, y: 68, voice: 'rogan', size: 0.7 },
+
+  // Fauci cluster — top right
+  { text: 'no significant benefit', x: 72, y: 20, voice: 'fauci', size: 1.1 },
+  { text: 'randomized controlled trial', x: 65, y: 33, voice: 'fauci', size: 0.95 },
+  { text: 'misinformation', x: 78, y: 14, voice: 'fauci', size: 0.9 },
+  { text: 'gold standard evidence', x: 82, y: 42, voice: 'fauci', size: 0.85 },
+  { text: 'anecdote ≠ data', x: 70, y: 52, voice: 'fauci', size: 0.8 },
+  { text: 'Phase III trials', x: 88, y: 28, voice: 'fauci', size: 0.75 },
+  { text: 'vaccine confidence', x: 62, y: 62, voice: 'fauci', size: 0.7 },
+
+  // Weinstein cluster — bottom center
+  { text: 'structural incentive', x: 38, y: 72, voice: 'weinstein', size: 1.0 },
+  { text: 'Emergency Use Authorization', x: 50, y: 80, voice: 'weinstein', size: 0.95 },
+  { text: 'no conspiracy needed', x: 30, y: 85, voice: 'weinstein', size: 0.85 },
+  { text: 'incapable of honest evaluation', x: 55, y: 68, voice: 'weinstein', size: 0.9 },
+  { text: '"both sides are wrong"', x: 42, y: 90, voice: 'weinstein', size: 0.8 },
+  { text: 'incentive structure', x: 65, y: 82, voice: 'weinstein', size: 0.75 },
+];
+
+const voiceLabels = [
+  { text: 'Joe Rogan', x: 8, y: 12, voice: 'rogan' },
+  { text: 'Anthony Fauci', x: 80, y: 10, voice: 'fauci' },
+  { text: 'Bret Weinstein', x: 40, y: 95, voice: 'weinstein' },
+];
+
+const field = document.getElementById('field');
+const svg = document.getElementById('tensionSvg');
+
+// Place words
+words.forEach((w, i) => {
+  const el = document.createElement('div');
+  el.className = 'orbit-word';
+  el.dataset.voice = w.voice;
+  el.textContent = w.text;
+  el.style.left = `${w.x}%`;
+  el.style.top = `${w.y}%`;
+  el.style.fontSize = `${w.size * 0.85}rem`;
+  el.style.transform = `translate(-50%, -50%)`;
+  el.id = `word-${i}`;
+
+  // Stagger fade-in
+  el.style.opacity = '0';
+  el.style.transition = `color 0.8s ease, transform 0.3s ease, opacity 1.2s ease ${0.3 + i * 0.12}s`;
+
+  field.appendChild(el);
+
+  // Trigger fade-in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+    });
+  });
+});
+
+// Place voice labels
+voiceLabels.forEach(v => {
+  const el = document.createElement('div');
+  el.className = 'voice-label';
+  el.textContent = v.text;
+  el.style.left = `${v.x}%`;
+  el.style.top = `${v.y}%`;
+  el.style.transform = 'translate(-50%, -50%)';
+  field.appendChild(el);
+});
+
+// Draw some tension lines between opposing words
+const tensions = [
+  [0, 7],   // "horse paste" ↔ "no significant benefit"
+  [1, 10],  // "Nobel Prize" ↔ "misinformation"
+  [2, 12],  // "suppressed" ↔ "anecdote ≠ data"
+  [5, 11],  // "censored" ↔ "Phase III trials"
+  [3, 14],  // "follow the money" ↔ "EUA"
+  [6, 16],  // "I was better" ↔ "both sides wrong"
+  [9, 15],  // "gold standard" ↔ "incapable of honest evaluation"
+];
+
+function drawLines() {
+  svg.innerHTML = '';
+  tensions.forEach(([a, b]) => {
+    const elA = document.getElementById(`word-${a}`);
+    const elB = document.getElementById(`word-${b}`);
+    if (!elA || !elB) return;
+
+    const rA = elA.getBoundingClientRect();
+    const rB = elB.getBoundingClientRect();
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', rA.left + rA.width/2);
+    line.setAttribute('y1', rA.top + rA.height/2);
+    line.setAttribute('x2', rB.left + rB.width/2);
+    line.setAttribute('y2', rB.top + rB.height/2);
+    line.setAttribute('class', 'tension-line');
+    svg.appendChild(line);
+  });
+}
+
+// Draw after layout settles
+setTimeout(drawLines, 100);
+window.addEventListener('resize', drawLines);
+
+// Subtle drift animation
+let time = 0;
+function drift() {
+  time += 0.003;
+  words.forEach((w, i) => {
+    const el = document.getElementById(`word-${i}`);
+    if (!el) return;
+    const dx = Math.sin(time + i * 0.7) * 3;
+    const dy = Math.cos(time + i * 0.5) * 2;
+    el.style.left = `calc(${w.x}% + ${dx}px)`;
+    el.style.top = `calc(${w.y}% + ${dy}px)`;
+  });
+  requestAnimationFrame(drift);
+}
+
+// Staggered color reveal by voice
+function revealVoice(voice, targetOpacity, delay) {
+  setTimeout(() => {
+    document.querySelectorAll(`[data-voice="${voice}"]`).forEach(el => {
+      el.style.color = `rgba(232,224,212,${targetOpacity})`;
+    });
+    document.querySelectorAll(`.voice-label`).forEach(el => {
+      if (el.textContent.toLowerCase().includes(voice === 'rogan' ? 'rogan' : voice === 'fauci' ? 'fauci' : 'weinstein')) {
+        el.style.color = `rgba(232,224,212,${targetOpacity * 0.6})`;
+      }
+    });
+  }, delay);
+}
+
+// Reveal sequence: words fade in then pulse between voices
+setTimeout(() => {
+  revealVoice('rogan', 0.18, 0);
+  revealVoice('fauci', 0.18, 800);
+  revealVoice('weinstein', 0.18, 1600);
+}, 2500);
+
+drift();
+</script>
+</body>
+</html>

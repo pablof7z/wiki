@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal H — Scroll Split</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+  }
+
+  /* Scroll sections */
+  .scroll-spacer { height: 100vh; }
+
+  /* ===== SECTION 1: The "normal" article ===== */
+  .section-article {
+    height: 300vh;
+    position: relative;
+  }
+
+  .sticky-article {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow: hidden;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 0.3rem;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 2.5rem;
+    transition: opacity 0.4s ease;
+  }
+
+  /* The article card that will split */
+  .article-container {
+    position: relative;
+    width: 580px;
+    transition: all 0.1s linear;
+  }
+
+  .unified-card {
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.1s linear;
+    transform-origin: center center;
+  }
+
+  .card-eyebrow {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #555;
+    margin-bottom: 0.4rem;
+  }
+
+  .card-title {
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+    transition: all 0.1s linear;
+  }
+
+  .card-body {
+    font-size: 0.82rem;
+    line-height: 1.85;
+    color: #aaa;
+    transition: all 0.1s linear;
+  }
+
+  .card-body p { margin-bottom: 0.8rem; }
+
+  .author-line {
+    font-size: 0.7rem;
+    color: #555;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    transition: opacity 0.3s ease;
+  }
+
+  /* ===== SECTION 2: The three perspectives ===== */
+  .section-perspectives {
+    height: 400vh;
+    position: relative;
+  }
+
+  .sticky-perspectives {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    padding: 2rem;
+  }
+
+  .perspective-card {
+    width: 300px;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 1.5rem;
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .perspective-card.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .perspective-card .p-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .p-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #2a2a28;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: #777;
+  }
+
+  .p-name { font-size: 0.75rem; font-weight: 600; }
+  .p-school { font-size: 0.6rem; color: #666; }
+
+  .p-eyebrow {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #555;
+    margin-bottom: 0.3rem;
+  }
+
+  .p-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .p-body {
+    font-size: 0.72rem;
+    line-height: 1.75;
+    color: #999;
+  }
+
+  .p-body .diff {
+    color: #999;
+    background: transparent;
+    padding: 1px 0;
+    transition: all 0.5s ease;
+  }
+
+  .perspective-card.highlight-diffs .diff {
+    background: rgba(255, 200, 100, 0.08);
+    color: #e8e0d4;
+  }
+
+  /* ===== SECTION 3: The comparison reveal ===== */
+  .section-comparison {
+    height: 250vh;
+    position: relative;
+  }
+
+  .sticky-comparison {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .comparison-box {
+    max-width: 620px;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+
+  .comparison-box.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .comp-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #666;
+    margin-bottom: 1rem;
+  }
+
+  .comp-text {
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: #aaa;
+  }
+
+  .comp-text strong { color: #e8e0d4; font-weight: 600; }
+
+  .comp-cta {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  .comp-cta-text {
+    font-size: 0.9rem;
+    color: #888;
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  /* Scroll progress indicator */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.15);
+    z-index: 100;
+    transition: width 0.05s linear;
+  }
+
+  /* Phase labels */
+  .phase-label {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #444;
+    z-index: 100;
+    transition: opacity 0.4s ease;
+    white-space: nowrap;
+  }
+
+  /* Scroll hint */
+  .scroll-hint {
+    position: fixed;
+    bottom: 4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    z-index: 100;
+  }
+
+  .scroll-hint.hidden { opacity: 0; }
+
+  .scroll-hint-text {
+    font-size: 0.6rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .scroll-arrow {
+    width: 12px;
+    height: 12px;
+    border-right: 1px solid #555;
+    border-bottom: 1px solid #555;
+    transform: rotate(45deg);
+    animation: bounce-arrow 2s infinite;
+  }
+
+  @keyframes bounce-arrow {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(4px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="phase-label" id="phaseLabel">A single article</div>
+
+<div class="scroll-hint" id="scrollHint">
+  <span class="scroll-hint-text">Scroll to discover</span>
+  <div class="scroll-arrow"></div>
+</div>
+
+<!-- PHASE 1: The single article -->
+<div class="section-article" id="sectionArticle">
+  <div class="sticky-article" id="stickyArticle">
+    <div class="wordmark" id="wordmark">Wikifreedia</div>
+    <div class="subtitle" id="tagline">No entry here has a canonical version.</div>
+
+    <div class="article-container" id="articleContainer">
+      <div class="unified-card" id="unifiedCard">
+        <div class="card-eyebrow">Encyclopedia Entry</div>
+        <div class="card-title">Capitalism</div>
+        <div class="card-body">
+          <p>Capitalism is an economic system characterized by private ownership of the means of production, in which investment decisions are made by private actors and prices are determined by competition in markets.</p>
+          <p>The system generates prosperity through competition and innovation, though its critics note it produces inequality and periodic crises. The relationship between capitalism and the state remains one of the most contested questions in political economy.</p>
+          <p>The apparent freedom of market exchange is celebrated by some as the highest expression of human liberty and condemned by others as a veil over deeper structural domination.</p>
+        </div>
+        <div class="author-line" id="authorLine">— Standard encyclopedic summary</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 2: The three perspectives -->
+<div class="section-perspectives" id="sectionPerspectives">
+  <div class="sticky-perspectives">
+    <div class="perspective-card" id="cardSmith">
+      <div class="p-author">
+        <div class="p-avatar">AS</div>
+        <div>
+          <div class="p-name">Adam Smith</div>
+          <div class="p-school">Classical Economics</div>
+        </div>
+      </div>
+      <div class="p-eyebrow">Capitalism</div>
+      <div class="p-title">Capitalism</div>
+      <div class="p-body">
+        Capitalism is a natural extension of humanity's propensity to exchange. When individuals freely pursue self-interest, <span class="diff">an invisible hand guides markets toward the common good</span>.<br><br>
+        The division of labor multiplies wealth. <span class="diff">The state should enforce contracts and protect property — a limited but necessary role</span>. Beyond that, intervention distorts the price signals that coordinate free exchange.
+      </div>
+    </div>
+
+    <div class="perspective-card" id="cardMarx">
+      <div class="p-author">
+        <div class="p-avatar">KM</div>
+        <div>
+          <div class="p-name">Karl Marx</div>
+          <div class="p-school">Political Economy</div>
+        </div>
+      </div>
+      <div class="p-eyebrow">Capitalism</div>
+      <div class="p-title">Capitalism</div>
+      <div class="p-body">
+        Capitalism is a mode of production defined by exploitation of wage labor. Market freedom masks asymmetry: <span class="diff">the capitalist extracts surplus value, paying workers less than they produce</span>.<br><br>
+        This isn't a flaw — it's the mechanism. <span class="diff">The state is an instrument of class domination</span>, enforcing bourgeois property relations. Accumulation concentrates wealth until its contradictions become unsustainable.
+      </div>
+    </div>
+
+    <div class="perspective-card" id="cardRothbard">
+      <div class="p-author">
+        <div class="p-avatar">MR</div>
+        <div>
+          <div class="p-name">Murray Rothbard</div>
+          <div class="p-school">Austrian Economics</div>
+        </div>
+      </div>
+      <div class="p-eyebrow">Capitalism</div>
+      <div class="p-title">Capitalism</div>
+      <div class="p-body">
+        Pure capitalism is voluntary exchange rooted in self-ownership. What exists today is corporatism — <span class="diff">a corrupt partnership between business and government, not true capitalism</span>.<br><br>
+        Every intervention distorts markets and causes the problems it claims to fix. <span class="diff">The state is capitalism's greatest threat. A truly free market needs no state at all</span>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 3: The comparison -->
+<div class="section-comparison" id="sectionComparison">
+  <div class="sticky-comparison">
+    <div class="comparison-box" id="compBox">
+      <div class="comp-label">AI-Assisted Comparison</div>
+      <div class="comp-text">
+        All three authors describe capitalism — but they disagree on its fundamental nature. <strong>Smith</strong> sees the state as a limited partner enforcing contracts. <strong>Marx</strong> sees the same state as a tool of class oppression. <strong>Rothbard</strong> goes furthest: the state isn't just unnecessary — it's the enemy.<br><br>
+        On the source of wealth: Smith credits the invisible hand and division of labor. Marx identifies exploitation of surplus value. Rothbard attributes all dysfunction to government interference.<br><br>
+        A traditional encyclopedia would flatten these into one "neutral" account. <strong>Wikifreedia keeps them all.</strong>
+      </div>
+      <div class="comp-cta">
+        <div class="comp-cta-text">Every entry is a perspective, not a verdict.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scroll-spacer" style="height: 30vh;"></div>
+
+<script>
+const sectionArticle = document.getElementById('sectionArticle');
+const sectionPerspectives = document.getElementById('sectionPerspectives');
+const sectionComparison = document.getElementById('sectionComparison');
+const unifiedCard = document.getElementById('unifiedCard');
+const articleContainer = document.getElementById('articleContainer');
+const wordmark = document.getElementById('wordmark');
+const tagline = document.getElementById('tagline');
+const authorLine = document.getElementById('authorLine');
+const phaseLabel = document.getElementById('phaseLabel');
+const scrollHint = document.getElementById('scrollHint');
+const scrollProgress = document.getElementById('scrollProgress');
+
+const cardSmith = document.getElementById('cardSmith');
+const cardMarx = document.getElementById('cardMarx');
+const cardRothbard = document.getElementById('cardRothbard');
+const compBox = document.getElementById('compBox');
+
+function getScrollProgress(element) {
+  const rect = element.getBoundingClientRect();
+  const scrollHeight = element.offsetHeight - window.innerHeight;
+  if (scrollHeight <= 0) return 0;
+  const progress = -rect.top / scrollHeight;
+  return Math.max(0, Math.min(1, progress));
+}
+
+function isInView(element) {
+  const rect = element.getBoundingClientRect();
+  return rect.top < window.innerHeight && rect.bottom > 0;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function onScroll() {
+  const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const currentScroll = window.scrollY;
+  const globalProgress = currentScroll / totalScroll;
+
+  // Scroll progress bar
+  scrollProgress.style.width = `${globalProgress * 100}%`;
+
+  // Hide scroll hint after first scroll
+  if (currentScroll > 100) {
+    scrollHint.classList.add('hidden');
+  }
+
+  // === PHASE 1: Article shrinks and fades ===
+  if (isInView(sectionArticle)) {
+    const p = getScrollProgress(sectionArticle);
+
+    // Fade wordmark and tagline
+    wordmark.style.opacity = Math.max(0, 1 - p * 3);
+    tagline.style.opacity = Math.max(0, 1 - p * 3);
+
+    // Card transforms: scale down, increase opacity reduction
+    if (p < 0.5) {
+      // First half: just reading the article
+      unifiedCard.style.transform = 'scale(1)';
+      unifiedCard.style.opacity = '1';
+      phaseLabel.textContent = 'A single article';
+    } else {
+      // Second half: article starts to destabilize
+      const shrinkP = (p - 0.5) * 2; // 0 to 1 in second half
+      const scale = lerp(1, 0.85, shrinkP);
+      const opacity = lerp(1, 0.3, shrinkP);
+      unifiedCard.style.transform = `scale(${scale})`;
+      unifiedCard.style.opacity = opacity;
+      authorLine.style.opacity = Math.max(0, 1 - shrinkP * 2);
+      phaseLabel.textContent = 'But who wrote it?';
+    }
+  }
+
+  // === PHASE 2: Three perspectives appear ===
+  if (isInView(sectionPerspectives)) {
+    const p = getScrollProgress(sectionPerspectives);
+
+    phaseLabel.textContent = 'Three perspectives emerge';
+
+    // Stagger card appearances
+    if (p > 0.05) cardSmith.classList.add('visible');
+    if (p > 0.15) cardMarx.classList.add('visible');
+    if (p > 0.25) cardRothbard.classList.add('visible');
+
+    // Highlight diffs after all cards visible
+    if (p > 0.5) {
+      cardSmith.classList.add('highlight-diffs');
+      cardMarx.classList.add('highlight-diffs');
+      cardRothbard.classList.add('highlight-diffs');
+      phaseLabel.textContent = 'The differences revealed';
+    }
+  } else {
+    cardSmith.classList.remove('visible', 'highlight-diffs');
+    cardMarx.classList.remove('visible', 'highlight-diffs');
+    cardRothbard.classList.remove('visible', 'highlight-diffs');
+  }
+
+  // === PHASE 3: Comparison ===
+  if (isInView(sectionComparison)) {
+    const p = getScrollProgress(sectionComparison);
+    if (p > 0.1) {
+      compBox.classList.add('visible');
+      phaseLabel.textContent = 'Every entry is a perspective';
+    }
+  } else {
+    compBox.classList.remove('visible');
+  }
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+
+</body>
+</html>

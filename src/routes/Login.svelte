@@ -206,6 +206,12 @@
 					{error}
 				</div>
 			{/if}
+
+			<div class="text-center text-sm text-muted-foreground">
+				<a href="/welcome" onclick={closeModal} class="transition-colors hover:text-foreground">
+					New to Nostr? Get started &rarr;
+				</a>
+			</div>
 		</div>
 	</div>
 	</div>

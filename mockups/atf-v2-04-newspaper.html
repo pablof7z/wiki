@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2-04 — Newspaper Triptych</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased;gap:2rem}
+.wordmark{font-size:1.3rem;font-style:italic;color:rgba(232,224,212,0.3)}
+.papers{display:flex;gap:1.2rem}
+.paper{width:280px;background:#f2ece0;color:#111;border-radius:2px;padding:1.25rem 1.25rem 1rem;box-shadow:0 2px 20px rgba(0,0,0,0.3);transition:transform 0.3s ease}
+.paper:hover{transform:translateY(-4px)}
+.paper:nth-child(1){transform:rotate(-1deg)}
+.paper:nth-child(2){transform:rotate(0.3deg)}
+.paper:nth-child(3){transform:rotate(0.8deg)}
+.paper:nth-child(1):hover{transform:rotate(-1deg) translateY(-4px)}
+.paper:nth-child(2):hover{transform:rotate(0.3deg) translateY(-4px)}
+.paper:nth-child(3):hover{transform:rotate(0.8deg) translateY(-4px)}
+.p-masthead{font-size:0.4rem;text-transform:uppercase;letter-spacing:0.15em;color:#999;border-bottom:2px solid #111;padding-bottom:0.3rem;margin-bottom:0.5rem;display:flex;justify-content:space-between}
+.p-headline{font-size:1.15rem;font-weight:700;line-height:1.2;margin-bottom:0.5rem;font-family:'Times New Roman','Georgia',serif;color:#111}
+.p-lede{font-size:0.6rem;line-height:1.55;color:#555;column-count:2;column-gap:0.75rem}
+.p-byline{font-size:0.5rem;color:#999;margin-top:0.5rem;padding-top:0.4rem;border-top:1px solid #ddd;font-style:italic}
+.bottom-line{font-size:0.65rem;color:#444}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="papers">
+  <div class="paper">
+    <div class="p-masthead"><span>The Rogan Report</span><span>2021</span></div>
+    <div class="p-headline">Nobel Prize Drug Suppressed To Protect Vaccine Profits</div>
+    <div class="p-lede">Frontline doctors report dramatic results with ivermectin — a $2 generic — only to face deplatforming and media smears. "They called it horse paste," says Rogan. "A Nobel Prize-winning human medicine. Because it threatened a hundred-billion-dollar rollout."</div>
+    <div class="p-byline">Joe Rogan · Austin, TX</div>
+  </div>
+  <div class="paper">
+    <div class="p-masthead"><span>NIH Bulletin</span><span>2021</span></div>
+    <div class="p-headline">Controlled Trials Find No Benefit Of Ivermectin For COVID-19</div>
+    <div class="p-lede">The TOGETHER trial — 3,500 patients, double-blind, randomized — showed no significant clinical benefit. "The plural of anecdote is not data," states Dr. Fauci. Experts warn unproven treatments erode confidence in proven vaccines.</div>
+    <div class="p-byline">Dr. Anthony Fauci · NIAID</div>
+  </div>
+  <div class="paper">
+    <div class="p-masthead"><span>DarkHorse Analysis</span><span>2021</span></div>
+    <div class="p-headline">Regulatory Structure Made Honest Evaluation Impossible</div>
+    <div class="p-lede">The EUA required no adequate alternative to exist. "The vaccine program depended on the answer being no," writes Weinstein. "You don't need a conspiracy — just an incentive structure." Both establishment and populist framings miss the structural problem.</div>
+    <div class="p-byline">Bret Weinstein · Evolutionary Biology</div>
+  </div>
+</div>
+<div class="bottom-line">Same drug. Same year. Three front pages. Which one is "the truth"?</div>
+</body></html>

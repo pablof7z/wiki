@@ -10,14 +10,21 @@
 		if (!createdAt) return 'Unknown date';
 		return new Date(createdAt * 1000).toLocaleDateString();
 	}
+
+	function formatSectionTitle(count: number) {
+		if (count === 0) return 'Other authors';
+		return `${count} other author${count === 1 ? '' : 's'}`;
+	}
 </script>
 
 <section>
-	<h3 class="text-lg">Alternative versions</h3>
+	<h3 id="other-authors-heading" class="text-sm font-medium text-muted-foreground">
+		{formatSectionTitle(versions.length)}
+	</h3>
 
 	{#if versions.length === 0}
-		<p class="mt-4 text-sm leading-6 text-muted-foreground">
-			No alternate authors have published this topic yet.
+		<p class="mt-3 text-sm leading-6 text-muted-foreground">
+			No one else has published this topic yet.
 		</p>
 	{:else}
 		<div class="section-list mt-4">

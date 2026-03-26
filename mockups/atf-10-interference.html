@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 — Interference</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2);z-index:10}
+.interference{position:relative;width:600px;height:300px;cursor:crosshair}
+.text-layer{position:absolute;top:0;left:0;right:0;font-size:1.1rem;line-height:1.9;transition:all 0.8s cubic-bezier(0.22,1,0.36,1);padding:0 1rem}
+.text-layer.l1{color:rgba(220,180,160,0.12);transform:translate(-4px,0)}
+.text-layer.l2{color:rgba(160,180,220,0.12);transform:translate(4px,3px)}
+.text-layer.l3{color:rgba(160,220,170,0.12);transform:translate(0,-3px)}
+.text-layer.focused{color:rgba(232,224,212,0.85);transform:translate(0,0);z-index:5}
+.text-layer.pushed{opacity:0.03}
+.controls{position:fixed;bottom:3rem;display:flex;gap:0.5rem;z-index:10}
+.ctrl{background:none;border:1px solid rgba(255,255,255,0.08);color:#555;padding:0.4rem 1rem;border-radius:100px;cursor:pointer;font-family:inherit;font-size:0.65rem;transition:all 0.3s ease}
+.ctrl:hover{border-color:rgba(255,255,255,0.2);color:#999}
+.ctrl.active{border-color:rgba(255,255,255,0.2);color:#ccc}
+.label{position:fixed;bottom:5rem;font-size:0.6rem;color:#444;text-transform:uppercase;letter-spacing:0.1em;z-index:10}
+.title-line{font-size:2rem;text-align:center;margin-bottom:2rem;color:rgba(232,224,212,0.06);font-weight:400;letter-spacing:-0.02em}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="title-line">Ivermectin</div>
+<div class="interference" id="field">
+  <div class="text-layer l1" id="layer1">A Nobel Prize-winning drug that doctors were using with real results — until the establishment panicked and called it "horse paste" to protect a hundred-billion-dollar vaccine rollout. Follow the money. I took it. I was better in days.</div>
+  <div class="text-layer l2" id="layer2">An antiparasitic with no demonstrated benefit for COVID-19 in randomized controlled trials. The plural of anecdote is not data. The TOGETHER trial — 3,500 patients — showed no significant benefit. That is how medicine works.</div>
+  <div class="text-layer l3" id="layer3">A cheap generic the system was structurally incapable of honestly evaluating. The EUA required no adequate alternative to exist. Both "miracle cure" and "horse paste" are wrong. No conspiracy needed — just an incentive structure.</div>
+</div>
+<div class="label" id="label">Three perspectives overlaid. Focus one to read it.</div>
+<div class="controls">
+  <button class="ctrl" onclick="focus(null)">All layers</button>
+  <button class="ctrl" onclick="focus(1)">Rogan</button>
+  <button class="ctrl" onclick="focus(2)">Fauci</button>
+  <button class="ctrl" onclick="focus(3)">Weinstein</button>
+</div>
+<script>
+const layers=[document.getElementById('layer1'),document.getElementById('layer2'),document.getElementById('layer3')];
+const ctrls=document.querySelectorAll('.ctrl');
+function focus(n){
+  ctrls.forEach((c,i)=>c.classList.toggle('active',n===null?i===0:i===n));
+  layers.forEach((l,i)=>{
+    l.classList.remove('focused','pushed');
+    if(n===null)return;
+    if(i===n-1)l.classList.add('focused');
+    else l.classList.add('pushed');
+  });
+  document.getElementById('label').textContent=n===null?'Three perspectives overlaid. Focus one to read it.':`Reading: ${['Rogan','Fauci','Weinstein'][n-1]}'s version`;
+}
+// Auto-cycle
+let auto=0;
+const seq=[null,1,2,3];
+setInterval(()=>{auto=(auto+1)%4;focus(seq[auto])},3000);
+</script></body></html>

@@ -5,6 +5,7 @@
 	import RequestAccepted from '../../pr/[naddr]/[pr]/RequestAccepted.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { nip19 } from 'nostr-tools';
+	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
 
 	let { mergeRequest }: { mergeRequest: NDKEvent } = $props();
 
@@ -18,6 +19,9 @@
 			topic
 		};
 	});
+
+	const mergeAuthorRoute = useNip05RouteId(() => mergeRequest.pubkey);
+	const mergeTargetRoute = useNip05RouteId(() => mergeTarget.pubkey);
 
 	const naddr = $derived(
 		nip19.naddrEncode({
@@ -41,11 +45,11 @@
 
 <div class="space-y-3 text-sm">
 	<p class="leading-7 text-muted-foreground">
-		<a href="/p/{mergeRequest.pubkey}" class="font-semibold text-foreground">
+		<a href="/p/{mergeAuthorRoute.id || mergeRequest.pubkey}" class="font-semibold text-foreground">
 			<Name {ndk} pubkey={mergeRequest.pubkey} />
 		</a>
 		sent a merge request for
-		<a href="/{mergeTarget.topic}/{mergeTarget.pubkey}" class="font-semibold text-foreground">
+		<a href="/{mergeTarget.topic}/{mergeTargetRoute.id || mergeTarget.pubkey}" class="font-semibold text-foreground">
 			{mergeTarget.topic}
 		</a>
 		by

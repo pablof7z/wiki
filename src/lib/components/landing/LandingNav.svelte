@@ -1,8 +1,14 @@
 <script lang="ts">
 	import Logo from '$lib/components/Logo.svelte';
+	import { ndk } from '$lib/ndk.svelte';
+	import Login from '../../../routes/Login.svelte';
+	import CurrentUserMenu from '$lib/components/CurrentUserMenu.svelte';
 
 	let { scrolled = false, activeSection = '' }: { scrolled?: boolean; activeSection?: string } =
 		$props();
+
+	let currentUser = $derived(ndk.$currentUser);
+	let settingsOpen = $state(false);
 
 	const links = [
 		{ href: '#demo-section', label: 'Demo' },
@@ -36,12 +42,18 @@
 				{link.label}
 			</a>
 		{/each}
-		<a
-			class="nav-cta"
-			href="#cta-section"
-			onclick={(e) => scrollToSection(e, '#cta-section')}
-		>
+		<a class="nav-cta" href="/explore">
 			Start exploring
 		</a>
+		{#if currentUser}
+			<CurrentUserMenu
+				bind:settingsOpen
+				includeSettingsSheet
+				class="ml-1"
+				contentClass="z-[110]"
+			/>
+		{:else}
+			<Login />
+		{/if}
 	</div>
 </nav>

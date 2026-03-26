@@ -5,6 +5,7 @@ import type { ComparableEntry, ComparableEventFetcher } from './types';
 
 const WIKI_ENTRY_KIND = 30818;
 const NDK_CONNECT_TIMEOUT_MS = 2500;
+const PROFILE_FETCH_TIMEOUT_MS = 1500;
 
 type ProfileLike = Pick<NDKUserProfile, 'displayName' | 'name' | 'nip05'>;
 type UserLike = {
@@ -96,7 +97,13 @@ async function resolveAuthorName(client: NostrClient, pubkey: string): Promise<s
 
 	try {
 		const user = client.getUser({ pubkey });
-		const profile = user.profile ?? (await user.fetchProfile({ closeOnEose: true }));
+		const profile =
+			user.profile ??
+			(await withTimeout(
+				user.fetchProfile({ closeOnEose: true }),
+				PROFILE_FETCH_TIMEOUT_MS,
+				'profile fetch timed out'
+			));
 		return chooseAuthorName(profile, fallbackAuthorName);
 	} catch (error) {
 		console.warn('[event-comparisons] profile lookup failed, using pubkey fallback', error);
@@ -149,4 +156,17 @@ async function getServerNdkClient(relayUrls: string[]): Promise<NDK> {
 		ndkClients.delete(relayKey);
 		throw error;
 	}
+}
+
+async function withTimeout<T>(
+	promise: Promise<T>,
+	timeoutMs: number,
+	message: string
+): Promise<T> {
+	return await Promise.race([
+		promise,
+		new Promise<T>((_, reject) => {
+			setTimeout(() => reject(new Error(message)), timeoutMs);
+		})
+	]);
 }

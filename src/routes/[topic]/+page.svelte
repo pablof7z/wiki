@@ -1,19 +1,31 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
 	import { ndk } from '$lib/ndk.svelte';
+	import TopicEntriesSeedList from '$lib/components/TopicEntriesSeedList.svelte';
 	import TopicEntriesList from '$lib/components/TopicEntriesList.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
 	import { getRenderableTopicEntries } from '$lib/utils/topic-entries';
+	import type { PageData } from './$types';
 
-	let { topic = $bindable($page.params.topic) }: { topic?: string } = $props();
+	let { data }: { data: PageData } = $props();
 
-	let mounted = $state(true);
+	const topic = $derived($page.params.topic ?? '');
+	const title = $derived(data.preview?.title ?? topic);
+	const description = $derived(data.preview?.description ?? '');
+	const seededEntryCount = $derived(data.topicEntries?.length ?? 0);
+	let hydrated = $state(false);
+
+	$effect(() => {
+		hydrated = true;
+	});
 
 	const entries = ndk.$subscribe(() => {
-		if (!mounted) return { filters: [] };
+		if (!browser) return undefined;
 
 		const currentTopic = $page.params.topic;
-		if (!currentTopic) return { filters: [] };
+		if (!currentTopic) return undefined;
 
 		return {
 			filters: [{ kinds: [30818 as number], '#d': [currentTopic] }],
@@ -21,28 +33,62 @@
 		};
 	});
 
-	const topicEntries = $derived(getRenderableTopicEntries(entries.events));
+	const seededEvents = $derived.by(() => {
+		if (!hydrated) return [];
+
+		return (data.seedEvents ?? []).map((event) => new NDKEvent(ndk, event as NostrEvent));
+	});
+
+	const topicEntries = $derived.by(() => {
+		if (!hydrated) return [];
+
+		const mergedEntries = new Map<string, NDKEvent>();
+
+		for (const entry of seededEvents) {
+			mergedEntries.set(entry.id, entry);
+		}
+
+		for (const entry of entries.events ?? []) {
+			mergedEntries.set(entry.id, entry);
+		}
+
+		return getRenderableTopicEntries(mergedEntries.values());
+	});
+
+	const entriesLoaded = $derived(hydrated ? entries.eosed || topicEntries.length > 0 : seededEntryCount > 0);
+	const entryCount = $derived(hydrated ? topicEntries.length : seededEntryCount);
+	const isLoading = $derived(!entriesLoaded && entryCount === 0);
 </script>
 
 <PageContainer>
-	<section class="glass-panel rounded-[2.5rem] px-6 py-6 sm:px-8 sm:py-8">
-		<p class="eyebrow mb-3">Topic dossier</p>
-		<h1>{topic}</h1>
+	<h1 class="text-[2.2rem] leading-[1.1]">{title}</h1>
 
-		{#if topicEntries.length > 0}
-			<p class="mt-4 text-base text-muted-foreground">
-				There {topicEntries.length === 1 ? 'is' : 'are'}
-				{topicEntries.length}
-				{topicEntries.length === 1 ? ' entry' : ' entries'} for this topic.
-			</p>
+	{#if description}
+		<p class="mt-3 max-w-3xl text-sm leading-6 text-[#777]">
+			{description}
+		</p>
+	{/if}
 
-			<div class="mt-6">
-				<TopicEntriesList {entries} />
-			</div>
-		{:else}
-			<div class="surface-inset mt-6 rounded-[1.8rem] px-5 py-6 text-muted-foreground">
-				No entries found for this topic.
-			</div>
-		{/if}
-	</section>
+	{#if entryCount > 0}
+		<p class="mt-3 text-sm text-[#777]">
+			{entryCount}
+			{entryCount === 1 ? ' entry' : ' entries'}
+		</p>
+
+		<div class="mt-6">
+			{#if hydrated}
+				<TopicEntriesList events={topicEntries} />
+			{:else}
+				<TopicEntriesSeedList entries={data.topicEntries ?? []} />
+			{/if}
+		</div>
+	{:else if isLoading}
+		<div class="surface-inset mt-6 rounded-xl px-5 py-6 text-muted-foreground">
+			Loading entries...
+		</div>
+	{:else}
+		<div class="surface-inset mt-6 rounded-xl px-5 py-6 text-muted-foreground">
+			No entries found for this topic.
+		</div>
+	{/if}
 </PageContainer>

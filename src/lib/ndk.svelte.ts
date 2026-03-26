@@ -103,7 +103,7 @@ export const ndkReady = (async () => {
  * Access session data directly from ndk.$sessions in components
  *
  * Example:
- *   const currentUser = ndk.$sessions?.currentUser;
+ *   const currentUser = ndk.$currentUser;
  *   const follows = ndk.$sessions?.follows;
  *   const relayList = ndk.$sessions?.relayList;
  */

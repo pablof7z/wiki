@@ -21,6 +21,7 @@ export type ComparisonRuntimeConfig = {
 	ollama: {
 		baseURL: string;
 		model: string;
+		headers: Record<string, string>;
 	};
 	cache: ComparisonCacheConfig;
 };
@@ -58,7 +59,8 @@ export function getEventComparisonConfig(
 		relayUrls,
 		ollama: {
 			baseURL: requireEnv(env, 'COMPARE_OLLAMA_BASE_URL'),
-			model: requireEnv(env, 'COMPARE_OLLAMA_MODEL')
+			model: requireEnv(env, 'COMPARE_OLLAMA_MODEL'),
+			headers: resolveOllamaHeaders(env)
 		},
 		cache: resolveCacheConfig(env)
 	};
@@ -67,8 +69,8 @@ export function getEventComparisonConfig(
 function resolveCacheConfig(env: Record<string, string | undefined>): ComparisonCacheConfig {
 	const namespace =
 		(env.COMPARISON_CACHE_NAMESPACE || DEFAULT_CACHE_NAMESPACE).trim() || DEFAULT_CACHE_NAMESPACE;
-	const redisUrl = env.UPSTASH_REDIS_REST_URL?.trim();
-	const redisToken = env.UPSTASH_REDIS_REST_TOKEN?.trim();
+	const redisUrl = (env.UPSTASH_REDIS_REST_URL ?? env.KV_REST_API_URL)?.trim();
+	const redisToken = (env.UPSTASH_REDIS_REST_TOKEN ?? env.KV_REST_API_TOKEN)?.trim();
 
 	if (redisUrl && redisToken) {
 		return {
@@ -87,18 +89,69 @@ function resolveCacheConfig(env: Record<string, string | undefined>): Comparison
 		);
 	}
 
-	if (env.NODE_ENV !== 'production') {
-		return {
-			kind: 'memory',
-			namespace
-		};
+	return {
+		kind: 'memory',
+		namespace
+	};
+}
+
+function resolveOllamaHeaders(env: Record<string, string | undefined>): Record<string, string> {
+	const headers = parseHeaderRecord(env.COMPARE_OLLAMA_HEADERS_JSON);
+	const apiKey = env.COMPARE_OLLAMA_API_KEY?.trim();
+
+	if (apiKey && !hasHeader(headers, 'authorization')) {
+		headers.Authorization = `Bearer ${apiKey}`;
 	}
 
-	throw new EventComparisonError(
-		503,
-		'missing_config',
-		'UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required for event comparisons in production.'
-	);
+	return headers;
+}
+
+function parseHeaderRecord(rawHeaders: string | undefined): Record<string, string> {
+	if (!rawHeaders?.trim()) {
+		return {};
+	}
+
+	let parsedHeaders: unknown;
+
+	try {
+		parsedHeaders = JSON.parse(rawHeaders);
+	} catch {
+		throw new EventComparisonError(
+			503,
+			'invalid_ollama_headers',
+			'COMPARE_OLLAMA_HEADERS_JSON must be valid JSON.'
+		);
+	}
+
+	if (!parsedHeaders || Array.isArray(parsedHeaders) || typeof parsedHeaders !== 'object') {
+		throw new EventComparisonError(
+			503,
+			'invalid_ollama_headers',
+			'COMPARE_OLLAMA_HEADERS_JSON must be a JSON object of header names to string values.'
+		);
+	}
+
+	const headers: Record<string, string> = {};
+
+	for (const [name, value] of Object.entries(parsedHeaders)) {
+		const normalizedName = name.trim();
+
+		if (!normalizedName || typeof value !== 'string' || !value.trim()) {
+			throw new EventComparisonError(
+				503,
+				'invalid_ollama_headers',
+				'COMPARE_OLLAMA_HEADERS_JSON must contain only non-empty string header names and values.'
+			);
+		}
+
+		headers[normalizedName] = value.trim();
+	}
+
+	return headers;
+}
+
+function hasHeader(headers: Record<string, string>, headerName: string): boolean {
+	return Object.keys(headers).some((name) => name.toLowerCase() === headerName.toLowerCase());
 }
 
 function requireEnv(env: Record<string, string | undefined>, key: string): string {

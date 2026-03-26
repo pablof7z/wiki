@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Final V1 — Vertical + Context</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2.5rem 2rem 3rem}
+
+/* Branding + Context */
+.brand-block{text-align:center;margin-bottom:2.5rem;max-width:520px}
+.wordmark{font-size:2.4rem;font-style:italic;color:rgba(232,224,212,0.85);font-family:'Georgia',serif;letter-spacing:-0.02em;margin-bottom:0.6rem}
+.context-line{font-size:0.82rem;color:#888;line-height:1.55;font-family:'Georgia',serif}
+.context-line .wiki{color:#555;text-decoration:line-through;text-decoration-color:#555}
+.context-line strong{color:#ccc;font-weight:400}
+
+/* Search */
+.search-bar{width:560px;background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:0.7rem 1.3rem;display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem}
+.search-icon{color:#555;font-size:0.85rem}
+.search-query{font-size:0.9rem;color:#e8e0d4}
+.search-meta{font-size:0.55rem;color:#444;margin-bottom:1.75rem;width:560px}
+
+/* Results */
+.results{width:580px;display:flex;flex-direction:column;gap:0}
+
+.result{padding:1rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:44px 1fr;gap:1rem;align-items:start}
+.result:last-child{border-bottom:none}
+
+.r-avatar{width:44px;height:44px;border-radius:50%;background-size:cover;background-position:center;background-color:#2a2a28;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#777;font-weight:600;flex-shrink:0;overflow:hidden}
+.r-avatar img{width:100%;height:100%;object-fit:cover}
+
+.r-header{display:flex;align-items:baseline;gap:0.5rem;margin-bottom:0.3rem}
+.r-name{font-size:0.75rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.55rem;color:#555}
+
+.r-quote{font-size:0.95rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic;margin-bottom:0.3rem}
+.r-quote .clash{font-style:normal;color:#e8e0d4;font-weight:500}
+
+.r-excerpt{font-size:0.68rem;line-height:1.55;color:#666}
+
+/* Compare hint */
+.compare-hint{width:580px;margin-top:1.25rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:space-between}
+.ch-meta{font-size:0.55rem;color:#444}
+.ch-btn{font-size:0.6rem;color:#666;display:flex;align-items:center;gap:0.4rem;cursor:pointer;transition:color 0.2s ease}
+.ch-btn:hover{color:#aaa}
+
+/* ===== COMPARISON ===== */
+.comp-section{position:relative}
+.comp-sticky{position:sticky;top:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+
+.comp-panel{width:640px;background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;opacity:0;transform:translateY(30px);transition:all 0.7s cubic-bezier(0.22,1,0.36,1)}
+.comp-panel.visible{opacity:1;transform:translateY(0)}
+
+.comp-top{padding:0.8rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:0.5rem}
+.comp-icon{font-size:0.8rem;color:#888}
+.comp-label{font-size:0.65rem;font-weight:600;color:#ccc}
+.comp-sublabel{font-size:0.55rem;color:#555;margin-left:0.25rem}
+.comp-avatars{margin-left:auto;display:flex}
+.comp-av{width:22px;height:22px;border-radius:50%;background:#2a2a28;display:flex;align-items:center;justify-content:center;font-size:0.4rem;color:#777;border:2px solid #1a1918;margin-left:-6px;font-weight:600;overflow:hidden}
+.comp-av img{width:100%;height:100%;object-fit:cover}
+
+.comp-content{padding:1.25rem 1.5rem}
+
+.stream{font-size:0.8rem;line-height:1.8;color:#999;opacity:0;transform:translateY(6px);transition:all 0.5s ease;margin-bottom:0.6rem}
+.stream.in{opacity:1;transform:translateY(0)}
+.stream strong{color:#e8e0d4;font-weight:600}
+
+.contention{margin:0.5rem 0 0.75rem;display:flex;flex-direction:column;gap:0.35rem;opacity:0;transform:translateY(6px);transition:all 0.5s ease}
+.contention.in{opacity:1;transform:translateY(0)}
+
+.ct-row{display:grid;grid-template-columns:28px 70px 1fr;gap:0.5rem;align-items:center;font-size:0.72rem;padding:0.35rem 0.5rem;border-radius:6px;background:rgba(255,255,255,0.015)}
+.ct-av{width:22px;height:22px;border-radius:50%;background:#2a2a28;display:flex;align-items:center;justify-content:center;font-size:0.4rem;color:#777;font-weight:600;overflow:hidden}
+.ct-av img{width:100%;height:100%;object-fit:cover}
+.ct-who{font-weight:600;color:#999}
+.ct-claim{color:#bbb;line-height:1.4}
+
+.kicker{font-size:0.85rem;color:#ccc;font-family:'Georgia',serif;font-style:italic;padding:0.5rem 0.75rem;border-left:2px solid rgba(255,200,100,0.2);margin-top:0.5rem;opacity:0;transition:all 0.5s ease}
+.kicker.in{opacity:1}
+</style></head><body>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="brand-block">
+    <div class="wordmark">Wikifreedia</div>
+    <div class="context-line">
+      <span class="wiki">One entry. One truth. Decided by consensus.</span><br>
+      <strong>Every entry here is a perspective — not a verdict.</strong>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <span class="search-query">Ivermectin</span>
+  </div>
+  <div class="search-meta">3 entries from 3 authors</div>
+
+  <div class="results">
+    <div class="result">
+      <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+      <div>
+        <div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div>
+        <div class="r-quote">"They called a Nobel Prize-winning drug <span class="clash">'horse paste'</span> to protect a hundred-billion-dollar vaccine rollout."</div>
+        <div class="r-excerpt">Doctors around the world were seeing results. A $2 generic was a threat. I took it — I was better in days.</div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+      <div>
+        <div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist · Public Health</span></div>
+        <div class="r-quote">"The randomized controlled trials <span class="clash">do not show benefit</span>. The plural of anecdote is not data."</div>
+        <div class="r-excerpt">The TOGETHER trial — 3,500 patients, double-blind — showed no significant clinical benefit. That is how medicine works.</div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+      <div>
+        <div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div>
+        <div class="r-quote">"The system was <span class="clash">structurally incapable</span> of honest evaluation. You don't need a conspiracy."</div>
+        <div class="r-excerpt">The EUA required no adequate alternative to exist. The vaccine program depended on the answer being no.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare-hint">
+    <span class="ch-meta">Same drug · three realities</span>
+    <span class="ch-btn">✦ See where they disagree ↓</span>
+  </div>
+</section>
+
+<!-- ===== COMPARISON ===== -->
+<section class="comp-section" id="compSection" style="height:250vh">
+  <div class="comp-sticky">
+    <div class="comp-panel" id="compPanel">
+      <div class="comp-top">
+        <span class="comp-icon">✦</span>
+        <span class="comp-label">AI Comparison</span>
+        <span class="comp-sublabel">· 3 entries on Ivermectin</span>
+        <div class="comp-avatars">
+          <div class="comp-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+          <div class="comp-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+          <div class="comp-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+        </div>
+      </div>
+      <div class="comp-content">
+        <div class="stream" id="s1">All three describe the same molecule — but they're having <strong>three fundamentally different conversations</strong>.</div>
+
+        <div class="contention" id="s2">
+          <div class="ct-row">
+            <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+            <div class="ct-who">Rogan</div>
+            <div class="ct-claim">A suppressed cure. The $2 generic threatened a $100B vaccine rollout.</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+            <div class="ct-who">Fauci</div>
+            <div class="ct-claim">No clinical benefit in randomized trials. Anecdotes aren't evidence.</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+            <div class="ct-who">Weinstein</div>
+            <div class="ct-claim">The regulatory framework couldn't produce an honest answer either way.</div>
+          </div>
+        </div>
+
+        <div class="stream" id="s3">The deepest split is about <strong>the role of the state</strong>: Rogan sees corruption, Fauci sees the system working as designed, Weinstein sees a structural flaw that makes both positions miss the point.</div>
+
+        <div class="stream" id="s4">On evidence: Rogan trusts clinical observation. Fauci trusts randomized trials. Weinstein questions whether the incentive structure allowed honest trials to happen.</div>
+
+        <div class="kicker" id="s5">A traditional encyclopedia chooses one frame and calls it neutral. Wikifreedia keeps all three — because understanding the disagreement is the knowledge.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="height:20vh"></div>
+
+<script>
+const compPanel=document.getElementById('compPanel');
+const streams=['s1','s2','s3','s4','s5'];
+let revealed=false,idx=0,timer;
+
+function onScroll(){
+  const rect=document.getElementById('compSection').getBoundingClientRect();
+  if(rect.top<innerHeight*0.6&&!revealed){
+    revealed=true;
+    compPanel.classList.add('visible');
+    timer=setInterval(()=>{
+      if(idx<streams.length){
+        document.getElementById(streams[idx]).classList.add('in');
+        idx++;
+      }else clearInterval(timer);
+    },600);
+  }
+}
+addEventListener('scroll',onScroll,{passive:true});
+</script>
+</body></html>

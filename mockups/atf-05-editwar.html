@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 — Edit War</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'SF Mono','Menlo',monospace;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2);font-family:'Georgia',serif}
+.editor{width:650px;background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:10px;overflow:hidden}
+.editor-bar{display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.6rem;color:#555}
+.dot{width:8px;height:8px;border-radius:50%;background:#333}
+.editor-filename{margin-left:0.5rem;color:#777}
+.editor-cursors{margin-left:auto;display:flex;gap:0.4rem}
+.cursor-dot{width:6px;height:6px;border-radius:50%}
+.cursor-dot.c1{background:#e06060}
+.cursor-dot.c2{background:#60a0e0}
+.cursor-dot.c3{background:#60c080}
+.editor-body{padding:1.25rem;font-size:0.75rem;line-height:2;min-height:300px;position:relative}
+.line{display:flex;gap:0.5rem;min-height:1.5em;align-items:flex-start}
+.line-num{color:#333;min-width:2rem;text-align:right;user-select:none;font-size:0.65rem;padding-top:2px}
+.line-content{flex:1;position:relative}
+.strike{text-decoration:line-through;color:#555;transition:all 0.3s ease}
+.insert{opacity:0;transition:all 0.3s ease;display:inline}
+.insert.show{opacity:1}
+.cursor-marker{display:inline-block;width:1.5px;height:1em;vertical-align:text-bottom;animation:blink 0.8s step-end infinite;margin:0 1px}
+.cursor-marker.c1{background:#e06060}
+.cursor-marker.c2{background:#60a0e0}
+.cursor-marker.c3{background:#60c080}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.edit-log{padding:0.6rem 1rem;border-top:1px solid rgba(255,255,255,0.04);font-size:0.55rem;color:#555;display:flex;gap:1rem}
+.edit-log span{display:flex;align-items:center;gap:0.3rem}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="editor">
+  <div class="editor-bar">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <span class="editor-filename">ivermectin.wiki</span>
+    <div class="editor-cursors">
+      <div class="cursor-dot c1"></div><span>Rogan</span>
+      <div class="cursor-dot c2"></div><span>Fauci</span>
+      <div class="cursor-dot c3"></div><span>Weinstein</span>
+    </div>
+  </div>
+  <div class="editor-body" id="editorBody">
+    <div class="line"><span class="line-num">1</span><span class="line-content" style="font-family:'Georgia',serif;font-size:1.2rem;color:#e8e0d4">Ivermectin</span></div>
+    <div class="line"><span class="line-num">2</span><span class="line-content">&nbsp;</span></div>
+    <div class="line"><span class="line-num">3</span><span class="line-content" id="line3">Ivermectin is <span class="strike" id="s1">an antiparasitic drug</span><span class="insert" id="i1"><span class="cursor-marker c1"></span>a Nobel Prize-winning medicine they called "horse paste"</span></span></div>
+    <div class="line"><span class="line-num">4</span><span class="line-content" id="line4"><span class="strike" id="s2">discovered in the 1970s.</span><span class="insert" id="i2"><span class="cursor-marker c2"></span>with no demonstrated COVID-19 benefit in RCTs.</span></span></div>
+    <div class="line"><span class="line-num">5</span><span class="line-content">&nbsp;</span></div>
+    <div class="line"><span class="line-num">6</span><span class="line-content" id="line6">The controversy <span class="strike" id="s3">centered on clinical evidence</span><span class="insert" id="i3"><span class="cursor-marker c1"></span>is about a $2 drug threatening a $100B rollout</span></span></div>
+    <div class="line"><span class="line-num">7</span><span class="line-content" id="line7"><span class="strike" id="s4">for its off-label use.</span><span class="insert" id="i4"><span class="cursor-marker c2"></span>about podcast hosts overriding evidence-based medicine.</span></span></div>
+    <div class="line"><span class="line-num">8</span><span class="line-content">&nbsp;</span></div>
+    <div class="line"><span class="line-num">9</span><span class="line-content" id="line9"><span class="insert" id="i5"><span class="cursor-marker c3"></span>Both sides miss the point. The EUA framework made honest</span></span></div>
+    <div class="line"><span class="line-num">10</span><span class="line-content" id="line10"><span class="insert" id="i6">evaluation structurally impossible. No conspiracy needed.</span></span></div>
+  </div>
+  <div class="edit-log">
+    <span><div class="cursor-dot c1"></div> 12 edits</span>
+    <span><div class="cursor-dot c2"></div> 9 reverts</span>
+    <span><div class="cursor-dot c3"></div> 6 additions</span>
+    <span style="margin-left:auto;color:#444">Conflict cannot be resolved — 3 versions created</span>
+  </div>
+</div>
+<script>
+const edits=[
+  {type:'strike',el:'s1',delay:800},
+  {type:'insert',el:'i1',delay:1400},
+  {type:'strike',el:'s2',delay:2200},
+  {type:'insert',el:'i2',delay:2800},
+  {type:'strike',el:'s3',delay:3800},
+  {type:'insert',el:'i3',delay:4400},
+  {type:'strike',el:'s4',delay:5200},
+  {type:'insert',el:'i4',delay:5800},
+  {type:'insert',el:'i5',delay:7000},
+  {type:'insert',el:'i6',delay:7400},
+];
+edits.forEach(({type,el,delay})=>{
+  setTimeout(()=>{
+    const e=document.getElementById(el);
+    if(type==='strike')e.style.textDecoration='line-through';
+    if(type==='insert')e.classList.add('show');
+  },delay);
+});
+</script></body></html>

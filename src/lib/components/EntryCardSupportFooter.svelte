@@ -6,7 +6,7 @@
 
 	let { event }: { event: NDKEvent } = $props();
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 
 	// Get entries written by the current user on this topic
 	const currentUserEntries = ndk.$subscribe(() => {
@@ -63,7 +63,7 @@
 
 <div class="fixed bottom-0 left-0 right-0 p-4">
 	<div class="mx-auto {$maxBodyWidth}">
-		<div class="glass-panel rounded-[1.75rem] px-4 py-4 sm:px-6">
+		<div class="glass-panel rounded-xl px-4 py-4 sm:px-6">
 			{#if currentUserEntry && !userDefersToEntry}
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center">
 					<Button onclick={defer}>Defer</Button>

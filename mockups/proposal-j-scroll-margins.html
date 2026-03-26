@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal J — Scroll Margins</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+  }
+
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.15);
+    z-index: 100;
+  }
+
+  /* ===== INTRO ===== */
+  .intro {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  .intro-text {
+    font-size: 0.9rem;
+    color: #666;
+    max-width: 460px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 3rem;
+  }
+
+  .scroll-cue {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #444;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .scroll-arrow {
+    width: 10px; height: 10px;
+    border-right: 1px solid #444;
+    border-bottom: 1px solid #444;
+    transform: rotate(45deg);
+    animation: bob 2s infinite;
+  }
+
+  @keyframes bob {
+    0%,100% { transform: rotate(45deg); }
+    50% { transform: rotate(45deg) translate(3px, 3px); }
+  }
+
+  /* ===== MAIN MANUSCRIPT ===== */
+  .manuscript-section {
+    position: relative;
+    padding: 0 0 40vh 0;
+  }
+
+  .manuscript-layout {
+    display: grid;
+    grid-template-columns: 1fr 520px 1fr;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* Center column: the article */
+  .center-article {
+    grid-column: 2;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 3rem 2.5rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .article-eyebrow {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #555;
+    margin-bottom: 0.4rem;
+  }
+
+  .article-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .article-text {
+    font-size: 0.88rem;
+    line-height: 2;
+    color: #aaa;
+  }
+
+  .article-text p {
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+
+  /* Annotatable spans */
+  .ann {
+    position: relative;
+    transition: all 0.4s ease;
+  }
+
+  .ann.lit {
+    color: #e8e0d4;
+    border-bottom: 1px solid rgba(255, 200, 100, 0.25);
+  }
+
+  /* Margin notes */
+  .margin-note {
+    position: absolute;
+    width: 200px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 3;
+  }
+
+  .margin-note.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Left margin notes */
+  .margin-note.left {
+    right: calc(50% + 290px);
+    text-align: right;
+  }
+
+  /* Right margin notes */
+  .margin-note.right {
+    left: calc(50% + 290px);
+    text-align: left;
+  }
+
+  .note-connector {
+    position: absolute;
+    top: 12px;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    width: 24px;
+  }
+
+  .margin-note.left .note-connector { right: -28px; }
+  .margin-note.right .note-connector { left: -28px; }
+
+  .note-author {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .note-body {
+    font-size: 0.7rem;
+    line-height: 1.55;
+    color: #888;
+    font-style: italic;
+  }
+
+  .note-reply {
+    font-size: 0.55rem;
+    color: #555;
+    margin-top: 0.3rem;
+    font-style: normal;
+  }
+
+  /* Connector lines from margin to text */
+  .margin-note.visible .note-connector {
+    background: rgba(255, 200, 100, 0.12);
+  }
+
+  /* ===== REVEAL SECTION ===== */
+  .reveal-section {
+    height: 150vh;
+    position: relative;
+  }
+
+  .reveal-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .reveal-text {
+    text-align: center;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.7s ease;
+  }
+
+  .reveal-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-heading {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .reveal-body {
+    font-size: 0.88rem;
+    color: #888;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  .count-display {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.3s;
+  }
+
+  .count-display.visible { opacity: 1; }
+
+  .count-item {
+    text-align: center;
+  }
+
+  .count-num {
+    font-size: 2rem;
+    font-weight: 400;
+    color: #e8e0d4;
+  }
+
+  .count-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+  }
+
+  /* Phase indicator */
+  .phase-label {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #444;
+    z-index: 100;
+    transition: opacity 0.4s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="phase-label" id="phaseLabel">An encyclopedia entry</div>
+
+<!-- INTRO -->
+<section class="intro" id="intro">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="intro-text">Here is a standard encyclopedia entry. As you scroll, watch the margins come alive.</div>
+  <div class="scroll-cue">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- MANUSCRIPT WITH GROWING MARGINS -->
+<section class="manuscript-section" id="manuscript">
+  <div class="manuscript-layout">
+    <div class="center-article">
+      <div class="article-eyebrow">Encyclopedia Entry</div>
+      <div class="article-title">Capitalism</div>
+      <div class="article-text">
+        <p id="p1"><span class="ann" id="ann1">Capitalism is an economic system characterized by private ownership of the means of production</span>, in which investment decisions are made by private actors and prices, production, and distribution of goods are determined by competition in markets.</p>
+
+        <p id="p2">The system emerged in early modern Europe and <span class="ann" id="ann2">expanded through industrialization into the dominant global economic model</span>. Its proponents argue it generates prosperity through competition and innovation.</p>
+
+        <p id="p3"><span class="ann" id="ann3">Critics contend the system produces inequality, exploitation, and periodic crises</span> that threaten social stability. The debate over capitalism's merits has shaped political discourse for over two centuries.</p>
+
+        <p id="p4">The relationship between capitalism and the state <span class="ann" id="ann4">remains one of the most contested questions in political economy</span>. Some view the state as essential to capitalism's functioning; others see it as fundamentally opposed.</p>
+
+        <p id="p5"><span class="ann" id="ann5">The apparent freedom of market exchange</span> is celebrated by some as the highest expression of human liberty and questioned by others as a veil over deeper structural forces.</p>
+
+        <p id="p6">Contemporary debate centers on <span class="ann" id="ann6">whether capitalism can be reformed to address its shortcomings</span>, or whether its fundamental structure makes such reform impossible.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Margin notes positioned absolutely -->
+  <!-- Note 1: Smith, left, on "private ownership" -->
+  <div class="margin-note left" id="note1" style="top: 210px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Adam Smith</div>
+    <div class="note-body">"Private ownership is not merely a feature — it is the natural order. The propensity to exchange is innate."</div>
+  </div>
+
+  <!-- Note 2: Marx, right, on "private ownership" -->
+  <div class="margin-note right" id="note2" style="top: 220px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Karl Marx</div>
+    <div class="note-body">"'Private ownership' — acquired through the historical violence of enclosure and dispossession, not nature."</div>
+  </div>
+
+  <!-- Note 3: Smith, right, on "expanded through industrialization" -->
+  <div class="margin-note right" id="note3" style="top: 380px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Adam Smith</div>
+    <div class="note-body">"The division of labor multiplied wealth beyond imagination. The pin factory proves it."</div>
+  </div>
+
+  <!-- Note 4: Marx, left, on "inequality and exploitation" -->
+  <div class="margin-note left" id="note4" style="top: 500px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Karl Marx</div>
+    <div class="note-body">"Not merely 'inequality.' Surplus value — extracted systematically. The worker produces; the capitalist takes."</div>
+  </div>
+
+  <!-- Note 5: Rothbard, right, on "contested questions" -->
+  <div class="margin-note right" id="note5" style="top: 620px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Murray Rothbard</div>
+    <div class="note-body">"There is nothing to contest. The state is coercion, period. Every tax is theft. Every regulation is violence."</div>
+  </div>
+
+  <!-- Note 6: Smith, left, responding to Rothbard -->
+  <div class="margin-note left" id="note6" style="top: 640px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Adam Smith</div>
+    <div class="note-body">"Rothbard goes too far. Without contract enforcement, the market collapses into fraud."</div>
+    <div class="note-reply">↳ responding to Rothbard</div>
+  </div>
+
+  <!-- Note 7: Marx, right, on "freedom of exchange" -->
+  <div class="margin-note right" id="note7" style="top: 780px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Karl Marx</div>
+    <div class="note-body">"'Apparent' is the right word. The worker is 'free' to sell their labor — or starve. This is freedom?"</div>
+  </div>
+
+  <!-- Note 8: Rothbard, left, on "reform" -->
+  <div class="margin-note left" id="note8" style="top: 890px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Murray Rothbard</div>
+    <div class="note-body">"Reform is the problem. Every reform is another intervention, another distortion. Stop reforming. Stop intervening."</div>
+  </div>
+
+  <!-- Note 9: Marx responds to Rothbard -->
+  <div class="margin-note right" id="note9" style="top: 910px;">
+    <div class="note-connector"></div>
+    <div class="note-author">Karl Marx</div>
+    <div class="note-body">"On this, Rothbard and I almost agree — reform cannot save capitalism. But for opposite reasons."</div>
+    <div class="note-reply">↳ responding to Rothbard</div>
+  </div>
+</section>
+
+<!-- FINALE -->
+<section class="reveal-section" id="revealSection">
+  <div class="reveal-sticky">
+    <div class="count-display" id="counts">
+      <div class="count-item">
+        <div class="count-num">1</div>
+        <div class="count-label">Topic</div>
+      </div>
+      <div class="count-item">
+        <div class="count-num">3</div>
+        <div class="count-label">Perspectives</div>
+      </div>
+      <div class="count-item">
+        <div class="count-num">9</div>
+        <div class="count-label">Disagreements</div>
+      </div>
+    </div>
+    <div class="reveal-text" id="revealText">
+      <div class="reveal-heading">The margins are where knowledge lives.</div>
+      <div class="reveal-body">A traditional encyclopedia silences the margins to present one "neutral" account. Wikifreedia keeps every voice — because truth emerges from the tension between them.</div>
+    </div>
+  </div>
+</section>
+
+<div style="height: 20vh;"></div>
+
+<script>
+const notes = [
+  { el: 'note1', trigger: 'ann1', ann: 'ann1' },
+  { el: 'note2', trigger: 'ann1', ann: 'ann1' },
+  { el: 'note3', trigger: 'ann2', ann: 'ann2' },
+  { el: 'note4', trigger: 'ann3', ann: 'ann3' },
+  { el: 'note5', trigger: 'ann4', ann: 'ann4' },
+  { el: 'note6', trigger: 'ann4', ann: 'ann4' },
+  { el: 'note7', trigger: 'ann5', ann: 'ann5' },
+  { el: 'note8', trigger: 'ann6', ann: 'ann6' },
+  { el: 'note9', trigger: 'ann6', ann: 'ann6' },
+];
+
+function onScroll() {
+  const scrollY = window.scrollY;
+  const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollY / totalScroll;
+
+  document.getElementById('scrollProgress').style.width = `${progress * 100}%`;
+
+  // Reveal margin notes based on their trigger annotation's position
+  notes.forEach(({ el, ann }) => {
+    const annEl = document.getElementById(ann);
+    const noteEl = document.getElementById(el);
+    if (!annEl || !noteEl) return;
+
+    const rect = annEl.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.75) {
+      noteEl.classList.add('visible');
+      annEl.classList.add('lit');
+    }
+  });
+
+  // Phase label
+  const label = document.getElementById('phaseLabel');
+  const manuscriptRect = document.getElementById('manuscript').getBoundingClientRect();
+  const revealRect = document.getElementById('revealSection').getBoundingClientRect();
+
+  if (manuscriptRect.top > window.innerHeight * 0.5) {
+    label.textContent = 'An encyclopedia entry';
+  } else if (revealRect.top > window.innerHeight * 0.5) {
+    const visibleNotes = document.querySelectorAll('.margin-note.visible').length;
+    if (visibleNotes === 0) label.textContent = 'Read the article...';
+    else if (visibleNotes < 4) label.textContent = 'The margins awaken';
+    else if (visibleNotes < 7) label.textContent = 'The disagreements multiply';
+    else label.textContent = 'Even the critics argue with each other';
+  } else {
+    label.textContent = 'Every entry is a perspective';
+  }
+
+  // Finale
+  if (revealRect.top < window.innerHeight * 0.6) {
+    document.getElementById('counts').classList.add('visible');
+    document.getElementById('revealText').classList.add('visible');
+  }
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+
+</body>
+</html>
