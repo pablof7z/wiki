@@ -173,10 +173,10 @@
 </svelte:head>
 
 <PageContainer class="py-6">
-	<section class="glass-panel rounded-[2.25rem] p-5 sm:p-7">
+	<section>
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 			<div>
-				<h1 class="text-[clamp(2.2rem,4vw,3.4rem)]">Recent comments</h1>
+				<h1 class="text-[2.2rem] leading-[1.1]">Recent comments</h1>
 				<p class="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
 					Live discussion from across wiki entries.
 				</p>
@@ -186,7 +186,7 @@
 		</div>
 
 		{#if recentComments.length === 0}
-			<div class="surface-inset mt-6 rounded-[1.5rem] px-5 py-6 text-sm text-muted-foreground">
+			<div class="surface-inset mt-6 rounded-xl px-5 py-6 text-sm text-muted-foreground">
 				No wiki comments have shown up yet.
 			</div>
 		{:else}
@@ -196,10 +196,9 @@
 					<article class="section-row">
 						<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 							<div class="min-w-0">
-								<p class="eyebrow mb-2">Entry</p>
-								{#if target?.href}
+									{#if target?.href}
 									<a href={target.href} class="subtle-link block">
-										<h2 class="display-wordmark text-[1.7rem] leading-none sm:text-[1.95rem]">
+										<h2 class="display-wordmark text-[1.15rem] leading-none sm:text-[1.25rem]">
 											{target.title}
 										</h2>
 									</a>

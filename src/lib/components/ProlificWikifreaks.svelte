@@ -3,6 +3,7 @@
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import { Avatar } from '@nostr-dev-kit/svelte';
 	import Name from '$lib/components/Name.svelte';
+	import UserProfileLink from '$lib/components/UserProfileLink.svelte';
 
 	const WIKI_KIND = 30818;
 	const LIKE_KIND = 7;
@@ -83,7 +84,7 @@
 	});
 </script>
 
-<div class="glass-panel rounded-[2rem] p-5 sm:p-6">
+<div class="glass-panel rounded-2xl p-5 sm:p-6">
 	<p class="eyebrow mb-3">Network signal</p>
 	<h3 class="text-xl">Prolific Wikifreaks</h3>
 	<p class="mt-2 text-sm text-muted-foreground">
@@ -95,8 +96,8 @@
 	{:else}
 		<div class="section-list mt-6">
 			{#each topUsers as user, i (user.pubkey)}
-				<a
-					href="/p/{user.pubkey}"
+				<UserProfileLink
+					pubkey={user.pubkey}
 					class="section-row section-row-link flex flex-row items-center gap-3"
 				>
 					<div class="w-6 text-sm font-semibold text-muted-foreground">
@@ -118,7 +119,7 @@
 					<div class="display-wordmark text-2xl">
 						{user.totalScore}
 					</div>
-				</a>
+				</UserProfileLink>
 			{/each}
 		</div>
 	{/if}

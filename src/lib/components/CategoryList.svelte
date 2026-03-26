@@ -4,7 +4,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	let { entries = undefined }: { entries?: Subscription<NDKEvent> } = $props();
+	let {
+		entries = undefined,
+		events = undefined
+	}: { entries?: Subscription<NDKEvent>; events?: NDKEvent[] } = $props();
 
 	function computeCategories(events: NDKEvent[]): string[] {
 		const cats = new SvelteMap<string, number>();
@@ -22,11 +25,11 @@
 			.map(([cat]) => cat);
 	}
 
-	const categories = $derived(entries?.events ? computeCategories(entries.events) : []);
+	const categories = $derived(computeCategories(events ?? entries?.events ?? []));
 </script>
 
 {#if categories && categories.length > 0}
-	<section class="glass-panel rounded-[2.25rem] p-5 sm:p-7">
+	<section class="glass-panel rounded-2xl p-5 sm:p-7">
 		<p class="eyebrow mb-3">Explore the map</p>
 		<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 			<div>
@@ -45,7 +48,7 @@
 
 		<div class="mt-6 flex flex-wrap gap-3">
 			{#each categories.slice(0, 24) as cat (cat)}
-				<a href="/?c={cat}">
+				<a href="/explore?c={cat}">
 					<Button
 						variant="outline"
 						size="default"

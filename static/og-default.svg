@@ -1,0 +1,46 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="128" y1="48" x2="1030" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FAF5E8"/>
+      <stop offset="1" stop-color="#E9DCC6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(930 130) rotate(122.863) scale(376.741 507.749)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#111111"/>
+      <stop offset="1" stop-color="#30261D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" rx="28" fill="url(#bg)"/>
+  <rect x="26" y="26" width="1148" height="578" rx="24" fill="url(#glow)"/>
+  <rect x="74" y="68" width="1052" height="494" rx="28" fill="#111111" fill-opacity="0.92"/>
+  <rect x="74" y="68" width="1052" height="494" rx="28" stroke="#F7EAD3" stroke-opacity="0.22"/>
+
+  <path d="M145 161H356" stroke="#D7C4A5" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+  <path d="M844 469H1055" stroke="#D7C4A5" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+
+  <text x="145" y="148" fill="#D7C4A5" font-size="19" font-family="Helvetica, Arial, sans-serif" letter-spacing="5.8">
+    DECENTRALIZED ENCYCLOPEDIA
+  </text>
+
+  <text x="145" y="287" fill="#FFF9EE" font-size="94" font-family="Georgia, Times New Roman, serif" font-weight="700">
+    Wikifreedia
+  </text>
+
+  <text x="145" y="360" fill="#EFE4CF" font-size="32" font-family="Helvetica, Arial, sans-serif">
+    Living entries. Parallel authorship. Visible provenance.
+  </text>
+
+  <text x="145" y="450" fill="#C9B79B" font-size="22" font-family="Helvetica, Arial, sans-serif">
+    Articles, profiles, and public context that preview cleanly everywhere.
+  </text>
+
+  <g opacity="0.9">
+    <circle cx="1001" cy="182" r="86" fill="#F0DFC2" fill-opacity="0.12"/>
+    <circle cx="1001" cy="182" r="53" fill="#F0DFC2" fill-opacity="0.14"/>
+    <circle cx="1001" cy="182" r="23" fill="#F0DFC2"/>
+  </g>
+</svg>

@@ -10,15 +10,21 @@
 		if (!createdAt) return 'Unknown date';
 		return new Date(createdAt * 1000).toLocaleDateString();
 	}
+
+	function formatSectionTitle(count: number) {
+		if (count === 0) return 'Other authors';
+		return `${count} other author${count === 1 ? '' : 's'}`;
+	}
 </script>
 
-<section class="glass-panel rounded-[1.9rem] px-5 py-5">
-	<p class="eyebrow mb-3">Other authors</p>
-	<h3 class="text-lg">Alternative versions</h3>
+<section class="glass-panel rounded-2xl px-5 py-5" aria-labelledby="other-authors-heading">
+	<h3 id="other-authors-heading" class="text-sm font-medium text-muted-foreground">
+		{formatSectionTitle(versions.length)}
+	</h3>
 
 	{#if versions.length === 0}
-		<p class="mt-4 text-sm leading-6 text-muted-foreground">
-			No alternate authors have published this topic yet.
+		<p class="mt-3 text-sm leading-6 text-muted-foreground">
+			No one else has published this topic yet.
 		</p>
 	{:else}
 		<div class="section-list mt-4">

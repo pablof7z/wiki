@@ -24,7 +24,7 @@
 
 <a
 	href={href}
-	class={`inline-flex max-w-full items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 align-middle text-left no-underline transition-colors hover:bg-muted/40 ${className}`}
+	class={`inline-flex max-w-full items-center gap-3 rounded-2xl px-3 py-2 align-middle text-left no-underline transition-colors hover:bg-muted/40 ${className}`}
 >
 	<span class="rounded-full bg-primary/10 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary">
 		Article
