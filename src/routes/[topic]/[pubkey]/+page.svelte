@@ -4,6 +4,7 @@
 	import type { NDKEvent } from '@nostr-dev-kit/ndk';
 	import EntryCard from '$lib/components/EntryCard.svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
+	import { getCachedPubkeyForNip05, rememberUserProfileNip05 } from '$lib/utils/nip05-cache';
 	import { nip19 } from 'nostr-tools';
 
 	const topic = $derived($page.params.topic ?? '');
@@ -22,12 +23,19 @@
 		if (!identifier) return;
 
 		let cancelled = false;
+		const cachedPubkey = getCachedPubkeyForNip05(identifier);
+
+		if (cachedPubkey) {
+			userPubkey = cachedPubkey;
+			return;
+		}
 
 		ndk
 			.fetchUser(identifier)
 			.then((user) => {
 				if (cancelled) return;
 				userPubkey = user?.pubkey;
+				rememberUserProfileNip05(user?.pubkey, user?.profile);
 			})
 			.catch((e) => {
 				if (cancelled) return;

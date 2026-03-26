@@ -6,6 +6,11 @@
 	import NdkAvatar from '$lib/components/NdkAvatar.svelte';
 	import MergeRequestItem from './MergeRequestItem.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
+	import {
+		applyCachedNip05ToProfile,
+		getCachedPubkeyForNip05,
+		rememberUserProfileNip05
+	} from '$lib/utils/nip05-cache';
 	import { prettifyNip05 } from '$lib/utils/nip05';
 
 	type AuthoredTopic = {
@@ -45,25 +50,33 @@
 		if (!identifier) return;
 
 		let cancelled = false;
+		const cachedPubkey = getCachedPubkeyForNip05(identifier);
+		const userPromise = cachedPubkey
+			? Promise.resolve(ndk.getUser({ pubkey: cachedPubkey }))
+			: ndk.fetchUser(identifier);
 
-		ndk
-			.fetchUser(identifier)
+		userPromise
 			.then((user) => {
 				if (cancelled || !user) return;
 
+				user.profile = applyCachedNip05ToProfile(user.pubkey, user.profile);
 				userPubkey = user.pubkey;
 				resolvedNpub = user.npub;
 				userProfile = user.profile;
+				rememberUserProfileNip05(user.pubkey, user.profile);
 
 				return user
 					.fetchProfile({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY })
 					.then((fetchedProfile) => {
 						if (cancelled) return;
-						userProfile = fetchedProfile ?? user.profile;
+						const nextProfile = applyCachedNip05ToProfile(user.pubkey, fetchedProfile ?? user.profile);
+						userProfile = nextProfile;
+						rememberUserProfileNip05(user.pubkey, nextProfile);
 					})
 					.catch(() => {
 						if (cancelled) return;
 						userProfile = user.profile;
+						rememberUserProfileNip05(user.pubkey, user.profile);
 					});
 			})
 			.catch(() => {
@@ -186,7 +199,10 @@
 		deferredTopics.length > 0 || recentMergeRequests.length > 0
 	);
 
-	const profileRouteId = $derived(resolvedNpub || userId || userPubkey || '');
+	const profileRouteId = $derived(
+		(userProfile?.nip05 ? prettifyNip05(userProfile.nip05) : undefined) ||
+		resolvedNpub || userId || userPubkey || ''
+	);
 	const bannerUrl = $derived(normalizeProfileText(userProfile?.banner));
 	const about = $derived(normalizeProfileText(userProfile?.about));
 	const displayName = $derived(

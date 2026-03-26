@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { NDKSubscriptionCacheUsage, type NDKUserProfile } from '@nostr-dev-kit/ndk';
 	import type { NDKSvelte } from '@nostr-dev-kit/svelte';
+	import {
+		applyCachedNip05ToProfile,
+		rememberUserProfileNip05
+	} from '$lib/utils/nip05-cache';
 
 	let {
 		ndk = $bindable(),
@@ -22,30 +26,37 @@
 		style?: string;
 	} = $props();
 
-	let profile = $state<NDKUserProfile | undefined>(userProfile);
+	let profile = $state<NDKUserProfile | undefined>(applyCachedNip05ToProfile(pubkey, userProfile));
 	const identifier = $derived(pubkey || npub);
+	const boundUserProfile = $derived(applyCachedNip05ToProfile(pubkey, userProfile));
 
 	$effect(() => {
-		profile = userProfile;
+		profile = boundUserProfile;
+		rememberUserProfileNip05(pubkey, boundUserProfile);
 
-		if (!ndk || !identifier || userProfile) return;
+		if (!ndk || !identifier || boundUserProfile) return;
 
 		let cancelled = false;
 
 		ndk.fetchUser(identifier).then((user) => {
 			if (cancelled || !user) return;
 
+			user.profile = applyCachedNip05ToProfile(user.pubkey, user.profile);
 			profile = user.profile;
+			rememberUserProfileNip05(user.pubkey, user.profile);
 
 			return user
 				.fetchProfile({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY })
 				.then((fetchedProfile) => {
 					if (cancelled) return;
-					profile = fetchedProfile ?? user.profile;
+					const nextProfile = applyCachedNip05ToProfile(user.pubkey, fetchedProfile ?? user.profile);
+					profile = nextProfile;
+					rememberUserProfileNip05(user.pubkey, nextProfile);
 				})
 				.catch(() => {
 					if (cancelled) return;
 					profile = user.profile;
+					rememberUserProfileNip05(user.pubkey, user.profile);
 				});
 		});
 
@@ -81,7 +92,7 @@
 	}
 
 	const displayName = $derived(
-		userProfile ? chooseNameFromDisplay(userProfile) : chooseNameFromDisplay(profile)
+		boundUserProfile ? chooseNameFromDisplay(boundUserProfile) : chooseNameFromDisplay(profile)
 	);
 </script>
 

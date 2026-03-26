@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { NDKSubscriptionCacheUsage, type NDKUser, type NDKUserProfile } from '@nostr-dev-kit/ndk';
 	import { cn } from '$lib/utils';
+	import {
+		applyCachedNip05ToProfile,
+		rememberUserProfileNip05
+	} from '$lib/utils/nip05-cache';
 
 	type FetchingNdk = {
 		fetchUser(input: string): Promise<NDKUser | undefined>;
@@ -65,13 +69,28 @@
 	});
 
 	$effect(() => {
+		const currentPubkey = user?.pubkey ?? pubkey;
+		const currentProfile = userProfile;
+		if (!currentPubkey || !currentProfile) return;
+
+		const cachedNip05 = rememberUserProfileNip05(currentPubkey, currentProfile);
+		if (!cachedNip05 || currentProfile.nip05 === cachedNip05) return;
+
+		profile = {
+			...currentProfile,
+			nip05: cachedNip05
+		};
+	});
+
+	$effect(() => {
 		const currentUser = user;
 		const currentIdentifier = identifier;
 		const currentNdk = ndk;
 		const currentProfile = userProfile;
 
 		if (!currentIdentifier || !currentNdk) {
-			profile = currentProfile ?? currentUser?.profile;
+			profile = applyCachedNip05ToProfile(currentUser?.pubkey ?? pubkey, currentProfile ?? currentUser?.profile);
+			rememberUserProfileNip05(currentUser?.pubkey ?? pubkey, profile);
 			return;
 		}
 
@@ -84,7 +103,14 @@
 		).then((fetchedUser) => {
 			if (cancelled) return;
 
-			profile = currentProfile ?? fetchedUser?.profile ?? currentUser?.profile;
+			if (fetchedUser?.pubkey) {
+				fetchedUser.profile = applyCachedNip05ToProfile(fetchedUser.pubkey, fetchedUser.profile);
+			}
+			profile = applyCachedNip05ToProfile(
+				fetchedUser?.pubkey ?? currentUser?.pubkey ?? pubkey,
+				currentProfile ?? fetchedUser?.profile ?? currentUser?.profile
+			);
+			rememberUserProfileNip05(fetchedUser?.pubkey ?? currentUser?.pubkey ?? pubkey, profile);
 
 			if (!fetchedUser) return;
 
@@ -92,11 +118,20 @@
 				.fetchProfile({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY })
 				.then((fetchedProfile) => {
 					if (cancelled) return;
-					profile = fetchedProfile ?? currentProfile ?? fetchedUser.profile;
+					const nextProfile = applyCachedNip05ToProfile(
+						fetchedUser.pubkey,
+						fetchedProfile ?? currentProfile ?? fetchedUser.profile
+					);
+					profile = nextProfile;
+					rememberUserProfileNip05(fetchedUser.pubkey, nextProfile);
 				})
 				.catch(() => {
 					if (cancelled) return;
-					profile = currentProfile ?? fetchedUser.profile ?? currentUser?.profile;
+					profile = applyCachedNip05ToProfile(
+						fetchedUser.pubkey,
+						currentProfile ?? fetchedUser.profile ?? currentUser?.profile
+					);
+					rememberUserProfileNip05(fetchedUser.pubkey, profile);
 				});
 		});
 
