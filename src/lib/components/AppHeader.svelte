@@ -2,22 +2,18 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { ndk } from '$lib/ndk.svelte';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import Login from '../../routes/Login.svelte';
 	import SettingsSheet from './SettingsSheet.svelte';
-	import { Avatar } from '@nostr-dev-kit/svelte';
 	import { Search, ArrowUpRight, Plus } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { Gear } from 'radix-icons-svelte';
 	import Sun from 'svelte-radix/Sun.svelte';
 	import Moon from 'svelte-radix/Moon.svelte';
 	import { toggleMode } from 'mode-watcher';
 	import Logo from './Logo.svelte';
-	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
+	import CurrentUserMenu from './CurrentUserMenu.svelte';
 
 	let currentUser = $derived(ndk.$sessions?.currentUser);
-	const currentUserRoute = useNip05RouteId(() => currentUser?.pubkey ?? '');
 	let searchQuery = $state('');
 	let scrolled = $state(false);
 	let settingsOpen = $state(false);
@@ -47,10 +43,6 @@
 		}
 
 		goto(url.toString());
-	}
-
-	function navigateTo(path: string) {
-		void goto(path);
 	}
 </script>
 
@@ -124,68 +116,26 @@
 					</a>
 				{/if}
 
-				<Button
-					onclick={toggleMode}
-					variant="ghost"
-					size="icon"
-					class="relative rounded-full border border-white/6 bg-transparent"
-				>
-					<Sun
-						class="h-[1.1rem] w-[1.1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-					/>
-					<Moon
-						class="absolute h-[1.1rem] w-[1.1rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-					/>
-					<span class="sr-only">Toggle theme</span>
-				</Button>
-
-				<SettingsSheet bind:open={settingsOpen} />
-
 				{#if currentUser}
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger
-							class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/6 bg-transparent transition-colors hover:bg-accent hover:text-accent-foreground"
-							aria-label="Open account menu"
-						>
-							<Avatar {ndk} pubkey={currentUser.pubkey} class="h-7 w-7 rounded-full object-cover" />
-						</DropdownMenu.Trigger>
-
-						<DropdownMenu.Content
-							align="end"
-							class="w-52 rounded-2xl border-white/10 bg-[rgba(14,14,12,0.96)] p-1.5 text-foreground shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
-						>
-							<DropdownMenu.Item
-								class="rounded-xl px-3 py-2 text-sm"
-								onSelect={() => navigateTo(`/p/${currentUserRoute.id || currentUser.npub}`)}
-							>
-								Profile
-							</DropdownMenu.Item>
-							<DropdownMenu.Item
-								class="rounded-xl px-3 py-2 text-sm"
-								onSelect={() => navigateTo('/drafts')}
-							>
-								Drafts
-							</DropdownMenu.Item>
-							<DropdownMenu.Separator class="bg-white/10" />
-							<DropdownMenu.Item
-								class="rounded-xl px-3 py-2 text-sm"
-								onSelect={toggleMode}
-							>
-								<Moon class="h-4 w-4" />
-								Toggle theme
-							</DropdownMenu.Item>
-							<DropdownMenu.Item
-								class="rounded-xl px-3 py-2 text-sm"
-								onSelect={() => {
-									settingsOpen = true;
-								}}
-							>
-								<Gear class="h-4 w-4" />
-								Settings
-							</DropdownMenu.Item>
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
+					<SettingsSheet bind:open={settingsOpen} showTrigger={false} />
+					<CurrentUserMenu bind:settingsOpen />
 				{:else}
+					<Button
+						onclick={toggleMode}
+						variant="ghost"
+						size="icon"
+						class="relative rounded-full border border-white/6 bg-transparent"
+					>
+						<Sun
+							class="h-[1.1rem] w-[1.1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+						/>
+						<Moon
+							class="absolute h-[1.1rem] w-[1.1rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+						/>
+						<span class="sr-only">Toggle theme</span>
+					</Button>
+
+					<SettingsSheet bind:open={settingsOpen} />
 					<Login />
 				{/if}
 			</nav>
