@@ -11,6 +11,7 @@
 	import Sun from 'svelte-radix/Sun.svelte';
 	import Moon from 'svelte-radix/Moon.svelte';
 	import { toggleMode } from 'mode-watcher';
+	import Logo from './Logo.svelte';
 
 	let currentUser = $derived(ndk.$sessions?.currentUser);
 	let searchQuery = $state('');
@@ -48,6 +49,7 @@
 	<div class="page-shell">
 		<div class="flex min-h-[5.2rem] items-center gap-3 py-3 sm:py-4">
 			<a href="/" class="mr-2 flex min-w-0 items-center gap-3">
+				<Logo size={36} />
 				<div class="min-w-0">
 					<div class="display-wordmark text-[1.9rem] leading-none sm:text-[2.2rem]">
 						Wikifreedia

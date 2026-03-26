@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Logo from '$lib/components/Logo.svelte';
+
 	let { scrolled = false, activeSection = '' }: { scrolled?: boolean; activeSection?: string } =
 		$props();
 
@@ -22,7 +24,7 @@
 </script>
 
 <nav class="landing-nav" class:scrolled>
-	<div class="nav-logo" role="button" tabindex="0" onclick={scrollToTop} onkeydown={(e) => e.key === 'Enter' && scrollToTop()}>Wikifreedia</div>
+	<div class="nav-logo" role="button" tabindex="0" onclick={scrollToTop} onkeydown={(e) => e.key === 'Enter' && scrollToTop()}><Logo size={24} /> Wikifreedia</div>
 	<div class="nav-links">
 		{#each links as link}
 			<a

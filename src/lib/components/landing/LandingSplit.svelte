@@ -28,7 +28,7 @@
 	</div>
 	<div class="split-right">
 		<div class="split-right-inner">
-			<div class="sr-logo">Wikifreedia</div>
+			<div class="sr-logo"><svg width="32" height="32" viewBox="0 0 80 80" fill="none"><circle cx="32" cy="36" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.8"/><circle cx="48" cy="36" r="18" stroke="#e8e0d4" stroke-width="3" fill="none" opacity="0.5"/><circle cx="40" cy="50" r="18" stroke="#cc6644" stroke-width="3" fill="none" opacity="0.35"/></svg> Wikifreedia</div>
 			<div class="sr-heading">Every entry is signed. Every perspective competes in the open.</div>
 			<ul class="sr-items">
 				<li class="sr-item">
