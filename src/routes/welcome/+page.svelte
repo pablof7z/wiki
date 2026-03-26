@@ -391,176 +391,174 @@
 			{/if}
 		</div>
 
-		<div class="glass-panel-soft rounded-[1.5rem] border border-white/10 p-6">
-			<div class="space-y-5">
-				<!-- Username -->
-				<div>
-					<label for="username" class="eyebrow mb-2 block">Username</label>
-					<div class="relative">
-						<input
-							id="username"
-							type="text"
-							class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 pr-[10.5rem] text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-white/20"
-							placeholder="your-username"
-							bind:value={username}
-							disabled={isLoading}
-							autocomplete="off"
-							autocapitalize="off"
-						/>
-						<span
-							class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
-						>
-							@wikifreedia.xyz
-						</span>
-					</div>
-					{#if username.trim() && !/^[a-z0-9_-]+$/i.test(username.trim())}
-						<p class="mt-1.5 text-xs text-destructive">
-							Letters, numbers, hyphens, and underscores only.
-						</p>
-					{:else if usernameStatus === 'checking'}
-						<p class="mt-1.5 text-xs text-muted-foreground">Checking availability...</p>
-					{:else if usernameStatus === 'available'}
-						<p class="mt-1.5 text-xs text-green-400">Available</p>
-					{:else if usernameStatus === 'taken'}
-						<p class="mt-1.5 text-xs text-destructive">That username is taken.</p>
-					{:else if usernameStatus === 'error'}
-						<p class="mt-1.5 text-xs text-destructive">Could not check availability. Try again.</p>
-					{/if}
-				</div>
-
-				<!-- Display name -->
-				<div>
-					<label for="displayName" class="eyebrow mb-2 block">Display name</label>
+		<div class="space-y-5">
+			<!-- Username -->
+			<div>
+				<label for="username" class="eyebrow mb-2 block">Username</label>
+				<div class="relative">
 					<input
-						id="displayName"
+						id="username"
 						type="text"
-						class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-white/20"
-						placeholder="Your Name"
-						bind:value={displayName}
+						class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 pr-[10.5rem] text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-white/20"
+						placeholder="your-username"
+						bind:value={username}
 						disabled={isLoading}
+						autocomplete="off"
+						autocapitalize="off"
 					/>
+					<span
+						class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
+					>
+						@wikifreedia.xyz
+					</span>
+				</div>
+				{#if username.trim() && !/^[a-z0-9_-]+$/i.test(username.trim())}
+					<p class="mt-1.5 text-xs text-destructive">
+						Letters, numbers, hyphens, and underscores only.
+					</p>
+				{:else if usernameStatus === 'checking'}
+					<p class="mt-1.5 text-xs text-muted-foreground">Checking availability...</p>
+				{:else if usernameStatus === 'available'}
+					<p class="mt-1.5 text-xs text-green-400">Available</p>
+				{:else if usernameStatus === 'taken'}
+					<p class="mt-1.5 text-xs text-destructive">That username is taken.</p>
+				{:else if usernameStatus === 'error'}
+					<p class="mt-1.5 text-xs text-destructive">Could not check availability. Try again.</p>
+				{/if}
+			</div>
+
+			<!-- Display name -->
+			<div>
+				<label for="displayName" class="eyebrow mb-2 block">Display name</label>
+				<input
+					id="displayName"
+					type="text"
+					class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-white/20"
+					placeholder="Your Name"
+					bind:value={displayName}
+					disabled={isLoading}
+				/>
+			</div>
+
+			<!-- About -->
+			<div>
+				<label for="about" class="eyebrow mb-2 block">About</label>
+				<textarea
+					id="about"
+					class="min-h-[5rem] w-full resize-y rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-white/20"
+					placeholder="A short bio about yourself"
+					bind:value={about}
+					disabled={isLoading}
+				></textarea>
+			</div>
+
+			<!-- Picture -->
+			<div>
+				<div class="mb-3 flex items-center justify-between gap-3">
+					<p class="eyebrow block">Profile picture</p>
+					<button
+						type="button"
+						class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+						onclick={refreshSuggestedPictures}
+						disabled={isLoading || isPictureUploading}
+						aria-label="Shuffle suggested profile pictures"
+						title="Shuffle suggestions"
+					>
+						<Shuffle class="h-4 w-4" />
+					</button>
 				</div>
 
-				<!-- About -->
-				<div>
-					<label for="about" class="eyebrow mb-2 block">About</label>
-					<textarea
-						id="about"
-						class="min-h-[5rem] w-full resize-y rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-white/20"
-						placeholder="A short bio about yourself"
-						bind:value={about}
-						disabled={isLoading}
-					></textarea>
-				</div>
+				<input
+					bind:this={pictureUploadInput}
+					type="file"
+					accept="image/*"
+					class="hidden"
+					onchange={handlePictureUpload}
+					disabled={isLoading || isPictureUploading}
+				/>
 
-				<!-- Picture -->
-				<div>
-					<div class="mb-3 flex items-center justify-between gap-3">
-						<p class="eyebrow block">Profile picture</p>
+				<div class="card-carousel">
+					<div class="flex min-w-fit items-center gap-3 pb-1">
 						<button
 							type="button"
-							class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground transition-colors hover:bg-white/[0.08] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-							onclick={refreshSuggestedPictures}
+							class={`group relative inline-flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white/[0.02] text-muted-foreground transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+								pictureSelection?.kind === 'upload'
+									? 'scale-[1.04] border-primary opacity-100 ring-2 ring-primary/35'
+									: 'border-dashed border-white/16 opacity-55 hover:-translate-y-px hover:border-white/28 hover:opacity-100'
+							}`}
+							onclick={openPictureUploadPicker}
 							disabled={isLoading || isPictureUploading}
-							aria-label="Shuffle suggested profile pictures"
-							title="Shuffle suggestions"
+							aria-label="Upload profile picture"
+							title="Upload image"
 						>
-							<Shuffle class="h-4 w-4" />
+							{#if pictureSelection?.kind === 'upload' && picture.trim()}
+								<img
+									src={picture}
+									alt="Uploaded avatar"
+									class="h-full w-full object-cover"
+									onerror={hideBrokenPreviewImage}
+								/>
+								<span
+									class="absolute bottom-0.5 right-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/10 bg-black/70 text-white"
+								>
+									<Plus class="h-3 w-3" />
+								</span>
+							{:else if isPictureUploading}
+								<span class="text-xs font-semibold text-foreground">{pictureUploadProgress}%</span>
+							{:else}
+								<Plus class="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+							{/if}
 						</button>
-					</div>
 
-					<input
-						bind:this={pictureUploadInput}
-						type="file"
-						accept="image/*"
-						class="hidden"
-						onchange={handlePictureUpload}
-						disabled={isLoading || isPictureUploading}
-					/>
-
-					<div class="card-carousel">
-						<div class="flex min-w-fit items-center gap-3 pb-1">
+						{#if importedProfile?.picture}
 							<button
 								type="button"
-								class={`group relative inline-flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white/[0.02] text-muted-foreground transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-									pictureSelection?.kind === 'upload'
+								class={`relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+									isSocialPictureSelected()
 										? 'scale-[1.04] border-primary opacity-100 ring-2 ring-primary/35'
-										: 'border-dashed border-white/16 opacity-55 hover:-translate-y-px hover:border-white/28 hover:opacity-100'
+										: 'border-white/10 opacity-55 hover:-translate-y-px hover:border-white/24 hover:opacity-100'
 								}`}
-								onclick={openPictureUploadPicker}
+								onclick={() => useImportedProfilePicture()}
 								disabled={isLoading || isPictureUploading}
-								aria-label="Upload profile picture"
-								title="Upload image"
+								aria-label={`Use ${importedProfile.providerLabel} profile photo`}
+								title={`Use ${importedProfile.providerLabel} photo`}
 							>
-								{#if pictureSelection?.kind === 'upload' && picture.trim()}
-									<img
-										src={picture}
-										alt="Uploaded avatar"
-										class="h-full w-full object-cover"
-										onerror={hideBrokenPreviewImage}
-									/>
-									<span
-										class="absolute bottom-0.5 right-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/10 bg-black/70 text-white"
-									>
-										<Plus class="h-3 w-3" />
-									</span>
-								{:else if isPictureUploading}
-									<span class="text-xs font-semibold text-foreground">{pictureUploadProgress}%</span>
-								{:else}
-									<Plus class="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-								{/if}
+								<img
+									src={importedProfile.picture}
+									alt={`${importedProfile.providerLabel} avatar`}
+									class="h-full w-full object-cover"
+									onerror={hideBrokenPreviewImage}
+								/>
 							</button>
+						{/if}
 
-							{#if importedProfile?.picture}
-								<button
-									type="button"
-									class={`relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-										isSocialPictureSelected()
-											? 'scale-[1.04] border-primary opacity-100 ring-2 ring-primary/35'
-											: 'border-white/10 opacity-55 hover:-translate-y-px hover:border-white/24 hover:opacity-100'
-									}`}
-									onclick={() => useImportedProfilePicture()}
-									disabled={isLoading || isPictureUploading}
-									aria-label={`Use ${importedProfile.providerLabel} profile photo`}
-									title={`Use ${importedProfile.providerLabel} photo`}
-								>
-									<img
-										src={importedProfile.picture}
-										alt={`${importedProfile.providerLabel} avatar`}
-										class="h-full w-full object-cover"
-										onerror={hideBrokenPreviewImage}
-									/>
-								</button>
-							{/if}
-
-							{#each suggestedPictures as option (option.id)}
-								<button
-									type="button"
-									class={`relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-										isSuggestedPictureSelected(option)
-											? 'scale-[1.04] border-primary opacity-100 ring-2 ring-primary/35'
-											: 'border-white/10 opacity-55 hover:-translate-y-px hover:border-white/24 hover:opacity-100'
-									}`}
-									onclick={() => selectSuggestedPicture(option)}
-									disabled={isLoading || isPictureUploading}
-									aria-label={`Use ${option.label} as profile picture`}
-									title={option.label}
-								>
-									<img
-										src={option.url}
-										alt={option.alt}
-										class="h-full w-full object-cover"
-										onerror={hideBrokenPreviewImage}
-									/>
-								</button>
-							{/each}
-						</div>
+						{#each suggestedPictures as option (option.id)}
+							<button
+								type="button"
+								class={`relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-full border transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+									isSuggestedPictureSelected(option)
+										? 'scale-[1.04] border-primary opacity-100 ring-2 ring-primary/35'
+										: 'border-white/10 opacity-55 hover:-translate-y-px hover:border-white/24 hover:opacity-100'
+								}`}
+								onclick={() => selectSuggestedPicture(option)}
+								disabled={isLoading || isPictureUploading}
+								aria-label={`Use ${option.label} as profile picture`}
+								title={option.label}
+							>
+								<img
+									src={option.url}
+									alt={option.alt}
+									class="h-full w-full object-cover"
+									onerror={hideBrokenPreviewImage}
+								/>
+							</button>
+						{/each}
 					</div>
-
-					{#if pictureUploadError}
-						<p class="mt-3 text-center text-xs text-destructive">{pictureUploadError}</p>
-					{/if}
 				</div>
+
+				{#if pictureUploadError}
+					<p class="mt-3 text-center text-xs text-destructive">{pictureUploadError}</p>
+				{/if}
 			</div>
 		</div>
 
