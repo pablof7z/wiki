@@ -104,6 +104,13 @@
 					>
 						Comments
 					</Button>
+					<Button
+						href="/fund"
+						variant={$page.url.pathname === '/fund' ? 'secondary' : 'ghost'}
+						class="hidden md:inline-flex text-sm"
+					>
+						Fund
+					</Button>
 				{/if}
 
 				{#if currentUser}
