@@ -111,12 +111,15 @@
 <Sheet.Root bind:open>
 	{#if showTrigger}
 		<Sheet.Trigger>
-			<button
-				class="chrome-pill inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition-colors hover:bg-white/[0.08] hover:text-accent-foreground"
-			>
-				<Gear class="h-5 w-5" />
-				<span class="sr-only">Settings</span>
-			</button>
+			{#snippet child({ props })}
+				<button
+					{...props}
+					class="chrome-pill inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 transition-colors hover:bg-white/[0.08] hover:text-accent-foreground"
+				>
+					<Gear class="h-5 w-5" />
+					<span class="sr-only">Settings</span>
+				</button>
+			{/snippet}
 		</Sheet.Trigger>
 	{/if}
 	<Sheet.Content class="w-full sm:max-w-md overflow-y-auto">
@@ -325,20 +328,22 @@
 						{#each allRelays as relay (relay.url)}
 							<div class="rounded-md border p-3">
 								<div class="flex items-start gap-3">
-									<div class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full {relay.status === 'connected'
-										? 'bg-emerald-500'
-										: relay.status === 'connecting'
-											? 'bg-amber-500'
-											: relay.status === 'reconnecting'
-												? 'bg-sky-500'
-												: 'bg-muted-foreground/40'}"></div>
+									<div
+										class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full {relay.status === 'connected'
+											? 'bg-emerald-500'
+											: relay.status === 'connecting'
+												? 'bg-amber-500'
+												: relay.status === 'reconnecting'
+													? 'bg-sky-500'
+													: 'bg-muted-foreground/40'}"
+									></div>
 									<div class="min-w-0 flex-1">
 										<p class="truncate text-sm font-medium">{relay.url}</p>
 										<p class="text-xs text-muted-foreground capitalize">
 											{relay.status}
 											{#if relay.connectionStats.success > 0}
-												· {relay.connectionStats.success} successful connection{relay.connectionStats.success ===
-												1
+												· {relay.connectionStats.success} successful connection{relay
+													.connectionStats.success === 1
 													? ''
 													: 's'}
 											{/if}
