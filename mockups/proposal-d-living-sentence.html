@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal D — The Living Sentence</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 0.4rem;
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5rem;
+    max-width: 480px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .sentence-stage {
+    text-align: center;
+    max-width: 720px;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .prompt {
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #e8e0d4;
+  }
+
+  .prompt .fixed {
+    color: #e8e0d4;
+  }
+
+  .prompt .morphing {
+    display: inline;
+    position: relative;
+  }
+
+  .morph-text {
+    transition: opacity 0.5s ease, transform 0.4s ease;
+    display: inline;
+  }
+
+  .morph-text.fading-out {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  .morph-text.fading-in {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .morph-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.6rem;
+    background: rgba(255,255,255,0.5);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .attribution {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: #555;
+    transition: opacity 0.4s ease;
+    min-height: 1.2em;
+  }
+
+  .attribution .name {
+    color: #999;
+    font-weight: 600;
+  }
+
+  /* Previous versions ghost trail */
+  .ghost-trail {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    pointer-events: none;
+  }
+
+  .ghost {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1.8rem;
+    color: rgba(255,255,255,0.03);
+    transition: all 1.5s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ghost:nth-child(1) { transform: translateY(-3rem); }
+  .ghost:nth-child(2) { transform: translateY(3rem); }
+
+  .bottom-label {
+    position: fixed;
+    bottom: 3rem;
+    font-size: 0.7rem;
+    color: #444;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .pip-track {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.4s ease;
+  }
+  .pip.active {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.3);
+  }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+<p class="tagline">No entry here has a canonical version.</p>
+
+<div class="sentence-stage">
+  <div class="ghost-trail">
+    <div class="ghost" id="ghost1"></div>
+    <div class="ghost" id="ghost2"></div>
+  </div>
+
+  <div class="prompt">
+    <span class="fixed">Capitalism is </span><span class="morphing"><span class="morph-text visible" id="morphText"></span><span class="cursor"></span></span>
+  </div>
+
+  <div class="attribution" id="attribution">
+    — <span class="name" id="authorName"></span>
+  </div>
+
+  <div class="pip-track">
+    <div class="pip active" id="pip0"></div>
+    <div class="pip" id="pip1"></div>
+    <div class="pip" id="pip2"></div>
+  </div>
+</div>
+
+<div class="bottom-label">Same word. Three meanings.</div>
+
+<script>
+const perspectives = [
+  {
+    text: "humanity's natural propensity to exchange, guided by an invisible hand toward the common good.",
+    author: "Adam Smith",
+    short: "...natural propensity to exchange..."
+  },
+  {
+    text: "the extraction of surplus value from labor — a system of exploitation disguised as freedom.",
+    author: "Karl Marx",
+    short: "...extraction of surplus value..."
+  },
+  {
+    text: "voluntary exchange between free individuals — corrupted wherever the state intervenes.",
+    author: "Murray Rothbard",
+    short: "...voluntary exchange, corrupted by the state..."
+  }
+];
+
+let current = 0;
+const morphText = document.getElementById('morphText');
+const authorName = document.getElementById('authorName');
+const ghost1 = document.getElementById('ghost1');
+const ghost2 = document.getElementById('ghost2');
+
+function showPerspective(idx) {
+  const prev = current;
+  current = idx;
+
+  // Update pips
+  document.querySelectorAll('.pip').forEach((p, i) => p.classList.toggle('active', i === idx));
+
+  // Fade out
+  morphText.classList.remove('visible');
+  morphText.classList.add('fading-out');
+
+  setTimeout(() => {
+    // Update ghosts with previous perspectives
+    const prevIdx = (idx + 2) % 3;
+    const prevPrevIdx = (idx + 1) % 3;
+    ghost1.textContent = perspectives[prevIdx].short;
+    ghost2.textContent = perspectives[prevPrevIdx].short;
+
+    // Set new text
+    morphText.textContent = perspectives[idx].text;
+    authorName.textContent = perspectives[idx].author;
+
+    // Fade in
+    morphText.classList.remove('fading-out');
+    morphText.classList.add('fading-in');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        morphText.classList.remove('fading-in');
+        morphText.classList.add('visible');
+      });
+    });
+  }, 450);
+}
+
+// Initialize
+morphText.textContent = perspectives[0].text;
+authorName.textContent = perspectives[0].author;
+
+// Auto-cycle
+setInterval(() => {
+  showPerspective((current + 1) % 3);
+}, 4000);
+</script>
+
+</body>
+</html>

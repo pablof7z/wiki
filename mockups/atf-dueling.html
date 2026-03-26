@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATF — Dueling Entries</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0e0e0c;
+    color: #e8e0d4;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wordmark {
+    position: fixed;
+    top: 2rem;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: rgba(232,224,212,0.25);
+    letter-spacing: -0.01em;
+    z-index: 10;
+  }
+
+  .arena {
+    position: relative;
+    width: 750px;
+    height: 480px;
+  }
+
+  /* Each entry card */
+  .entry {
+    position: absolute;
+    width: 340px;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: default;
+    overflow: hidden;
+  }
+
+  .entry::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    transition: background 0.6s ease;
+  }
+
+  .entry-eyebrow {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #555;
+    margin-bottom: 0.3rem;
+  }
+
+  .entry-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .entry-avatar {
+    width: 26px; height: 26px; border-radius: 50%; background: #2a2a28;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.5rem; color: #777;
+  }
+
+  .entry-name { font-size: 0.72rem; font-weight: 600; }
+  .entry-role { font-size: 0.55rem; color: #666; }
+
+  .entry-title { font-size: 1.2rem; margin-bottom: 0.6rem; }
+
+  .entry-body {
+    font-size: 0.7rem;
+    line-height: 1.7;
+    color: #999;
+  }
+
+  .entry-body .punch {
+    color: #ccc;
+    font-style: italic;
+  }
+
+  /* === Positioning states === */
+
+  /* Initial: all stacked center */
+  .entry.stacked {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .entry.stacked:nth-child(1) { z-index: 3; }
+  .entry.stacked:nth-child(2) { z-index: 2; transform: translate(-50%, -50%) rotate(1.5deg) translateY(6px); opacity: 0.4; }
+  .entry.stacked:nth-child(3) { z-index: 1; transform: translate(-50%, -50%) rotate(-1.5deg) translateY(12px); opacity: 0.2; }
+
+  /* Phase 1: first card dominates */
+  .entry.phase1:nth-child(1) { left: 50%; top: 45%; transform: translate(-50%, -50%) scale(1.02); z-index: 3; }
+  .entry.phase1:nth-child(2) { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(1.5deg); opacity: 0.25; z-index: 2; }
+  .entry.phase1:nth-child(3) { left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-1.5deg); opacity: 0.15; z-index: 1; }
+
+  /* Phase 2: second card pushes in from right */
+  .entry.phase2:nth-child(1) { left: 25%; top: 50%; transform: translate(-50%, -50%) rotate(-2deg); z-index: 2; opacity: 0.7; }
+  .entry.phase2:nth-child(2) { left: 65%; top: 45%; transform: translate(-50%, -50%) scale(1.02); z-index: 3; opacity: 1; }
+  .entry.phase2:nth-child(3) { left: 50%; top: 55%; transform: translate(-50%, -50%); opacity: 0.15; z-index: 1; }
+
+  /* Phase 3: third card crashes in from below, all jostling */
+  .entry.phase3:nth-child(1) { left: 15%; top: 35%; transform: translate(-50%, -50%) rotate(-3deg); z-index: 2; opacity: 0.8; }
+  .entry.phase3:nth-child(2) { left: 68%; top: 30%; transform: translate(-50%, -50%) rotate(2deg); z-index: 2; opacity: 0.8; }
+  .entry.phase3:nth-child(3) { left: 42%; top: 62%; transform: translate(-50%, -50%) scale(1.02); z-index: 3; opacity: 1; }
+
+  /* Phase 4: all three settle into uneasy arrangement, all visible */
+  .entry.settled:nth-child(1) { left: 12%; top: 42%; transform: translate(-50%, -50%) rotate(-1.5deg); z-index: 3; opacity: 1; }
+  .entry.settled:nth-child(2) { left: 52%; top: 28%; transform: translate(-50%, -50%) rotate(0.5deg); z-index: 3; opacity: 1; }
+  .entry.settled:nth-child(3) { left: 55%; top: 68%; transform: translate(-50%, -50%) rotate(-0.5deg); z-index: 3; opacity: 1; }
+
+  /* Collision flash */
+  .flash {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+
+  .entry.collide .flash { opacity: 1; }
+
+  /* Bottom text */
+  .bottom-text {
+    position: fixed;
+    bottom: 2.5rem;
+    text-align: center;
+    transition: all 0.6s ease;
+  }
+
+  .bottom-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #444;
+    transition: all 0.6s ease;
+  }
+
+  .scroll-cue {
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin-top: 0.5rem;
+  }
+  .scroll-cue-text { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em; color: #333; }
+  .scroll-arrow {
+    width: 8px; height: 8px; border-right: 1px solid #333; border-bottom: 1px solid #333;
+    transform: rotate(45deg); animation: bob 2s infinite;
+  }
+  @keyframes bob { 0%,100% { transform: rotate(45deg); } 50% { transform: rotate(45deg) translate(2px,2px); } }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+
+<div class="arena" id="arena">
+  <!-- Rogan -->
+  <div class="entry stacked" id="card1">
+    <div class="flash"></div>
+    <div class="entry-eyebrow">Ivermectin</div>
+    <div class="entry-author">
+      <div class="entry-avatar">JR</div>
+      <div>
+        <div class="entry-name">Joe Rogan</div>
+        <div class="entry-role">Podcaster</div>
+      </div>
+    </div>
+    <div class="entry-title">Ivermectin</div>
+    <div class="entry-body">
+      A Nobel Prize-winning drug that doctors were using with real results — until the establishment panicked. <span class="punch">They called it "horse paste" to protect a hundred-billion-dollar vaccine rollout.</span> I took it. I was better in days. But we're not allowed to talk about that.
+    </div>
+  </div>
+
+  <!-- Fauci -->
+  <div class="entry stacked" id="card2">
+    <div class="flash"></div>
+    <div class="entry-eyebrow">Ivermectin</div>
+    <div class="entry-author">
+      <div class="entry-avatar">AF</div>
+      <div>
+        <div class="entry-name">Anthony Fauci</div>
+        <div class="entry-role">Immunologist</div>
+      </div>
+    </div>
+    <div class="entry-title">Ivermectin</div>
+    <div class="entry-body">
+      An important antiparasitic with no demonstrated benefit for COVID-19 in randomized trials. <span class="punch">The plural of anecdote is not data.</span> Promoting unproven treatments eroded confidence in vaccines that went through proper Phase III trials and saved millions.
+    </div>
+  </div>
+
+  <!-- Weinstein -->
+  <div class="entry stacked" id="card3">
+    <div class="flash"></div>
+    <div class="entry-eyebrow">Ivermectin</div>
+    <div class="entry-author">
+      <div class="entry-avatar">BW</div>
+      <div>
+        <div class="entry-name">Bret Weinstein</div>
+        <div class="entry-role">Evolutionary Biologist</div>
+      </div>
+    </div>
+    <div class="entry-title">Ivermectin</div>
+    <div class="entry-body">
+      The real question isn't whether ivermectin works — it's whether the system was structurally capable of finding out. <span class="punch">The EUA required no adequate alternative to exist. The vaccine program depended on the answer being no.</span> Both sides are wrong about what's actually happening.
+    </div>
+  </div>
+</div>
+
+<div class="bottom-text" id="bottomText">
+  <div class="bottom-label" id="bottomLabel">Three entries. One topic. No consensus.</div>
+  <div class="scroll-cue">
+    <span class="scroll-cue-text">Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</div>
+
+<script>
+const cards = [document.getElementById('card1'), document.getElementById('card2'), document.getElementById('card3')];
+const phases = ['stacked', 'phase1', 'phase2', 'phase3', 'settled'];
+let currentPhase = 0;
+
+function setPhase(phase) {
+  cards.forEach(c => {
+    phases.forEach(p => c.classList.remove(p));
+    c.classList.add(phase);
+  });
+}
+
+function collideFlash(cardIdx) {
+  cards[cardIdx].classList.add('collide');
+  setTimeout(() => cards[cardIdx].classList.remove('collide'), 200);
+}
+
+const labels = [
+  'Three entries. One topic.',
+  'Joe Rogan writes about Ivermectin.',
+  'Anthony Fauci writes about the same drug.',
+  'Bret Weinstein says they\'re both missing the point.',
+  'Three entries. No consensus. That\'s the point.',
+];
+
+async function runSequence() {
+  await sleep(1200);
+
+  // Phase 1: Rogan dominates
+  setPhase('phase1');
+  document.getElementById('bottomLabel').textContent = labels[1];
+  await sleep(2200);
+
+  // Phase 2: Fauci pushes in
+  setPhase('phase2');
+  collideFlash(0);
+  collideFlash(1);
+  document.getElementById('bottomLabel').textContent = labels[2];
+  await sleep(2200);
+
+  // Phase 3: Weinstein crashes in
+  setPhase('phase3');
+  collideFlash(1);
+  collideFlash(2);
+  document.getElementById('bottomLabel').textContent = labels[3];
+  await sleep(2200);
+
+  // Settle
+  setPhase('settled');
+  document.getElementById('bottomLabel').textContent = labels[4];
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+runSequence();
+</script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal F — The Margin War</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 0.4rem;
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 3rem;
+    max-width: 480px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .manuscript {
+    display: grid;
+    grid-template-columns: 200px 440px 200px;
+    gap: 0;
+    max-width: 900px;
+    position: relative;
+  }
+
+  /* Center column — the "article" */
+  .main-text {
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 2rem 1.8rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .main-topic {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #555;
+    margin-bottom: 0.5rem;
+  }
+
+  .main-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .main-body {
+    font-size: 0.82rem;
+    line-height: 1.9;
+    color: #aaa;
+  }
+
+  .main-body p { margin-bottom: 1rem; }
+
+  /* Annotatable passages */
+  .annotatable {
+    position: relative;
+    border-bottom: 1px dotted rgba(255,255,255,0.1);
+    cursor: default;
+    transition: border-color 0.3s ease;
+  }
+
+  .annotatable.lit {
+    border-bottom-color: rgba(255, 200, 100, 0.3);
+    color: #e8e0d4;
+  }
+
+  /* Margin columns */
+  .margin-left, .margin-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 4rem;
+  }
+
+  .margin-left { padding-right: 0.75rem; align-items: flex-end; }
+  .margin-right { padding-left: 0.75rem; align-items: flex-start; }
+
+  .margin-note {
+    max-width: 180px;
+    opacity: 0;
+    transform: translateX(0) scale(0.95);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+
+  .margin-left .margin-note {
+    transform: translateX(10px) scale(0.95);
+    text-align: right;
+  }
+  .margin-right .margin-note {
+    transform: translateX(-10px) scale(0.95);
+    text-align: left;
+  }
+
+  .margin-note.visible {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .note-author {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+
+  .note-text {
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: #888;
+    font-style: italic;
+  }
+
+  .note-line {
+    position: absolute;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    top: 50%;
+    width: 20px;
+  }
+
+  .margin-left .note-line { right: -20px; }
+  .margin-right .note-line { left: -20px; }
+
+  /* Connector lines from annotations to text */
+  .connector {
+    position: absolute;
+    height: 1px;
+    background: rgba(255, 200, 100, 0.1);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .connector.visible { opacity: 1; }
+
+  /* Reply chains between margin notes */
+  .reply-indicator {
+    font-size: 0.55rem;
+    color: #555;
+    margin-top: 0.25rem;
+    font-style: normal;
+  }
+
+  .bottom-caption {
+    margin-top: 2.5rem;
+    font-size: 0.75rem;
+    color: #444;
+    text-align: center;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+
+  .progress-bar {
+    width: 300px;
+    height: 2px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 1px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: rgba(255,255,255,0.15);
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+<p class="tagline">No entry here has a canonical version.</p>
+
+<div class="manuscript">
+  <!-- Left margin — Smith's annotations -->
+  <div class="margin-left">
+    <div class="margin-note" id="note-smith-1" data-step="1">
+      <div class="note-line"></div>
+      <div class="note-author">Adam Smith</div>
+      <div class="note-text">"These are not flaws — they are the price signals that guide rational allocation. Inequality reflects differing contributions."</div>
+    </div>
+
+    <div class="margin-note" id="note-smith-2" data-step="4">
+      <div class="note-line"></div>
+      <div class="note-author">Adam Smith</div>
+      <div class="note-text">"Rothbard goes too far. Without the state to enforce contracts, the market itself collapses."</div>
+      <div class="reply-indicator">↳ responding to Rothbard</div>
+    </div>
+  </div>
+
+  <!-- Center — the article -->
+  <div class="main-text">
+    <div class="main-topic">Encyclopedia Entry</div>
+    <div class="main-title">Capitalism</div>
+    <div class="main-body">
+      <p>Capitalism is an economic system in which private actors own and control the means of production. Prices are determined by competition in markets where goods and services are exchanged voluntarily.</p>
+
+      <p><span class="annotatable" id="passage-1" data-step="1">The system's critics argue it produces inequality, periodic crises, and concentrations of power that undermine democratic governance.</span></p>
+
+      <p>The relationship between capitalism and the state remains <span class="annotatable" id="passage-2" data-step="2">one of the most contested questions in political economy</span>. Some view the state as a necessary partner; others see it as inherently corrupting.</p>
+
+      <p><span class="annotatable" id="passage-3" data-step="3">The apparent freedom of market exchange</span> is celebrated by some as the highest expression of human liberty and condemned by others as a veil over deeper structural domination.</p>
+    </div>
+  </div>
+
+  <!-- Right margin — Marx and Rothbard's annotations -->
+  <div class="margin-right">
+    <div class="margin-note" id="note-marx-1" data-step="1">
+      <div class="note-line"></div>
+      <div class="note-author">Karl Marx</div>
+      <div class="note-text">"Not merely 'inequality' — systematic extraction of surplus value. The worker produces; the capitalist takes."</div>
+    </div>
+
+    <div class="margin-note" id="note-rothbard-1" data-step="2">
+      <div class="note-line"></div>
+      <div class="note-author">Murray Rothbard</div>
+      <div class="note-text">"There is nothing to 'contest.' The state is coercion. Every tax is theft. Every regulation is violence. End of debate."</div>
+    </div>
+
+    <div class="margin-note" id="note-marx-2" data-step="3">
+      <div class="note-line"></div>
+      <div class="note-author">Karl Marx</div>
+      <div class="note-text">"'Apparent' is the right word. The worker is 'free' to sell their labor or starve. This is freedom?"</div>
+    </div>
+
+    <div class="margin-note" id="note-rothbard-2" data-step="5">
+      <div class="note-line"></div>
+      <div class="note-author">Murray Rothbard</div>
+      <div class="note-text">"Marx and Smith both miss it. The real enemy isn't capital or labor — it's the state, and always has been."</div>
+      <div class="reply-indicator">↳ responding to both</div>
+    </div>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<p class="bottom-caption">
+  The "neutral" text stands in the center.<br>
+  But the real knowledge lives in the margins — where perspectives collide.
+</p>
+
+<script>
+const steps = [1, 2, 3, 4, 5];
+let currentStep = 0;
+const totalSteps = steps.length;
+
+function revealStep(step) {
+  // Reveal margin notes for this step
+  document.querySelectorAll(`.margin-note[data-step="${step}"]`).forEach(note => {
+    note.classList.add('visible');
+  });
+
+  // Light up the annotatable passage
+  document.querySelectorAll(`.annotatable[data-step="${step}"]`).forEach(passage => {
+    passage.classList.add('lit');
+  });
+
+  // Update progress
+  document.getElementById('progressFill').style.width = `${((currentStep + 1) / totalSteps) * 100}%`;
+}
+
+// Stagger the reveals
+function runSequence() {
+  if (currentStep < totalSteps) {
+    revealStep(steps[currentStep]);
+    currentStep++;
+    setTimeout(runSequence, 1800);
+  }
+}
+
+// Start after a brief pause
+setTimeout(runSequence, 1500);
+</script>
+
+</body>
+</html>

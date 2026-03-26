@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal I — Scroll Focus</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+  }
+
+  /* Fixed background topic word */
+  .fixed-topic {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.02);
+    z-index: 0;
+    pointer-events: none;
+    letter-spacing: -0.03em;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  /* Scroll progress */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.15);
+    z-index: 100;
+    transition: width 0.05s linear;
+  }
+
+  /* Section shared styles */
+  .scroll-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== INTRO ===== */
+  .intro {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  .intro-sub {
+    font-size: 0.9rem;
+    color: #666;
+    max-width: 440px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 3rem;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #444;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .scroll-cue .arrow {
+    width: 10px; height: 10px;
+    border-right: 1px solid #444;
+    border-bottom: 1px solid #444;
+    transform: rotate(45deg);
+    animation: bobble 2s infinite;
+  }
+
+  @keyframes bobble {
+    0%,100% { transform: rotate(45deg) translate(0); }
+    50% { transform: rotate(45deg) translate(3px, 3px); }
+  }
+
+  /* ===== PERSPECTIVE SECTIONS ===== */
+  .perspective-section {
+    height: 200vh;
+    position: relative;
+  }
+
+  .perspective-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .perspective-layout {
+    display: grid;
+    grid-template-columns: 200px 480px;
+    gap: 2.5rem;
+    align-items: start;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .perspective-layout.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Author sidebar */
+  .author-sidebar {
+    padding-top: 0.5rem;
+  }
+
+  .author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 0.75rem;
+  }
+
+  .author-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .author-school {
+    font-size: 0.7rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+  }
+
+  .author-years {
+    font-size: 0.65rem;
+    color: #555;
+  }
+
+  /* Article content */
+  .article-panel {
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 2rem;
+  }
+
+  .article-eyebrow {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #555;
+    margin-bottom: 0.4rem;
+  }
+
+  .article-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .article-body {
+    font-size: 0.82rem;
+    line-height: 1.85;
+    color: #aaa;
+  }
+
+  .article-body p { margin-bottom: 1rem; }
+
+  .article-body .key-claim {
+    color: #e8e0d4;
+    background: rgba(255, 200, 100, 0.06);
+    padding: 0.6rem 0.8rem;
+    border-left: 2px solid rgba(255, 200, 100, 0.2);
+    display: block;
+    margin: 1rem 0;
+    font-style: italic;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Transition annotation between perspectives */
+  .transition-note {
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .transition-text {
+    font-size: 0.8rem;
+    color: #444;
+    font-style: italic;
+    text-align: center;
+    max-width: 380px;
+    line-height: 1.7;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .transition-text.visible { opacity: 1; }
+
+  /* ===== FINALE: The comparison ===== */
+  .finale {
+    height: 200vh;
+  }
+
+  .finale-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .three-cards {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .mini-card {
+    width: 200px;
+    background: #1a1918;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 1rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mini-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mini-card:nth-child(1) { transition-delay: 0s; }
+  .mini-card:nth-child(2) { transition-delay: 0.15s; }
+  .mini-card:nth-child(3) { transition-delay: 0.3s; }
+
+  .mini-name {
+    font-size: 0.65rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .mini-claim {
+    font-size: 0.6rem;
+    color: #888;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .finale-text {
+    text-align: center;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.6s ease 0.5s;
+  }
+
+  .finale-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .finale-heading {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .finale-body {
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.7;
+  }
+
+  /* Phase indicator */
+  .phase-dots {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 100;
+  }
+
+  .phase-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .phase-dot.active {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.4);
+  }
+
+  .phase-dot::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 16px;
+    top: -3px;
+    font-size: 0.55rem;
+    color: #555;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    letter-spacing: 0.04em;
+  }
+
+  .phase-dot.active::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="fixed-topic" id="fixedTopic">Capitalism</div>
+
+<div class="phase-dots" id="phaseDots">
+  <div class="phase-dot active" data-label="Topic" id="dot0"></div>
+  <div class="phase-dot" data-label="Smith" id="dot1"></div>
+  <div class="phase-dot" data-label="Marx" id="dot2"></div>
+  <div class="phase-dot" data-label="Rothbard" id="dot3"></div>
+  <div class="phase-dot" data-label="Compare" id="dot4"></div>
+</div>
+
+<!-- INTRO -->
+<section class="scroll-section intro" id="secIntro">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="intro-sub">What does an encyclopedia entry on "Capitalism" look like? That depends entirely on who wrote it.</div>
+  <div class="scroll-cue">
+    <span>Scroll to read three versions</span>
+    <div class="arrow"></div>
+  </div>
+</section>
+
+<!-- SMITH -->
+<section class="perspective-section" id="secSmith">
+  <div class="perspective-sticky">
+    <div class="perspective-layout" id="layoutSmith">
+      <div class="author-sidebar">
+        <div class="author-avatar">AS</div>
+        <div class="author-name">Adam Smith</div>
+        <div class="author-school">Classical Economics</div>
+        <div class="author-years">1723 – 1790</div>
+      </div>
+      <div class="article-panel">
+        <div class="article-eyebrow">Capitalism · Version 1 of 3</div>
+        <div class="article-title">Capitalism</div>
+        <div class="article-body">
+          <p>Capitalism is a natural extension of humanity's innate propensity to truck, barter, and exchange one thing for another. It is not the product of legislation or design, but of a tendency as old as civilization itself.</p>
+          <span class="key-claim">When individuals pursue their own self-interest, an invisible hand guides markets toward outcomes that benefit society as a whole.</span>
+          <p>The division of labor, enabled by free exchange, multiplies productive capacity beyond what any central authority could achieve. A pin factory with ten specialized workers produces forty-eight thousand pins a day; a single worker, fewer than twenty.</p>
+          <p>The role of the state is limited but necessary: enforce contracts, protect property rights, provide public goods no private actor would supply. Beyond this, government intervention distorts the natural price signals that coordinate millions of independent decisions into a coherent economic order.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="transition-note">
+  <div class="transition-text" id="trans1">Now read the same topic, written by someone who sees the same system and arrives at the opposite conclusion.</div>
+</div>
+
+<!-- MARX -->
+<section class="perspective-section" id="secMarx">
+  <div class="perspective-sticky">
+    <div class="perspective-layout" id="layoutMarx">
+      <div class="author-sidebar">
+        <div class="author-avatar">KM</div>
+        <div class="author-name">Karl Marx</div>
+        <div class="author-school">Political Economy</div>
+        <div class="author-years">1818 – 1883</div>
+      </div>
+      <div class="article-panel">
+        <div class="article-eyebrow">Capitalism · Version 2 of 3</div>
+        <div class="article-title">Capitalism</div>
+        <div class="article-body">
+          <p>Capitalism is a historically specific mode of production defined by private ownership of the means of production and the exploitation of wage labor. It is not "natural" — it emerged through specific historical processes of dispossession and enclosure.</p>
+          <span class="key-claim">The capitalist extracts surplus value from workers, paying them less than the value they produce. This is not a flaw in the system — it is the system.</span>
+          <p>The apparent freedom of the market masks a fundamental asymmetry. The worker is "free" to sell their labor — or starve. Competition drives capitalists to intensify exploitation and replace human labor with machinery, creating a reserve army of the unemployed that depresses wages further.</p>
+          <p>The state under capitalism is not a neutral arbiter but an instrument of class domination, enforcing the property relations that sustain bourgeois power. Capital accumulation inevitably concentrates wealth and deepens the contradictions that will lead to capitalism's own dissolution.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="transition-note">
+  <div class="transition-text" id="trans2">And one more — someone who agrees with neither, and takes the argument somewhere else entirely.</div>
+</div>
+
+<!-- ROTHBARD -->
+<section class="perspective-section" id="secRothbard">
+  <div class="perspective-sticky">
+    <div class="perspective-layout" id="layoutRothbard">
+      <div class="author-sidebar">
+        <div class="author-avatar">MR</div>
+        <div class="author-name">Murray Rothbard</div>
+        <div class="author-school">Austrian Economics</div>
+        <div class="author-years">1926 – 1995</div>
+      </div>
+      <div class="article-panel">
+        <div class="article-eyebrow">Capitalism · Version 3 of 3</div>
+        <div class="article-title">Capitalism</div>
+        <div class="article-body">
+          <p>Capitalism, in its pure form, is a system of voluntary exchange between free individuals, rooted in the absolute right to self-ownership and private property. What most people call "capitalism" today is actually corporatism — a corrupt partnership between big business and big government.</p>
+          <span class="key-claim">The state is not capitalism's guardian — it is its greatest enemy. A truly free market requires no state at all.</span>
+          <p>Every government intervention — taxation, regulation, licensing, central banking — is a coercive violation of individual rights that distorts market outcomes and creates the very problems it claims to solve. Minimum wage causes unemployment. Regulation creates monopolies. Central banking creates boom-bust cycles.</p>
+          <p>Private arbitration, insurance, and defense agencies can provide every service government monopolizes, more efficiently and without coercion. The market does not need a referee — it needs to be left alone.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="transition-note">
+  <div class="transition-text" id="trans3">Same word. Three irreconcilable accounts. Which one would a traditional encyclopedia publish?</div>
+</div>
+
+<!-- FINALE -->
+<section class="finale" id="secFinale">
+  <div class="finale-sticky">
+    <div class="three-cards" id="threeCards">
+      <div class="mini-card" id="mini1">
+        <div class="mini-name">Adam Smith</div>
+        <div class="mini-claim">"An invisible hand guides markets toward the common good."</div>
+      </div>
+      <div class="mini-card" id="mini2">
+        <div class="mini-name">Karl Marx</div>
+        <div class="mini-claim">"The capitalist extracts surplus value. This is the system."</div>
+      </div>
+      <div class="mini-card" id="mini3">
+        <div class="mini-name">Murray Rothbard</div>
+        <div class="mini-claim">"The state is capitalism's greatest enemy."</div>
+      </div>
+    </div>
+    <div class="finale-text" id="finaleText">
+      <div class="finale-heading">Wikifreedia keeps them all.</div>
+      <div class="finale-body">Every entry is a perspective, not a verdict. Truth is not discovered by consensus, but by integrating opposites and tracing how competing accounts sharpen one another.</div>
+    </div>
+  </div>
+</section>
+
+<div style="height: 30vh;"></div>
+
+<script>
+const sections = {
+  intro: document.getElementById('secIntro'),
+  smith: document.getElementById('secSmith'),
+  marx: document.getElementById('secMarx'),
+  rothbard: document.getElementById('secRothbard'),
+  finale: document.getElementById('secFinale'),
+};
+
+const layouts = {
+  smith: document.getElementById('layoutSmith'),
+  marx: document.getElementById('layoutMarx'),
+  rothbard: document.getElementById('layoutRothbard'),
+};
+
+const transitions = [
+  document.getElementById('trans1'),
+  document.getElementById('trans2'),
+  document.getElementById('trans3'),
+];
+
+function isInViewport(el) {
+  const rect = el.getBoundingClientRect();
+  return rect.top < window.innerHeight * 0.8 && rect.bottom > window.innerHeight * 0.2;
+}
+
+function getProgress(el) {
+  const rect = el.getBoundingClientRect();
+  const total = el.offsetHeight - window.innerHeight;
+  if (total <= 0) return 0;
+  return Math.max(0, Math.min(1, -rect.top / total));
+}
+
+function setActiveDot(idx) {
+  for (let i = 0; i <= 4; i++) {
+    document.getElementById(`dot${i}`).classList.toggle('active', i === idx);
+  }
+}
+
+function onScroll() {
+  const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = window.scrollY / totalScroll;
+  document.getElementById('scrollProgress').style.width = `${progress * 100}%`;
+
+  // Fixed topic opacity based on scroll
+  const topicEl = document.getElementById('fixedTopic');
+  topicEl.style.color = `rgba(255,255,255,${0.02 + progress * 0.02})`;
+
+  // Determine active phase
+  if (isInViewport(sections.intro)) setActiveDot(0);
+  if (isInViewport(sections.smith)) { setActiveDot(1); layouts.smith.classList.add('visible'); }
+  if (isInViewport(sections.marx)) { setActiveDot(2); layouts.marx.classList.add('visible'); }
+  if (isInViewport(sections.rothbard)) { setActiveDot(3); layouts.rothbard.classList.add('visible'); }
+  if (isInViewport(sections.finale)) setActiveDot(4);
+
+  // Transitions
+  transitions.forEach(t => {
+    if (isInViewport(t.parentElement || t)) t.classList.add('visible');
+  });
+
+  // Finale
+  if (isInViewport(sections.finale)) {
+    const p = getProgress(sections.finale);
+    if (p > 0.05) {
+      document.getElementById('mini1').classList.add('visible');
+      document.getElementById('mini2').classList.add('visible');
+      document.getElementById('mini3').classList.add('visible');
+    }
+    if (p > 0.2) {
+      document.getElementById('finaleText').classList.add('visible');
+    }
+  }
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+
+</body>
+</html>

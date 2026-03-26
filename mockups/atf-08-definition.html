@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>08 — Dictionary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2)}
+.entry{max-width:580px;width:100%;padding:0 2rem}
+.headword{font-size:3rem;font-weight:400;margin-bottom:0.3rem;letter-spacing:-0.02em}
+.phonetic{font-size:0.85rem;color:#555;font-style:italic;margin-bottom:0.3rem}
+.pos{font-size:0.7rem;color:#666;font-style:italic;margin-bottom:1.5rem}
+.divider{height:1px;background:rgba(255,255,255,0.06);margin-bottom:1.5rem}
+.def-area{position:relative;min-height:120px}
+.def{position:absolute;top:0;left:0;right:0;opacity:0;transform:translateY(8px);transition:all 0.5s ease}
+.def.active{opacity:1;transform:translateY(0)}
+.def-num{font-size:0.7rem;color:#555;margin-bottom:0.3rem}
+.def-text{font-size:1.05rem;line-height:1.65;color:#ccc}
+.def-example{font-size:0.85rem;color:#777;font-style:italic;margin-top:0.5rem;padding-left:1rem;border-left:2px solid rgba(255,255,255,0.06)}
+.def-source{font-size:0.6rem;color:#444;text-transform:uppercase;letter-spacing:0.08em;margin-top:0.75rem}
+.version-count{margin-top:2.5rem;font-size:0.7rem;color:#444;text-align:center}
+.version-dots{display:flex;gap:0.4rem;justify-content:center;margin-top:0.5rem}
+.version-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.08);transition:all 0.3s ease}
+.version-dot.active{background:rgba(255,255,255,0.35);transform:scale(1.3)}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="entry">
+  <div class="headword">Ivermectin</div>
+  <div class="phonetic">/ˌaɪ.vərˈmɛk.tɪn/</div>
+  <div class="pos">noun · pharmacology · contested</div>
+  <div class="divider"></div>
+  <div class="def-area">
+    <div class="def active" id="d0">
+      <div class="def-num">definition 1 of 3</div>
+      <div class="def-text">A Nobel Prize-winning, WHO-essential medicine suppressed during COVID-19 because its status as a cheap generic threatened the financial viability of emergency-authorized vaccines.</div>
+      <div class="def-example">"They called it horse paste. A Nobel Prize-winning human medicine."</div>
+      <div class="def-source">— Joe Rogan, podcaster</div>
+    </div>
+    <div class="def" id="d1">
+      <div class="def-num">definition 2 of 3</div>
+      <div class="def-text">An antiparasitic medication whose in vitro activity against SARS-CoV-2 did not translate to clinical efficacy in properly designed randomized controlled trials.</div>
+      <div class="def-example">"The plural of anecdote is not data."</div>
+      <div class="def-source">— Anthony Fauci, immunologist</div>
+    </div>
+    <div class="def" id="d2">
+      <div class="def-num">definition 3 of 3</div>
+      <div class="def-text">A generic compound whose potential could not be honestly evaluated within a regulatory framework that structurally required no adequate treatment alternative to exist.</div>
+      <div class="def-example">"You don't need a conspiracy — just an incentive structure."</div>
+      <div class="def-source">— Bret Weinstein, evolutionary biologist</div>
+    </div>
+  </div>
+  <div class="version-count">3 definitions from 3 perspectives</div>
+  <div class="version-dots">
+    <div class="version-dot active" id="vd0"></div>
+    <div class="version-dot" id="vd1"></div>
+    <div class="version-dot" id="vd2"></div>
+  </div>
+</div>
+<script>
+const defs=[document.getElementById('d0'),document.getElementById('d1'),document.getElementById('d2')];
+const dots=[document.getElementById('vd0'),document.getElementById('vd1'),document.getElementById('vd2')];
+let c=0;
+setInterval(()=>{
+  defs[c].classList.remove('active');dots[c].classList.remove('active');
+  c=(c+1)%3;
+  defs[c].classList.add('active');dots[c].classList.add('active');
+},3500);
+</script></body></html>

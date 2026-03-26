@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search — V3 Results ATF, Comparison Streams On Scroll</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:3rem 2rem 2rem}
+
+.wordmark{font-size:1.6rem;font-style:italic;color:rgba(232,224,212,0.3);margin-bottom:2.5rem;font-family:'Georgia',serif}
+
+.search-bar{width:560px;background:#1a1918;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:0.75rem 1.3rem;display:flex;align-items:center;gap:0.6rem;margin-bottom:2rem}
+.search-icon{color:#555;font-size:0.85rem}
+.search-query{font-size:0.9rem;color:#e8e0d4}
+
+/* Results — vertical list */
+.results{width:580px;display:flex;flex-direction:column;gap:0}
+
+.result{padding:1.1rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:120px 1fr;gap:1.2rem}
+.result:first-child{padding-top:0}
+.result:last-child{border-bottom:none}
+
+.r-who{text-align:right;padding-top:0.1rem}
+.r-name{font-size:0.72rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+
+.r-content{}
+.r-quote{font-size:1rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic;margin-bottom:0.35rem}
+.r-quote .clash{font-style:normal;color:#e8e0d4}
+.r-excerpt{font-size:0.68rem;line-height:1.55;color:#666}
+
+.results-footer{width:580px;display:flex;align-items:center;justify-content:space-between;margin-top:1.25rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.03)}
+.rf-meta{font-size:0.55rem;color:#444}
+.rf-compare{font-size:0.6rem;color:#666;display:flex;align-items:center;gap:0.4rem;cursor:pointer;transition:color 0.2s ease}
+.rf-compare:hover{color:#aaa}
+.rf-compare .arrow{display:inline-block;transition:transform 0.2s ease}
+
+/* ===== COMPARISON SCROLL ===== */
+.comp-section{position:relative}
+
+.comp-sticky{position:sticky;top:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+
+.comp-panel{width:640px;background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;opacity:0;transform:translateY(30px);transition:all 0.7s cubic-bezier(0.22,1,0.36,1)}
+.comp-panel.visible{opacity:1;transform:translateY(0)}
+
+.comp-top{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:0.5rem}
+.comp-icon{font-size:0.8rem;color:#888}
+.comp-label{font-size:0.65rem;font-weight:600;color:#ccc}
+.comp-sublabel{font-size:0.55rem;color:#555;margin-left:0.3rem}
+.comp-authors{margin-left:auto;display:flex;gap:-4px}
+.comp-author-dot{width:20px;height:20px;border-radius:50%;background:#2a2a28;display:flex;align-items:center;justify-content:center;font-size:0.4rem;color:#777;border:1px solid #1a1918;margin-left:-6px}
+
+.comp-content{padding:1.25rem 1.5rem}
+
+/* Streaming text */
+.stream-line{font-size:0.8rem;line-height:1.8;color:#999;margin-bottom:0.75rem;opacity:0;transform:translateY(6px);transition:all 0.5s ease}
+.stream-line.streamed{opacity:1;transform:translateY(0)}
+
+.stream-line strong{color:#e8e0d4;font-weight:600}
+.stream-line em{color:#ccc;font-style:normal}
+
+.contention-block{margin:0.6rem 0;padding:0.5rem 0;border-top:1px solid rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:0.4rem;opacity:0;transform:translateY(6px);transition:all 0.5s ease}
+.contention-block.streamed{opacity:1;transform:translateY(0)}
+
+.cb-row{display:grid;grid-template-columns:80px 1fr;gap:0.5rem;font-size:0.72rem;align-items:start}
+.cb-who{font-weight:600;color:#999;text-align:right}
+.cb-claim{color:#bbb;line-height:1.5}
+.cb-vs{text-align:center;font-size:0.5rem;color:#444;text-transform:uppercase;letter-spacing:0.15em;padding:0.15rem 0}
+
+.stream-conclusion{font-size:0.85rem;line-height:1.6;color:#ccc;font-family:'Georgia',serif;font-style:italic;padding:0.5rem 0.75rem;border-left:2px solid rgba(255,200,100,0.2);opacity:0;transition:all 0.5s ease}
+.stream-conclusion.streamed{opacity:1}
+</style></head><body>
+
+<!-- ===== ATF: Search + Results ===== -->
+<section class="hero">
+  <div class="wordmark">Wikifreedia</div>
+
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <span class="search-query">Ivermectin</span>
+  </div>
+
+  <div class="results">
+    <div class="result">
+      <div class="r-who"><div class="r-name">Joe Rogan</div><div class="r-role">Podcaster</div></div>
+      <div class="r-content">
+        <div class="r-quote">"They called it <span class="clash">'horse paste'</span> to protect a hundred-billion-dollar vaccine rollout."</div>
+        <div class="r-excerpt">A Nobel Prize-winning drug suppressed because a $2 generic threatened the most profitable pharmaceutical product in history. I took it. I was better in days.</div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="r-who"><div class="r-name">Anthony Fauci</div><div class="r-role">Immunologist</div></div>
+      <div class="r-content">
+        <div class="r-quote">"The randomized controlled trials <span class="clash">do not show benefit</span>. Anecdotes are not data."</div>
+        <div class="r-excerpt">The TOGETHER trial — 3,500 patients, double-blind — showed no significant benefit. Promoting unproven treatments eroded vaccine confidence.</div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="r-who"><div class="r-name">Bret Weinstein</div><div class="r-role">Evol. Biologist</div></div>
+      <div class="r-content">
+        <div class="r-quote">"The system was <span class="clash">structurally incapable</span> of honest evaluation."</div>
+        <div class="r-excerpt">The EUA required no adequate alternative. The vaccine program depended on the answer being no. You don't need a conspiracy — just an incentive structure.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-footer">
+    <div class="rf-meta">3 entries · 3 authors · no canonical version</div>
+    <div class="rf-compare" id="compareHint">✦ See AI comparison <span class="arrow">↓</span></div>
+  </div>
+</section>
+
+<!-- ===== COMPARISON: Streams in on scroll ===== -->
+<section class="comp-section" id="compSection" style="height:250vh">
+  <div class="comp-sticky">
+    <div class="comp-panel" id="compPanel">
+      <div class="comp-top">
+        <span class="comp-icon">✦</span>
+        <span class="comp-label">AI Comparison</span>
+        <span class="comp-sublabel">· 3 entries on Ivermectin</span>
+        <div class="comp-authors">
+          <div class="comp-author-dot">JR</div>
+          <div class="comp-author-dot">AF</div>
+          <div class="comp-author-dot">BW</div>
+        </div>
+      </div>
+      <div class="comp-content">
+        <div class="stream-line" id="s1">All three describe the same drug — but they're having <strong>three different conversations</strong>.</div>
+
+        <div class="contention-block" id="s2">
+          <div class="cb-row"><div class="cb-who">Rogan</div><div class="cb-claim">A suppressed cure. Cheap generic threatened vaccine profits.</div></div>
+          <div class="cb-vs">vs</div>
+          <div class="cb-row"><div class="cb-who">Fauci</div><div class="cb-claim">No clinical benefit. The trials are the gold standard.</div></div>
+          <div class="cb-vs">vs</div>
+          <div class="cb-row"><div class="cb-who">Weinstein</div><div class="cb-claim">The regulatory framework couldn't produce an honest answer.</div></div>
+        </div>
+
+        <div class="stream-line" id="s3">The deepest split is about <strong>the role of the state</strong>: Rogan sees <em>corruption</em>, Fauci sees <em>the system working</em>, Weinstein sees <em>a structural flaw</em> that precedes any individual actor.</div>
+
+        <div class="stream-line" id="s4">On evidence itself: Rogan trusts <em>personal experience</em>. Fauci trusts <em>randomized trials</em>. Weinstein questions whether the <em>incentive structure allowed honest trials</em>.</div>
+
+        <div class="stream-conclusion" id="s5">A traditional encyclopedia chooses one frame and calls it neutral. Wikifreedia keeps all three — because understanding the disagreement is the knowledge.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="height:20vh"></div>
+
+<script>
+const compPanel=document.getElementById('compPanel');
+const streamEls=['s1','s2','s3','s4','s5'];
+let revealed=false;
+let streamIdx=0;
+let streamTimer=null;
+
+function onScroll(){
+  const rect=document.getElementById('compSection').getBoundingClientRect();
+  if(rect.top<innerHeight*0.6&&!revealed){
+    revealed=true;
+    compPanel.classList.add('visible');
+    // Stream in the comparison line by line
+    streamTimer=setInterval(()=>{
+      if(streamIdx<streamEls.length){
+        document.getElementById(streamEls[streamIdx]).classList.add('streamed');
+        streamIdx++;
+      }else{
+        clearInterval(streamTimer);
+      }
+    },700);
+  }
+}
+
+addEventListener('scroll',onScroll,{passive:true});
+</script>
+</body></html>

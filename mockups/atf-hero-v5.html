@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero V5</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ===== HERO ===== */
+.hero{height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+
+.wordmark{font-size:5.5rem;font-style:italic;color:rgba(232,224,212,0.9);font-family:'Georgia',serif;letter-spacing:-0.03em;margin-bottom:1.25rem;line-height:1}
+
+.hero-headline{font-size:1.7rem;font-family:'Georgia',serif;color:#888;line-height:1.5;max-width:580px;margin:0 auto 0.85rem}
+
+.hero-sub{font-size:1rem;font-family:'Georgia',serif;color:#555;line-height:1.6;max-width:500px;margin:0 auto}
+
+/* ===== DEMO ===== */
+.demo{max-width:1100px;margin:0 auto;padding:0 2rem 6rem}
+
+/* Search — big */
+.search-bar{max-width:620px;margin:0 auto 1.75rem;background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:0.85rem 1.5rem;display:flex;align-items:center;gap:0.65rem}
+.search-icon{color:#555;font-size:1rem}
+.search-query{font-size:1.1rem;color:#e8e0d4}
+.search-count{margin-left:auto;font-size:0.6rem;color:#444}
+
+/* Two-column layout */
+.demo-columns{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start}
+
+.results-col{max-width:520px}
+.search-meta{font-size:0.5rem;color:#333;margin-bottom:1rem}
+
+.result{padding:0.9rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:40px 1fr;gap:0.85rem;align-items:start;transform:scale(0.96);opacity:0.7;transition:all 0.6s cubic-bezier(0.22,1,0.36,1)}
+.result.visible{transform:scale(1);opacity:1}
+.result:last-of-type{border-bottom:none}
+
+.r-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#2a2a28;flex-shrink:0}
+.r-avatar img{width:100%;height:100%;object-fit:cover}
+.r-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.25rem}
+.r-name{font-size:0.72rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+.r-quote{font-size:0.92rem;line-height:1.45;color:#bbb;font-family:'Georgia',serif;font-style:italic;margin-bottom:0.25rem}
+.r-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+.r-excerpt{font-size:0.62rem;line-height:1.55;color:#555}
+
+/* AI Comparison */
+.comp{background:#151514;border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:1.1rem 1.3rem;opacity:0;transform:translateX(30px);transition:all 0.7s cubic-bezier(0.22,1,0.36,1)}
+.comp.visible{opacity:1;transform:translateX(0)}
+
+.comp-bar{display:flex;align-items:center;gap:0.45rem;margin-bottom:0.75rem;padding-bottom:0.6rem;border-bottom:1px solid rgba(255,255,255,0.03)}
+.comp-icon{font-size:0.65rem;color:#777}
+.comp-label{font-size:0.6rem;font-weight:600;color:#aaa}
+.comp-faces{margin-left:auto;display:flex}
+.comp-face{width:18px;height:18px;border-radius:50%;border:1.5px solid #151514;margin-left:-4px;overflow:hidden;background:#2a2a28}
+.comp-face img{width:100%;height:100%;object-fit:cover}
+
+.comp-text{font-size:0.75rem;line-height:1.7;color:#888;margin-bottom:0.5rem}
+.comp-text strong{color:#ccc;font-weight:600}
+
+.ct{display:flex;flex-direction:column;gap:0.3rem;margin:0.6rem 0}
+.ct-row{display:grid;grid-template-columns:22px 70px 1fr;gap:0.4rem;align-items:center;font-size:0.68rem;padding:0.35rem 0.5rem;border-radius:6px;background:rgba(255,255,255,0.015)}
+.ct-av{width:18px;height:18px;border-radius:50%;overflow:hidden;background:#2a2a28}
+.ct-av img{width:100%;height:100%;object-fit:cover}
+.ct-who{font-weight:600;color:#999}
+.ct-claim{color:#bbb;line-height:1.4}
+
+.comp-kicker{font-size:0.78rem;color:#bbb;font-family:'Georgia',serif;font-style:italic;padding-left:0.65rem;border-left:2px solid rgba(255,200,100,0.18);margin-top:0.6rem;line-height:1.55}
+</style></head><body>
+
+<section class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="hero-headline">The encyclopedia that <em>can't</em> pick a side.</div>
+  <div class="hero-sub">Same topic, different authors, no canonical version. Knowledge lives in the disagreement.</div>
+</section>
+
+<section class="demo">
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <span class="search-query">Ivermectin</span>
+    <span class="search-count">3 entries</span>
+  </div>
+
+  <div class="demo-columns">
+    <div class="results-col">
+      <div class="search-meta">3 authors · no canonical version</div>
+
+      <div class="result" data-reveal>
+        <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+        <div>
+          <div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div>
+          <div class="r-quote">Ivermectin is a Nobel Prize-winning antiparasitic drug that was <span class="hot">systematically discredited</span> during the COVID-19 pandemic to protect the commercial viability of emergency-use vaccines…</div>
+        </div>
+      </div>
+
+      <div class="result" data-reveal>
+        <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+        <div>
+          <div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist</span></div>
+          <div class="r-quote">Ivermectin is an antiparasitic agent whose proposed use against COVID-19 was <span class="hot">not supported by clinical evidence</span>. The TOGETHER trial (n=3,500) found no significant benefit…</div>
+        </div>
+      </div>
+
+      <div class="result" data-reveal>
+        <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+        <div>
+          <div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div>
+          <div class="r-quote">Ivermectin became the central case study in how <span class="hot">regulatory incentive structures</span> can prevent honest evaluation of repurposed drugs during a public health emergency…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp" id="comp">
+      <div class="comp-bar">
+        <span class="comp-icon">✦</span>
+        <span class="comp-label">AI Comparison</span>
+        <div class="comp-faces">
+          <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+          <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+          <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+        </div>
+      </div>
+
+      <div class="comp-text">Same molecule — <strong>three different conversations</strong>.</div>
+
+      <div class="ct">
+        <div class="ct-row">
+          <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+          <div class="ct-who">Rogan</div>
+          <div class="ct-claim">Suppressed cure. $2 generic threatened a $100B vaccine program.</div>
+        </div>
+        <div class="ct-row">
+          <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+          <div class="ct-who">Fauci</div>
+          <div class="ct-claim">No clinical benefit in randomized trials. Anecdotes aren't evidence.</div>
+        </div>
+        <div class="ct-row">
+          <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+          <div class="ct-who">Weinstein</div>
+          <div class="ct-claim">The regulatory framework couldn't produce an honest answer either way.</div>
+        </div>
+      </div>
+
+      <div class="comp-text">Deepest split: <strong>the role of the state</strong>. Corruption vs working-as-designed vs structural flaw.</div>
+
+      <div class="comp-kicker">A traditional encyclopedia picks one frame and calls it neutral. Wikifreedia keeps all three.</div>
+    </div>
+  </div>
+</section>
+
+<script>
+const results = document.querySelectorAll('[data-reveal]');
+const comp = document.getElementById('comp');
+let compRevealed = false;
+
+function onScroll() {
+  const vh = window.innerHeight;
+  results.forEach(r => {
+    if (r.getBoundingClientRect().top < vh * 0.85) r.classList.add('visible');
+  });
+
+  // Comparison reveals only after user has scrolled past the results
+  if (!compRevealed) {
+    const compRect = comp.getBoundingClientRect();
+    if (compRect.top < vh * 0.75) {
+      compRevealed = true;
+      comp.classList.add('visible');
+    }
+  }
+}
+
+window.addEventListener('load', () => {
+  results.forEach((r, i) => {
+    setTimeout(() => {
+      if (r.getBoundingClientRect().top < window.innerHeight * 0.95) r.classList.add('visible');
+    }, i * 150);
+  });
+});
+window.addEventListener('scroll', onScroll, { passive: true });
+</script>
+</body></html>

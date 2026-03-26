@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal G — The Quote Tension</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #111;
+    color: #e8e0d4;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .wordmark {
+    font-size: 3.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    margin-bottom: 0.4rem;
+    z-index: 10;
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 4rem;
+    max-width: 480px;
+    text-align: center;
+    line-height: 1.6;
+    z-index: 10;
+  }
+
+  /* The tension field */
+  .tension-field {
+    position: relative;
+    width: 800px;
+    height: 400px;
+  }
+
+  /* Tension lines connecting quotes */
+  .tension-lines {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .tension-lines svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .tension-line {
+    stroke: rgba(255,255,255,0.04);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    transition: stroke 0.5s ease;
+  }
+
+  .tension-line.taut {
+    stroke: rgba(255, 200, 100, 0.12);
+    stroke-dasharray: none;
+  }
+
+  /* Quote blocks */
+  .quote-block {
+    position: absolute;
+    max-width: 260px;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 5;
+  }
+
+  .quote-block.placed {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .quote-block:hover {
+    z-index: 10;
+  }
+
+  .quote-block:hover .q-text {
+    color: #e8e0d4;
+  }
+
+  /* Position each quote */
+  .q-smith    { top: 20px;  left: 50px; }
+  .q-marx     { top: 160px; right: 30px; left: auto; }
+  .q-rothbard { bottom: 30px; left: 220px; }
+
+  .q-mark {
+    font-size: 3rem;
+    line-height: 1;
+    color: rgba(255,255,255,0.08);
+    margin-bottom: -0.5rem;
+    font-family: 'Georgia', serif;
+  }
+
+  .q-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #888;
+    font-style: italic;
+    margin-bottom: 0.75rem;
+    transition: color 0.3s ease;
+  }
+
+  .q-author {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #555;
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .q-school {
+    font-size: 0.6rem;
+    color: #444;
+    font-style: normal;
+    margin-top: 0.15rem;
+  }
+
+  /* The topic label floating in the center */
+  .center-topic {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .topic-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: #444;
+    margin-bottom: 0.3rem;
+  }
+
+  .topic-word {
+    font-size: 1.8rem;
+    color: rgba(255,255,255,0.08);
+    font-weight: 400;
+  }
+
+  /* Clash markers */
+  .clash-marker {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 200, 100, 0.15);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .clash-marker.visible { opacity: 1; }
+
+  .clash-marker::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 14px;
+    top: -2px;
+    font-size: 0.55rem;
+    color: #555;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+
+  /* Bottom */
+  .bottom-note {
+    position: fixed;
+    bottom: 3rem;
+    font-size: 0.75rem;
+    color: #444;
+    text-align: center;
+    line-height: 1.6;
+    z-index: 10;
+  }
+
+  /* Subtle animated pulse on tension lines */
+  @keyframes pulse-line {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wordmark">Wikifreedia</div>
+<p class="tagline">No entry here has a canonical version.</p>
+
+<div class="tension-field" id="field">
+  <!-- Tension lines -->
+  <div class="tension-lines">
+    <svg>
+      <!-- Smith ↔ Marx -->
+      <line class="tension-line" id="line-sm" x1="200" y1="100" x2="530" y2="230" />
+      <!-- Marx ↔ Rothbard -->
+      <line class="tension-line" id="line-mr" x1="530" y1="280" x2="360" y2="340" />
+      <!-- Smith ↔ Rothbard -->
+      <line class="tension-line" id="line-sr" x1="160" y1="120" x2="320" y2="330" />
+    </svg>
+  </div>
+
+  <!-- Center topic -->
+  <div class="center-topic">
+    <div class="topic-label">The same topic</div>
+    <div class="topic-word">Capitalism</div>
+  </div>
+
+  <!-- Clash markers on the lines -->
+  <div class="clash-marker" id="clash1" style="left:360px; top:160px;" data-label="role of the state"></div>
+  <div class="clash-marker" id="clash2" style="left:440px; top:300px;" data-label="source of value"></div>
+  <div class="clash-marker" id="clash3" style="left:230px; top:220px;" data-label="nature of freedom"></div>
+
+  <!-- Smith -->
+  <div class="quote-block q-smith" id="qSmith">
+    <div class="q-mark">"</div>
+    <div class="q-text">It is not from the benevolence of the butcher that we expect our dinner, but from his regard to his own interest. The invisible hand turns private vice into public virtue.</div>
+    <div class="q-author">Adam Smith</div>
+    <div class="q-school">The market self-corrects.</div>
+  </div>
+
+  <!-- Marx -->
+  <div class="quote-block q-marx" id="qMarx">
+    <div class="q-mark">"</div>
+    <div class="q-text">Capital is dead labor, which vampire-like, lives only by sucking living labor. The history of all hitherto existing society is the history of class struggle.</div>
+    <div class="q-author">Karl Marx</div>
+    <div class="q-school">The market exploits.</div>
+  </div>
+
+  <!-- Rothbard -->
+  <div class="quote-block q-rothbard" id="qRothbard">
+    <div class="q-mark">"</div>
+    <div class="q-text">The State is a gang of thieves writ large. Taxation is theft. The free market is the only moral economic system — and it needs no government to function.</div>
+    <div class="q-author">Murray Rothbard</div>
+    <div class="q-school">The market needs no state.</div>
+  </div>
+</div>
+
+<div class="bottom-note">
+  Three thinkers. One word. Three irreconcilable meanings.<br>
+  Which entry would a traditional encyclopedia choose?
+</div>
+
+<script>
+// Staggered appearance
+const sequence = [
+  { el: 'qSmith', delay: 800 },
+  { el: 'line-sm', delay: 1800, type: 'line' },
+  { el: 'qMarx', delay: 2200 },
+  { el: 'line-mr', delay: 3200, type: 'line' },
+  { el: 'qRothbard', delay: 3600 },
+  { el: 'line-sr', delay: 4400, type: 'line' },
+  { el: 'clash1', delay: 5000, type: 'clash' },
+  { el: 'clash2', delay: 5400, type: 'clash' },
+  { el: 'clash3', delay: 5800, type: 'clash' },
+];
+
+sequence.forEach(({ el, delay, type }) => {
+  setTimeout(() => {
+    const element = document.getElementById(el);
+    if (type === 'line') {
+      element.classList.add('taut');
+    } else if (type === 'clash') {
+      element.classList.add('visible');
+    } else {
+      element.classList.add('placed');
+    }
+  }, delay);
+});
+</script>
+
+</body>
+</html>

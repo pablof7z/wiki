@@ -1,0 +1,220 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero V6 — Compare Button</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ===== HERO ===== */
+.hero{height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+
+.wordmark{font-size:5.5rem;font-style:italic;color:rgba(232,224,212,0.9);font-family:'Georgia',serif;letter-spacing:-0.03em;margin-bottom:1.25rem;line-height:1}
+
+.hero-headline{font-size:1.7rem;font-family:'Georgia',serif;color:#888;line-height:1.5;max-width:580px;margin:0 auto 0.85rem}
+.hero-headline em{color:#ccc;font-style:italic}
+
+.hero-sub{font-size:1rem;font-family:'Georgia',serif;color:#555;line-height:1.6;max-width:500px;margin:0 auto}
+
+/* ===== DEMO ===== */
+.demo{max-width:620px;margin:0 auto;padding:0 2rem 6rem}
+
+.search-bar{background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:0.85rem 1.5rem;display:flex;align-items:center;gap:0.65rem;margin-bottom:0.4rem}
+.search-icon{color:#555;font-size:1rem}
+.search-query{font-size:1.1rem;color:#e8e0d4}
+.search-count{margin-left:auto;font-size:0.6rem;color:#444}
+.search-meta{font-size:0.5rem;color:#333;margin-bottom:1.25rem}
+
+/* Results */
+.result{padding:0.9rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:44px 1fr;gap:0.85rem;align-items:start;transition:all 0.4s ease;position:relative;border-radius:8px}
+.result:last-of-type{border-bottom:none}
+.result.selected{background:rgba(255,200,100,0.04);padding-left:0.6rem;padding-right:0.6rem;border-bottom-color:transparent}
+.result.selected .avatar{box-shadow:0 0 0 2px rgba(255,200,100,0.4)}
+
+.avatar{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#999;transition:box-shadow 0.3s ease}
+.avatar.jr{background:#3a2a1a}
+.avatar.af{background:#1a2a3a}
+.avatar.bw{background:#2a301a}
+
+.r-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.25rem}
+.r-name{font-size:0.75rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+.r-quote{font-size:0.88rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic}
+.r-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+
+/* Compare button */
+.compare-row{display:flex;justify-content:center;margin-top:1.75rem}
+.compare-btn{display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;font-weight:600;color:#e8e0d4;background:rgba(255,200,100,0.08);border:1px solid rgba(255,200,100,0.2);padding:0.65rem 1.75rem;border-radius:100px;cursor:pointer;transition:all 0.2s ease;font-family:inherit}
+.compare-btn:hover{background:rgba(255,200,100,0.14);border-color:rgba(255,200,100,0.35)}
+.compare-btn .sparkle{font-size:0.9rem}
+.compare-btn.running{pointer-events:none;color:#888}
+
+/* Comparison floating card */
+.comp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.4s ease}
+.comp-overlay.visible{opacity:1;pointer-events:auto}
+
+.comp-card{width:560px;max-height:82vh;overflow-y:auto;background:#1c1b19;border:1px solid rgba(255,200,100,0.12);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.5),0 0 40px rgba(255,200,100,0.03);transform:translateY(24px) scale(0.96);transition:all 0.5s cubic-bezier(0.22,1,0.36,1);padding:1.5rem 1.75rem;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.06) transparent}
+.comp-card::-webkit-scrollbar{width:4px}
+.comp-card::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:2px}
+.comp-overlay.visible .comp-card{transform:translateY(0) scale(1)}
+
+.comp-bar{display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.04)}
+.comp-icon{font-size:0.85rem;color:rgba(255,200,100,0.6)}
+.comp-label{font-size:0.72rem;font-weight:600;color:#ccc}
+.comp-faces{display:flex;margin-left:auto;margin-right:0.75rem}
+.comp-face{width:24px;height:24px;border-radius:50%;border:2px solid #1c1b19;margin-left:-6px;display:flex;align-items:center;justify-content:center;font-size:0.4rem;font-weight:700;color:#999}
+.comp-face.jr{background:#3a2a1a}
+.comp-face.af{background:#1a2a3a}
+.comp-face.bw{background:#2a301a}
+.comp-close{font-size:0.75rem;color:#555;cursor:pointer;padding:0.3rem;transition:color 0.2s}
+.comp-close:hover{color:#aaa}
+
+.comp-text{font-size:0.82rem;line-height:1.75;color:#999;margin-bottom:0.65rem}
+.comp-text strong{color:#e8e0d4;font-weight:600}
+
+.ct{display:flex;flex-direction:column;gap:0.35rem;margin:0.75rem 0}
+.ct-row{display:grid;grid-template-columns:26px 75px 1fr;gap:0.5rem;align-items:center;font-size:0.72rem;padding:0.5rem 0.65rem;border-radius:8px;background:rgba(255,200,100,0.025);border:1px solid rgba(255,200,100,0.06)}
+.ct-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.38rem;font-weight:700;color:#999}
+.ct-av.jr{background:#3a2a1a}
+.ct-av.af{background:#1a2a3a}
+.ct-av.bw{background:#2a301a}
+.ct-who{font-weight:600;color:rgba(255,200,100,0.7)}
+.ct-claim{color:#bbb;line-height:1.45}
+
+.comp-kicker{font-size:0.85rem;color:#ccc;font-family:'Georgia',serif;font-style:italic;padding:0.6rem 0.85rem;border-left:2.5px solid rgba(255,200,100,0.3);margin-top:0.75rem;line-height:1.6}
+
+/* Stream-in */
+.cs{opacity:0;transform:translateY(8px);transition:all 0.45s ease}
+.cs.in{opacity:1;transform:translateY(0)}
+</style></head><body>
+
+<section class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="hero-headline">The encyclopedia that <em>can't</em> pick a side.</div>
+  <div class="hero-sub">Same topic, different authors, no canonical version. Knowledge lives in the disagreement.</div>
+</section>
+
+<section class="demo">
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <span class="search-query">Ivermectin</span>
+    <span class="search-count">3 entries</span>
+  </div>
+  <div class="search-meta">3 authors · no canonical version</div>
+
+  <div class="result" id="r0">
+    <div class="avatar jr">JR</div>
+    <div>
+      <div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div>
+      <div class="r-quote">Ivermectin is a Nobel Prize-winning antiparasitic drug that was <span class="hot">systematically discredited</span> during the COVID-19 pandemic to protect the commercial viability of emergency-use vaccines…</div>
+    </div>
+  </div>
+
+  <div class="result" id="r1">
+    <div class="avatar af">AF</div>
+    <div>
+      <div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist</span></div>
+      <div class="r-quote">Ivermectin is an antiparasitic agent whose proposed use against COVID-19 was <span class="hot">not supported by clinical evidence</span>. The TOGETHER trial (n=3,500) found no significant benefit…</div>
+    </div>
+  </div>
+
+  <div class="result" id="r2">
+    <div class="avatar bw">BW</div>
+    <div>
+      <div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div>
+      <div class="r-quote">Ivermectin became the central case study in how <span class="hot">regulatory incentive structures</span> can prevent honest evaluation of repurposed drugs during a public health emergency…</div>
+    </div>
+  </div>
+
+  <div class="compare-row">
+    <button class="compare-btn" id="compareBtn">
+      <span class="sparkle">✦</span> Compare all three entries
+    </button>
+  </div>
+</section>
+
+<!-- Floating comparison card -->
+<div class="comp-overlay" id="overlay">
+  <div class="comp-card">
+    <div class="comp-bar">
+      <span class="comp-icon">✦</span>
+      <span class="comp-label">AI Comparison</span>
+      <div class="comp-faces">
+        <div class="comp-face jr">JR</div>
+        <div class="comp-face af">AF</div>
+        <div class="comp-face bw">BW</div>
+      </div>
+      <span class="comp-close" id="closeComp">✕</span>
+    </div>
+
+    <div class="cs" id="cs1">
+      <div class="comp-text">All three entries describe the same molecule — but they are having <strong>three fundamentally different conversations</strong>.</div>
+    </div>
+
+    <div class="cs" id="cs2">
+      <div class="ct">
+        <div class="ct-row">
+          <div class="ct-av jr">JR</div>
+          <div class="ct-who">Rogan</div>
+          <div class="ct-claim">A suppressed cure. The $2 generic threatened a $100B vaccine program.</div>
+        </div>
+        <div class="ct-row">
+          <div class="ct-av af">AF</div>
+          <div class="ct-who">Fauci</div>
+          <div class="ct-claim">No clinical benefit in randomized trials. Anecdotes are not evidence.</div>
+        </div>
+        <div class="ct-row">
+          <div class="ct-av bw">BW</div>
+          <div class="ct-who">Weinstein</div>
+          <div class="ct-claim">The regulatory framework was structurally incapable of producing an honest answer.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cs" id="cs3">
+      <div class="comp-text">The deepest split: <strong>the role of the state</strong>. Rogan sees corruption. Fauci sees the system working as designed. Weinstein sees a structural flaw that makes both miss the point.</div>
+    </div>
+
+    <div class="cs" id="cs4">
+      <div class="comp-kicker">A traditional encyclopedia chooses one frame and calls it neutral. Wikifreedia keeps all three — because understanding the disagreement is the knowledge.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const btn = document.getElementById('compareBtn');
+const overlay = document.getElementById('overlay');
+const closeBtn = document.getElementById('closeComp');
+const results = [document.getElementById('r0'), document.getElementById('r1'), document.getElementById('r2')];
+const streams = ['cs1','cs2','cs3','cs4'];
+
+btn.addEventListener('click', () => {
+  btn.classList.add('running');
+  btn.innerHTML = '<span class="sparkle">✦</span> Comparing…';
+
+  // Select each result one by one
+  results.forEach((r, i) => {
+    setTimeout(() => r.classList.add('selected'), i * 250);
+  });
+
+  // Show overlay after selection
+  setTimeout(() => {
+    overlay.classList.add('visible');
+    // Stream in content
+    streams.forEach((id, i) => {
+      setTimeout(() => document.getElementById(id).classList.add('in'), (i + 1) * 450);
+    });
+  }, 1000);
+});
+
+function closeOverlay() {
+  overlay.classList.remove('visible');
+  results.forEach(r => r.classList.remove('selected'));
+  btn.classList.remove('running');
+  btn.innerHTML = '<span class="sparkle">✦</span> Compare all three entries';
+  streams.forEach(id => document.getElementById(id).classList.remove('in'));
+}
+
+closeBtn.addEventListener('click', closeOverlay);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay(); });
+</script>
+</body></html>

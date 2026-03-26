@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2-03 — Overlapping Cards</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.3rem;font-style:italic;color:rgba(232,224,212,0.3);z-index:20}
+.arena{position:relative;width:880px;height:520px}
+.card{position:absolute;width:340px;background:#1a1918;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:1.5rem;transition:all 0.4s cubic-bezier(0.22,1,0.36,1);cursor:default}
+.card:hover{z-index:10 !important;transform:scale(1.03) !important;border-color:rgba(255,255,255,0.12)}
+.c1{left:0;top:60px;transform:rotate(-1.5deg);z-index:3}
+.c2{left:270px;top:0;transform:rotate(0.5deg);z-index:4}
+.c3{left:520px;top:90px;transform:rotate(1.5deg);z-index:2}
+.card-author{display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem}
+.card-avatar{width:30px;height:30px;border-radius:50%;background:#2a2a28;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#777}
+.card-name{font-size:0.75rem;font-weight:600}
+.card-role{font-size:0.5rem;color:#555;text-transform:uppercase;letter-spacing:0.06em}
+.card-eyebrow{font-size:0.45rem;text-transform:uppercase;letter-spacing:0.2em;color:#555;margin-bottom:0.3rem}
+.card-title{font-size:1.2rem;margin-bottom:0.75rem}
+.card-pull{font-size:0.95rem;font-style:italic;color:#ccc;line-height:1.45;margin-bottom:0.75rem;padding-left:0.75rem;border-left:2px solid rgba(255,255,255,0.08)}
+.card-body{font-size:0.68rem;line-height:1.7;color:#777}
+.bottom{position:fixed;bottom:2.5rem;left:50%;transform:translateX(-50%);text-align:center}
+.bottom-topic{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.25em;color:#444;margin-bottom:0.3rem}
+.bottom-line{font-size:0.75rem;color:#555}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="arena">
+  <div class="card c1">
+    <div class="card-author">
+      <div class="card-avatar">JR</div>
+      <div><div class="card-name">Joe Rogan</div><div class="card-role">Podcaster</div></div>
+    </div>
+    <div class="card-eyebrow">Ivermectin</div>
+    <div class="card-title">Ivermectin</div>
+    <div class="card-pull">"They called it 'horse paste' to protect a hundred-billion-dollar vaccine rollout."</div>
+    <div class="card-body">Doctors were seeing results with a Nobel Prize-winning drug. A $2 generic was a threat. I took it — I was better in days. CNN called it "horse dewormer." That tells you everything.</div>
+  </div>
+  <div class="card c2">
+    <div class="card-author">
+      <div class="card-avatar">AF</div>
+      <div><div class="card-name">Anthony Fauci</div><div class="card-role">Immunologist</div></div>
+    </div>
+    <div class="card-eyebrow">Ivermectin</div>
+    <div class="card-title">Ivermectin</div>
+    <div class="card-pull">"The plural of anecdote is not data. The trials do not show benefit."</div>
+    <div class="card-body">Randomized, placebo-controlled trials — the gold standard — have not demonstrated significant clinical benefit for COVID-19. Promoting unproven treatments eroded confidence in vaccines that saved millions.</div>
+  </div>
+  <div class="card c3">
+    <div class="card-author">
+      <div class="card-avatar">BW</div>
+      <div><div class="card-name">Bret Weinstein</div><div class="card-role">Evol. Biologist</div></div>
+    </div>
+    <div class="card-eyebrow">Ivermectin</div>
+    <div class="card-title">Ivermectin</div>
+    <div class="card-pull">"Both sides are wrong. The system couldn't honestly evaluate the question."</div>
+    <div class="card-body">The EUA required no adequate alternative exist. The vaccine program depended on it. You don't need a conspiracy — just an incentive structure that made honest evaluation structurally impossible.</div>
+  </div>
+</div>
+<div class="bottom">
+  <div class="bottom-topic">Same drug · Three entries · No canonical version</div>
+</div>
+</body></html>

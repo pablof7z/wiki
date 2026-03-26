@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Split Page — V1</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased;display:flex;height:100vh;overflow:hidden}
+
+/* ===== LEFT: Wikipedia world ===== */
+.left{width:38%;background:#f8f7f4;color:#222;display:flex;flex-direction:column;justify-content:center;padding:3.5rem 3rem;position:relative;overflow:hidden}
+
+.left-label{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.2em;color:#999;margin-bottom:1.5rem}
+
+.left-heading{font-size:1.7rem;font-weight:400;line-height:1.35;color:#111;font-family:'Georgia',serif;margin-bottom:1.5rem}
+
+.left-body{font-size:0.8rem;line-height:1.7;color:#666;margin-bottom:2rem}
+
+/* Fake wiki card */
+.wiki-card{background:#fff;border:1px solid #ddd;border-radius:3px;padding:1rem 1.2rem;margin-bottom:1.5rem}
+.wiki-title{font-size:1rem;font-weight:400;font-family:'Linux Libertine','Georgia',serif;border-bottom:1px solid #ccc;padding-bottom:0.25rem;margin-bottom:0.5rem;color:#000}
+.wiki-text{font-size:0.68rem;line-height:1.65;color:#444}
+.wiki-text .ref{color:#0645ad;font-size:0.55rem;vertical-align:super}
+.wiki-lock{font-size:0.55rem;color:#999;margin-top:0.5rem;display:flex;align-items:center;gap:0.3rem}
+
+.left-kicker{font-size:0.78rem;color:#999;font-style:italic;font-family:'Georgia',serif;line-height:1.5}
+
+/* Decorative faded bg */
+.left::after{content:'';position:absolute;bottom:-20px;right:-20px;width:200px;height:200px;background:rgba(0,0,0,0.015);border-radius:50%;pointer-events:none}
+
+/* ===== RIGHT: Wikifreedia world ===== */
+.right{flex:1;background:#0e0e0c;color:#e8e0d4;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.08) transparent}
+.right::-webkit-scrollbar{width:4px}
+.right::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+
+.right-content{padding:2.5rem 2.5rem 3rem;max-width:620px}
+
+.right-wordmark{font-size:1.6rem;font-style:italic;color:rgba(232,224,212,0.8);font-family:'Georgia',serif;margin-bottom:0.4rem;letter-spacing:-0.01em}
+.right-tagline{font-size:0.72rem;color:#666;margin-bottom:2rem;font-family:'Georgia',serif}
+
+/* Search */
+.search-bar{background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:0.6rem 1.1rem;display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem}
+.search-icon{color:#555;font-size:0.8rem}
+.search-query{font-size:0.85rem;color:#e8e0d4}
+.search-meta{font-size:0.52rem;color:#444;margin-bottom:1.5rem}
+
+/* Results */
+.results{display:flex;flex-direction:column;gap:0}
+
+.result{padding:0.9rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:38px 1fr;gap:0.8rem;align-items:start}
+.result:last-child{border-bottom:none}
+
+.r-avatar{width:38px;height:38px;border-radius:50%;background:#2a2a28;overflow:hidden;flex-shrink:0}
+.r-avatar img{width:100%;height:100%;object-fit:cover}
+
+.r-name{font-size:0.7rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+.r-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.25rem}
+
+.r-quote{font-size:0.88rem;line-height:1.45;color:#bbb;font-family:'Georgia',serif;font-style:italic;margin-bottom:0.25rem}
+.r-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+
+.r-excerpt{font-size:0.62rem;line-height:1.5;color:#666}
+
+/* AI Comparison */
+.comp{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.04)}
+
+.comp-bar{display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem}
+.comp-icon{font-size:0.7rem;color:#888}
+.comp-label{font-size:0.6rem;font-weight:600;color:#aaa}
+.comp-sub{font-size:0.5rem;color:#555}
+.comp-faces{margin-left:auto;display:flex}
+.comp-face{width:20px;height:20px;border-radius:50%;background:#2a2a28;border:2px solid #0e0e0c;margin-left:-5px;overflow:hidden}
+.comp-face img{width:100%;height:100%;object-fit:cover}
+
+.comp-text{font-size:0.75rem;line-height:1.75;color:#999;margin-bottom:0.5rem}
+.comp-text strong{color:#e8e0d4;font-weight:600}
+
+.contention{display:flex;flex-direction:column;gap:0.3rem;margin:0.6rem 0}
+.ct-row{display:grid;grid-template-columns:22px 60px 1fr;gap:0.4rem;align-items:center;font-size:0.65rem;padding:0.3rem 0.5rem;border-radius:5px;background:rgba(255,255,255,0.015)}
+.ct-av{width:18px;height:18px;border-radius:50%;overflow:hidden;background:#2a2a28}
+.ct-av img{width:100%;height:100%;object-fit:cover}
+.ct-who{font-weight:600;color:#999}
+.ct-claim{color:#bbb;line-height:1.4}
+
+.comp-kicker{font-size:0.78rem;color:#ccc;font-family:'Georgia',serif;font-style:italic;padding:0.4rem 0.65rem;border-left:2px solid rgba(255,200,100,0.2);margin-top:0.6rem}
+</style></head><body>
+
+<!-- ===== LEFT PANEL ===== -->
+<div class="left">
+  <div class="left-label">The old model</div>
+  <div class="left-heading">Wikipedia: one entry, one truth, decided by consensus.</div>
+  <div class="left-body">A single anonymous article. Disputes resolved by vote. Dissenting views deleted or footnoted. The result: an authoritative-looking page that hides the very disagreements that make a topic worth understanding.</div>
+
+  <div class="wiki-card">
+    <div class="wiki-title">Ivermectin</div>
+    <div class="wiki-text">Ivermectin is an antiparasitic drug. During the COVID-19 pandemic, misinformation about ivermectin as a treatment spread widely on social media.<span class="ref">[2]</span> Health authorities including the FDA and WHO advised against its use for COVID-19 outside of clinical trials.<span class="ref">[3]</span></div>
+    <div class="wiki-lock">🔒 Semi-protected — persistent edit disputes</div>
+  </div>
+
+  <div class="left-kicker">Whose consensus? On contested topics, "neutral" is a political choice disguised as objectivity.</div>
+</div>
+
+<!-- ===== RIGHT PANEL ===== -->
+<div class="right">
+  <div class="right-content">
+    <div class="right-wordmark">Wikifreedia</div>
+    <div class="right-tagline">Every entry is a perspective — not a verdict.</div>
+
+    <div class="search-bar">
+      <span class="search-icon">⌕</span>
+      <span class="search-query">Ivermectin</span>
+    </div>
+    <div class="search-meta">3 entries from 3 authors · no canonical version</div>
+
+    <div class="results">
+      <div class="result">
+        <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+        <div>
+          <div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div>
+          <div class="r-quote">"They called a Nobel Prize-winning drug <span class="hot">'horse paste'</span> to protect a hundred-billion-dollar vaccine rollout."</div>
+          <div class="r-excerpt">Doctors were seeing results. A $2 generic was a threat. I took it — I was better in days.</div>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+        <div>
+          <div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist</span></div>
+          <div class="r-quote">"The randomized controlled trials <span class="hot">do not show benefit</span>. The plural of anecdote is not data."</div>
+          <div class="r-excerpt">The TOGETHER trial — 3,500 patients, double-blind — showed no significant clinical benefit.</div>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="r-avatar"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+        <div>
+          <div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div>
+          <div class="r-quote">"The system was <span class="hot">structurally incapable</span> of honest evaluation."</div>
+          <div class="r-excerpt">The EUA required no adequate alternative to exist. You don't need a conspiracy — just an incentive structure.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Comparison -->
+    <div class="comp">
+      <div class="comp-bar">
+        <span class="comp-icon">✦</span>
+        <span class="comp-label">AI Comparison</span>
+        <span class="comp-sub">· 3 entries analyzed</span>
+        <div class="comp-faces">
+          <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+          <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+          <div class="comp-face"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+        </div>
+      </div>
+
+      <div class="comp-text">Three authors, same molecule — <strong>three fundamentally different conversations</strong>.</div>
+
+      <div class="contention">
+        <div class="ct-row">
+          <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg/440px-Joe_Rogan_Alex_Jones_September_2019_%28cropped%29.jpg" alt="JR"></div>
+          <div class="ct-who">Rogan</div>
+          <div class="ct-claim">Suppressed cure. $2 generic threatened a $100B vaccine program.</div>
+        </div>
+        <div class="ct-row">
+          <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Anthony_Fauci_%282022%29.jpg/440px-Anthony_Fauci_%282022%29.jpg" alt="AF"></div>
+          <div class="ct-who">Fauci</div>
+          <div class="ct-claim">No clinical benefit in randomized trials. Anecdotes aren't evidence.</div>
+        </div>
+        <div class="ct-row">
+          <div class="ct-av"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Bret_Weinstein_by_Gage_Skidmore.jpg/440px-Bret_Weinstein_by_Gage_Skidmore.jpg" alt="BW"></div>
+          <div class="ct-who">Weinstein</div>
+          <div class="ct-claim">The regulatory framework couldn't produce an honest answer either way.</div>
+        </div>
+      </div>
+
+      <div class="comp-text">The deepest split: <strong>the role of the state</strong>. Rogan sees corruption. Fauci sees the system working. Weinstein sees a structural flaw that makes both miss the point.</div>
+
+      <div class="comp-kicker">A traditional encyclopedia chooses one frame and calls it neutral. Wikifreedia keeps all three.</div>
+    </div>
+  </div>
+</div>
+
+</body></html>

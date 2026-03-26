@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2-05 — The Diff</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'SF Mono','Menlo','Consolas',monospace;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.header{display:flex;align-items:center;padding:0.8rem 2rem;border-bottom:1px solid rgba(255,255,255,0.04);gap:1.5rem;flex-shrink:0}
+.wordmark{font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.3);font-family:'Georgia',serif}
+.file-path{font-size:0.65rem;color:#666}
+.diff-stats{margin-left:auto;font-size:0.6rem;display:flex;gap:1rem}
+.stat-add{color:#6a9955}
+.stat-del{color:#c95555}
+.stat-mod{color:#d4a055}
+.diff-view{flex:1;overflow:hidden;padding:0.5rem 0}
+.diff-line{display:flex;font-size:0.72rem;line-height:2.2;padding:0 2rem}
+.diff-line:hover{background:rgba(255,255,255,0.015)}
+.ln{color:#333;min-width:3rem;text-align:right;padding-right:1rem;user-select:none}
+.marker{min-width:1.5rem;user-select:none}
+.code{flex:1;white-space:pre-wrap}
+.diff-line.ctx .code{color:#666}
+.diff-line.del{background:rgba(201,85,85,0.06)}
+.diff-line.del .marker{color:#c95555}
+.diff-line.del .code{color:#c97070}
+.diff-line.add{background:rgba(106,153,85,0.06)}
+.diff-line.add .marker{color:#6a9955}
+.diff-line.add .code{color:#8ab88a}
+.diff-line.section{color:#569cd6;font-weight:600;padding-top:0.3rem}
+.author-tag{font-size:0.55rem;color:#555;text-transform:uppercase;letter-spacing:0.06em;margin-left:0.5rem;font-weight:400}
+</style></head><body>
+<div class="header">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="file-path">ivermectin.wiki — 3 conflicting versions</div>
+  <div class="diff-stats">
+    <span class="stat-add">+34 Rogan</span>
+    <span class="stat-del">−22 Fauci disputes</span>
+    <span class="stat-mod">~18 Weinstein reframes</span>
+  </div>
+</div>
+<div class="diff-view">
+  <div class="diff-line section"><span class="ln"></span><span class="marker"></span><span class="code">@@ What is ivermectin? @@</span></div>
+  <div class="diff-line ctx"><span class="ln">1</span><span class="marker"> </span><span class="code">Ivermectin is a medication discovered in the 1970s,</span></div>
+  <div class="diff-line ctx"><span class="ln">2</span><span class="marker"> </span><span class="code">awarded the Nobel Prize in 2015.</span></div>
+  <div class="diff-line del"><span class="ln">3</span><span class="marker">−</span><span class="code">It has no demonstrated benefit for COVID-19.<span class="author-tag">Fauci</span></span></div>
+  <div class="diff-line add"><span class="ln">3</span><span class="marker">+</span><span class="code">Doctors worldwide were seeing results treating COVID with it.<span class="author-tag">Rogan</span></span></div>
+  <div class="diff-line add"><span class="ln">4</span><span class="marker">+</span><span class="code">They called it "horse paste" to protect the vaccine rollout.<span class="author-tag">Rogan</span></span></div>
+  <div class="diff-line ctx"><span class="ln">5</span><span class="marker"> </span><span class="code"></span></div>
+  <div class="diff-line section"><span class="ln"></span><span class="marker"></span><span class="code">@@ The evidence @@</span></div>
+  <div class="diff-line del"><span class="ln">6</span><span class="marker">−</span><span class="code">Randomized controlled trials are the gold standard.<span class="author-tag">Fauci</span></span></div>
+  <div class="diff-line del"><span class="ln">7</span><span class="marker">−</span><span class="code">The TOGETHER trial showed no significant benefit.<span class="author-tag">Fauci</span></span></div>
+  <div class="diff-line add"><span class="ln">6</span><span class="marker">+</span><span class="code">A $2 generic threatened a $100B vaccine program.<span class="author-tag">Rogan</span></span></div>
+  <div class="diff-line add"><span class="ln">7</span><span class="marker">+</span><span class="code">You can't get EUA if an adequate alternative exists.<span class="author-tag">Rogan</span></span></div>
+  <div class="diff-line ctx"><span class="ln">8</span><span class="marker"> </span><span class="code"></span></div>
+  <div class="diff-line section"><span class="ln"></span><span class="marker"></span><span class="code">@@ The real question @@ <span class="author-tag">Weinstein</span></span></div>
+  <div class="diff-line add"><span class="ln">9</span><span class="marker">+</span><span class="code">Both sides miss the point.<span class="author-tag">Weinstein</span></span></div>
+  <div class="diff-line add"><span class="ln">10</span><span class="marker">+</span><span class="code">The EUA framework made honest evaluation structurally</span></div>
+  <div class="diff-line add"><span class="ln">11</span><span class="marker">+</span><span class="code">impossible. No conspiracy needed — just an incentive</span></div>
+  <div class="diff-line add"><span class="ln">12</span><span class="marker">+</span><span class="code">structure where the most profitable outcome was required</span></div>
+  <div class="diff-line add"><span class="ln">13</span><span class="marker">+</span><span class="code">to also be the "scientific" one.<span class="author-tag">Weinstein</span></span></div>
+  <div class="diff-line ctx"><span class="ln">14</span><span class="marker"> </span><span class="code"></span></div>
+  <div class="diff-line section"><span class="ln"></span><span class="marker"></span><span class="code">@@ On the state @@</span></div>
+  <div class="diff-line del"><span class="ln">15</span><span class="marker">−</span><span class="code">Promoting unproven treatments eroded vaccine confidence.<span class="author-tag">Fauci</span></span></div>
+  <div class="diff-line add"><span class="ln">15</span><span class="marker">+</span><span class="code">CNN called my prescribed medication "horse dewormer."<span class="author-tag">Rogan</span></span></div>
+  <div class="diff-line add"><span class="ln">16</span><span class="marker">+</span><span class="code">That tells you everything about where their incentives lie.<span class="author-tag">Rogan</span></span></div>
+</div>
+</body></html>

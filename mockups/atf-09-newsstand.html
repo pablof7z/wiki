@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09 — Newsstand</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Georgia',serif;background:#0e0e0c;color:#e8e0d4;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+.wordmark{position:fixed;top:2rem;left:50%;transform:translateX(-50%);font-size:1.1rem;font-style:italic;color:rgba(232,224,212,0.2);z-index:10}
+.newsstand{position:relative;width:820px;height:520px;perspective:800px}
+.paper{position:absolute;width:320px;background:#f5f0e8;color:#1a1a18;border-radius:2px;padding:1.5rem;box-shadow:0 4px 30px rgba(0,0,0,0.4);transform-origin:center center;transition:all 1s cubic-bezier(0.22,1,0.36,1);cursor:default}
+.paper:hover{z-index:10 !important;transform:scale(1.05) !important}
+.paper-masthead{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.2em;color:#888;border-bottom:2px solid #1a1a18;padding-bottom:0.4rem;margin-bottom:0.6rem;display:flex;justify-content:space-between}
+.paper-headline{font-size:1.4rem;font-weight:700;line-height:1.2;margin-bottom:0.6rem;color:#111;font-family:'Times New Roman','Georgia',serif}
+.paper-sub{font-size:0.65rem;line-height:1.5;color:#555;margin-bottom:0.5rem}
+.paper-byline{font-size:0.55rem;color:#888;font-style:italic}
+/* Positions: fanned out */
+.paper:nth-child(1){left:0;top:50px;transform:rotate(-4deg);z-index:3}
+.paper:nth-child(2){left:250px;top:20px;transform:rotate(0.5deg);z-index:4}
+.paper:nth-child(3){left:470px;top:70px;transform:rotate(3deg);z-index:2}
+/* Initial state: stacked */
+.paper.stacked{left:250px !important;top:80px !important;transform:rotate(0deg) !important}
+.paper.stacked:nth-child(2){top:86px !important;transform:rotate(0.5deg) !important}
+.paper.stacked:nth-child(3){top:92px !important;transform:rotate(1deg) !important}
+.bottom-text{position:fixed;bottom:3rem;left:50%;transform:translateX(-50%);font-size:0.7rem;color:#444;text-align:center}
+</style></head><body>
+<div class="wordmark">Wikifreedia</div>
+<div class="newsstand" id="newsstand">
+  <div class="paper stacked" id="p1">
+    <div class="paper-masthead"><span>The Joe Rogan Experience</span><span>2021</span></div>
+    <div class="paper-headline">Nobel Prize-Winning Drug Suppressed To Protect Vaccine Rollout</div>
+    <div class="paper-sub">Frontline doctors report dramatic recovery times using cheap generic ivermectin, only to face deplatforming and media smear campaigns labeling the WHO-essential medicine "horse paste."</div>
+    <div class="paper-byline">— Joe Rogan, Austin, TX</div>
+  </div>
+  <div class="paper stacked" id="p2">
+    <div class="paper-masthead"><span>National Institute of Health</span><span>2021</span></div>
+    <div class="paper-headline">No Clinical Benefit Found In Controlled Trials Of Ivermectin For COVID-19</div>
+    <div class="paper-sub">The TOGETHER trial and multiple systematic reviews find insufficient evidence of benefit. Experts warn that promoting unproven treatments undermines confidence in Phase III-validated vaccines.</div>
+    <div class="paper-byline">— Dr. Anthony Fauci, NIAID</div>
+  </div>
+  <div class="paper stacked" id="p3">
+    <div class="paper-masthead"><span>DarkHorse Podcast</span><span>2021</span></div>
+    <div class="paper-headline">Regulatory Framework Made Honest Evaluation Of Ivermectin Structurally Impossible</div>
+    <div class="paper-sub">Emergency Use Authorization required no adequate alternative to exist. The most profitable product in pharmaceutical history depended on the answer being "there is no alternative."</div>
+    <div class="paper-byline">— Bret Weinstein, Evolutionary Biology</div>
+  </div>
+</div>
+<div class="bottom-text">Same drug. Same year. Three front pages.</div>
+<script>
+// Fan out after a moment
+setTimeout(()=>{
+  document.querySelectorAll('.paper').forEach(p=>p.classList.remove('stacked'));
+},1200);
+</script></body></html>

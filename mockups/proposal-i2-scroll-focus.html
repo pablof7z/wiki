@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I2 — Scroll Focus (Ivermectin)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Georgia', serif; background: #111; color: #e8e0d4; }
+
+  .scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: rgba(255,255,255,0.15); z-index: 100; }
+
+  .fixed-topic {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 7rem; font-weight: 400; color: rgba(255,255,255,0.015);
+    z-index: 0; pointer-events: none; letter-spacing: -0.02em; white-space: nowrap;
+  }
+
+  /* Topic picker */
+  .topic-picker {
+    position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 0.4rem; z-index: 100;
+    opacity: 0; transition: opacity 0.5s ease;
+  }
+  .topic-picker.visible { opacity: 1; }
+  .topic-pill {
+    font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 0.35rem 0.75rem; border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.08); color: #555;
+    background: rgba(17,17,17,0.8); backdrop-filter: blur(10px);
+    cursor: pointer; font-family: inherit; transition: all 0.3s ease;
+  }
+  .topic-pill:hover { border-color: rgba(255,255,255,0.2); color: #999; }
+  .topic-pill.active { border-color: rgba(255,255,255,0.25); color: #ccc; }
+
+  /* Phase dots */
+  .phase-dots {
+    position: fixed; right: 2rem; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 0.75rem; z-index: 100;
+  }
+  .phase-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.1);
+    transition: all 0.3s ease; position: relative;
+  }
+  .phase-dot.active { background: rgba(255,255,255,0.4); transform: scale(1.4); }
+  .phase-dot::after {
+    content: attr(data-label); position: absolute; right: 16px; top: -3px;
+    font-size: 0.55rem; color: #555; white-space: nowrap;
+    opacity: 0; transition: opacity 0.3s ease; letter-spacing: 0.04em;
+  }
+  .phase-dot.active::after { opacity: 1; }
+
+  /* Sections */
+  .scroll-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+
+  /* Intro */
+  .intro { flex-direction: column; height: 100vh; }
+  .wordmark { font-size: 3.5rem; font-weight: 400; letter-spacing: -0.02em; font-style: italic; margin-bottom: 1rem; }
+  .intro-sub { font-size: 0.9rem; color: #666; max-width: 460px; text-align: center; line-height: 1.6; }
+  .scroll-cue {
+    position: absolute; bottom: 3rem; font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: #444; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  }
+  .scroll-arrow { width: 10px; height: 10px; border-right: 1px solid #444; border-bottom: 1px solid #444; transform: rotate(45deg); animation: bob 2s infinite; }
+  @keyframes bob { 0%,100% { transform: rotate(45deg); } 50% { transform: rotate(45deg) translate(3px,3px); } }
+
+  /* Perspective sections */
+  .perspective-section { height: 200vh; position: relative; }
+  .perspective-sticky {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+
+  .perspective-layout {
+    display: grid; grid-template-columns: 200px 500px; gap: 2.5rem; align-items: start;
+    opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .perspective-layout.visible { opacity: 1; transform: translateY(0); }
+
+  .author-sidebar { padding-top: 0.5rem; }
+  .author-avatar {
+    width: 48px; height: 48px; border-radius: 50%; background: #222;
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #777; margin-bottom: 0.75rem;
+  }
+  .author-name { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .author-role { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  .author-bio { font-size: 0.65rem; color: #555; line-height: 1.5; }
+
+  .article-panel {
+    background: #1a1918; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 2rem;
+  }
+  .article-eyebrow { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.18em; color: #555; margin-bottom: 0.4rem; }
+  .article-title { font-size: 1.5rem; margin-bottom: 1.2rem; }
+  .article-body { font-size: 0.82rem; line-height: 1.85; color: #aaa; }
+  .article-body p { margin-bottom: 1rem; }
+
+  .key-claim {
+    color: #e8e0d4; background: rgba(255, 200, 100, 0.06);
+    padding: 0.6rem 0.8rem; border-left: 2px solid rgba(255, 200, 100, 0.2);
+    display: block; margin: 1rem 0; font-style: italic; border-radius: 0 6px 6px 0;
+  }
+
+  /* Transitions */
+  .transition-note { height: 50vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+  .transition-text {
+    font-size: 0.8rem; color: #444; font-style: italic; text-align: center;
+    max-width: 400px; line-height: 1.7; opacity: 0; transition: opacity 0.6s ease;
+  }
+  .transition-text.visible { opacity: 1; }
+
+  /* Finale */
+  .finale { height: 200vh; }
+  .finale-sticky {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;
+  }
+
+  .three-cards { display: flex; gap: 1rem; margin-bottom: 2rem; }
+  .mini-card {
+    width: 210px; background: #1a1918; border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px; padding: 1rem;
+    opacity: 0; transform: translateY(20px); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .mini-card.visible { opacity: 1; transform: translateY(0); }
+  .mini-card:nth-child(1) { transition-delay: 0s; }
+  .mini-card:nth-child(2) { transition-delay: 0.15s; }
+  .mini-card:nth-child(3) { transition-delay: 0.3s; }
+  .mini-name { font-size: 0.65rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .mini-claim { font-size: 0.6rem; color: #888; font-style: italic; line-height: 1.5; }
+
+  .finale-text {
+    text-align: center; max-width: 500px;
+    opacity: 0; transform: translateY(15px); transition: all 0.6s ease 0.5s;
+  }
+  .finale-text.visible { opacity: 1; transform: translateY(0); }
+  .finale-heading { font-size: 1.3rem; margin-bottom: 0.75rem; }
+  .finale-body { font-size: 0.85rem; color: #888; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="fixed-topic">Ivermectin</div>
+
+<div class="topic-picker" id="topicPicker">
+  <button class="topic-pill active">Ivermectin</button>
+  <button class="topic-pill">Capitalism</button>
+  <button class="topic-pill">Free Speech</button>
+  <button class="topic-pill">Journalism</button>
+</div>
+
+<div class="phase-dots">
+  <div class="phase-dot active" data-label="Topic" id="dot0"></div>
+  <div class="phase-dot" data-label="Rogan" id="dot1"></div>
+  <div class="phase-dot" data-label="Fauci" id="dot2"></div>
+  <div class="phase-dot" data-label="Weinstein" id="dot3"></div>
+  <div class="phase-dot" data-label="Compare" id="dot4"></div>
+</div>
+
+<!-- INTRO -->
+<section class="scroll-section intro">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="intro-sub">Three people write an encyclopedia entry on "Ivermectin." Read all three.</div>
+  <div class="scroll-cue">
+    <span>Scroll to read</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ROGAN -->
+<section class="perspective-section" id="secRogan">
+  <div class="perspective-sticky">
+    <div class="perspective-layout" id="layoutRogan">
+      <div class="author-sidebar">
+        <div class="author-avatar">JR</div>
+        <div class="author-name">Joe Rogan</div>
+        <div class="author-role">Podcaster · Commentator</div>
+        <div class="author-bio">Host of the most-listened-to podcast in the world. Took ivermectin as part of his COVID treatment in 2021.</div>
+      </div>
+      <div class="article-panel">
+        <div class="article-eyebrow">Ivermectin · Version 1 of 3</div>
+        <div class="article-title">Ivermectin</div>
+        <div class="article-body">
+          <p>Ivermectin is a Nobel Prize-winning medication that has been safely prescribed billions of times worldwide. During COVID, doctors on the frontlines — people actually treating patients — started seeing real results using it as an early treatment.</p>
+          <span class="key-claim">"They called it 'horse paste.' A Nobel Prize-winning human medicine. Because a $2 generic drug threatened a hundred-billion-dollar vaccine rollout."</span>
+          <p>You cannot get Emergency Use Authorization for a vaccine if there's an adequate existing treatment available. Think about what that means. The entire financial incentive of the most profitable pharmaceutical product in history depended on there being no alternative.</p>
+          <p>I took it when I got COVID, along with monoclonal antibodies, a Z-pack, and a vitamin drip. I was better in days. CNN ran segments about me taking "horse dewormer." That tells you everything about where their incentives lie.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="transition-note">
+  <div class="transition-text" id="trans1">Same molecule. Now read it described by someone who ran the country's pandemic response.</div>
+</div>
+
+<!-- FAUCI -->
+<section class="perspective-section" id="secFauci">
+  <div class="perspective-sticky">
+    <div class="perspective-layout" id="layoutFauci">
+      <div class="author-sidebar">
+        <div class="author-avatar">AF</div>
+        <div class="author-name">Anthony Fauci</div>
+        <div class="author-role">Immunologist · Public Health</div>
+        <div class="author-bio">Director of NIAID for 38 years. Chief Medical Advisor to the President during COVID-19.</div>
+      </div>
+      <div class="article-panel">
+        <div class="article-eyebrow">Ivermectin · Version 2 of 3</div>
+        <div class="article-title">Ivermectin</div>
+        <div class="article-body">
+          <p>Ivermectin is an important antiparasitic medication with a well-established safety profile for its approved indications. However, in vitro activity against a virus does not translate to clinical efficacy — hundreds of drugs kill viruses in a petri dish at high enough concentrations.</p>
+          <span class="key-claim">"The plural of anecdote is not data. Randomized, placebo-controlled clinical trials are the gold standard, and they have not demonstrated significant benefit for COVID-19."</span>
+          <p>The TOGETHER trial, the largest well-designed RCT, showed no meaningful clinical benefit. When physicians promote unproven therapies based on personal experience and observational data, they undermine the evidentiary standards that protect patients from harm.</p>
+          <p>Promoting ivermectin as an alternative eroded confidence in vaccines — interventions that went through rigorous Phase III trials with tens of thousands of participants and demonstrably saved millions of lives worldwide.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="transition-note">
+  <div class="transition-text" id="trans2">Now someone who thinks both of them are missing the real question entirely.</div>
+</div>
+
+<!-- WEINSTEIN -->
+<section class="perspective-section" id="secWeinstein">
+  <div class="perspective-sticky">
+    <div class="perspective-layout" id="layoutWeinstein">
+      <div class="author-sidebar">
+        <div class="author-avatar">BW</div>
+        <div class="author-name">Bret Weinstein</div>
+        <div class="author-role">Evolutionary Biologist</div>
+        <div class="author-bio">Professor of evolutionary biology. Host of the DarkHorse podcast. Advocates for examining systemic incentive structures.</div>
+      </div>
+      <div class="article-panel">
+        <div class="article-eyebrow">Ivermectin · Version 3 of 3</div>
+        <div class="article-title">Ivermectin</div>
+        <div class="article-body">
+          <p>The ivermectin debate is actually a debate about something much larger: whether our regulatory and scientific institutions are structurally capable of honest evaluation when billions of dollars are at stake.</p>
+          <span class="key-claim">"The EUA framework legally required that 'no adequate, approved, available alternative' exist. This created a structural incentive to dismiss any early treatment — the entire vaccine program depended on it."</span>
+          <p>This isn't a conspiracy — it's an incentive structure. You don't need anyone in a room plotting. You just need a system where the most profitable outcome and the "scientific consensus" are required to align, and where anyone who questions that alignment gets professionally destroyed.</p>
+          <p>Both "miracle cure" and "horse paste" are wrong. The real question is: did we build a system capable of honestly evaluating a cheap generic drug when the most lucrative product in pharmaceutical history required that no such drug exist? The answer is obviously no.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="transition-note">
+  <div class="transition-text" id="trans3">Same drug. Three authors. Three completely different descriptions of reality.</div>
+</div>
+
+<!-- FINALE -->
+<section class="finale" id="secFinale">
+  <div class="finale-sticky">
+    <div class="three-cards">
+      <div class="mini-card" id="mini1">
+        <div class="mini-name">Joe Rogan</div>
+        <div class="mini-claim">"They suppressed a $2 drug to protect a hundred-billion-dollar vaccine."</div>
+      </div>
+      <div class="mini-card" id="mini2">
+        <div class="mini-name">Anthony Fauci</div>
+        <div class="mini-claim">"The clinical trials do not show benefit. Anecdotes are not evidence."</div>
+      </div>
+      <div class="mini-card" id="mini3">
+        <div class="mini-name">Bret Weinstein</div>
+        <div class="mini-claim">"The system was structurally incapable of an honest evaluation."</div>
+      </div>
+    </div>
+    <div class="finale-text" id="finaleText">
+      <div class="finale-heading">Wikifreedia keeps all three.</div>
+      <div class="finale-body">A traditional encyclopedia picks one frame and calls it neutral. We don't. Every entry is a perspective — because understanding the disagreement is the knowledge.</div>
+    </div>
+  </div>
+</section>
+
+<div style="height:30vh"></div>
+
+<script>
+function isInView(el) { const r = el.getBoundingClientRect(); return r.top < innerHeight*0.8 && r.bottom > innerHeight*0.2; }
+function getProgress(el) { const r = el.getBoundingClientRect(); const t = el.offsetHeight - innerHeight; return t<=0?0:Math.max(0,Math.min(1,-r.top/t)); }
+function setDot(i) { for(let j=0;j<=4;j++) document.getElementById(`dot${j}`).classList.toggle('active',j===i); }
+
+const secs = {
+  rogan: document.getElementById('secRogan'),
+  fauci: document.getElementById('secFauci'),
+  weinstein: document.getElementById('secWeinstein'),
+  finale: document.getElementById('secFinale'),
+};
+
+function onScroll() {
+  const total = document.documentElement.scrollHeight - innerHeight;
+  document.getElementById('scrollProgress').style.width = `${(scrollY/total)*100}%`;
+  document.getElementById('topicPicker').classList.toggle('visible', scrollY > 100);
+
+  if (scrollY < innerHeight) setDot(0);
+  if (isInView(secs.rogan)) { setDot(1); document.getElementById('layoutRogan').classList.add('visible'); }
+  if (isInView(secs.fauci)) { setDot(2); document.getElementById('layoutFauci').classList.add('visible'); }
+  if (isInView(secs.weinstein)) { setDot(3); document.getElementById('layoutWeinstein').classList.add('visible'); }
+  if (isInView(secs.finale)) setDot(4);
+
+  document.querySelectorAll('.transition-text').forEach(t => {
+    if (t.getBoundingClientRect().top < innerHeight*0.7) t.classList.add('visible');
+  });
+
+  if (isInView(secs.finale)) {
+    const p = getProgress(secs.finale);
+    if (p>0.05) { document.getElementById('mini1').classList.add('visible'); document.getElementById('mini2').classList.add('visible'); document.getElementById('mini3').classList.add('visible'); }
+    if (p>0.2) document.getElementById('finaleText').classList.add('visible');
+  }
+}
+
+addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+</script>
+</body>
+</html>

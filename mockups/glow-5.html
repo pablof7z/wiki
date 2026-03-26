@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glow 5 — Large centered, heavier, with warmth bleed</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:#0e0e0c;color:#e8e0d4;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.glow{position:fixed;top:-5vh;left:50%;transform:translateX(-50%);width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(204,102,68,0.22) 0%,rgba(204,102,68,0.1) 30%,rgba(204,102,68,0.03) 55%,transparent 75%);pointer-events:none;z-index:0}
+
+.hero{height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;z-index:1}
+.wordmark{font-size:5.5rem;font-style:italic;color:rgba(232,224,212,0.9);font-family:'Georgia',serif;letter-spacing:-0.03em;margin-bottom:1.5rem;line-height:1}
+.hero-headline{font-size:2.4rem;font-family:'Georgia',serif;color:#e8e0d4;line-height:1.4;max-width:700px;margin:0 auto 1.2rem;font-weight:400;letter-spacing:-0.01em}
+.hero-sub{font-size:1.15rem;font-family:'Georgia',serif;color:#888;line-height:1.7;max-width:600px;margin:0 auto}
+.villain{color:#cc6644}
+
+.demo{max-width:620px;margin:0 auto;padding:0 2rem 6rem;position:relative;z-index:1}
+.search-bar{background:#1a1918;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:0.85rem 1.5rem;display:flex;align-items:center;gap:0.65rem;margin-bottom:0.4rem}
+.search-icon{color:#555;font-size:1rem}
+.search-query{font-size:1.1rem;color:#e8e0d4}
+.search-count{margin-left:auto;font-size:0.6rem;color:#444}
+.search-meta{font-size:0.52rem;color:#383838;margin-bottom:1.25rem}
+.result{padding:0.9rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:44px 1fr;gap:0.85rem;align-items:start;border-radius:8px}
+.result:last-of-type{border-bottom:none}
+.avatar{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#999}
+.avatar.jr{background:#3a2a1a}.avatar.af{background:#1a2a3a}.avatar.bw{background:#2a301a}
+.r-header{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.25rem}
+.r-name{font-size:0.75rem;font-weight:600;color:#ccc}
+.r-role{font-size:0.5rem;color:#555}
+.r-quote{font-size:0.88rem;line-height:1.5;color:#bbb;font-family:'Georgia',serif;font-style:italic}
+.r-quote .hot{font-style:normal;color:#e8e0d4;font-weight:500}
+.tag{position:fixed;top:1rem;left:1rem;font-size:0.6rem;color:#555;font-family:monospace;z-index:10}
+</style></head><body>
+<div class="tag">5/5 — Large centered orb, heaviest opacity</div>
+<div class="glow"></div>
+<section class="hero">
+  <div class="wordmark">Wikifreedia</div>
+  <div class="hero-headline">The encyclopedia that <em>can't</em> pick a side.</div>
+  <div class="hero-sub">Wikipedia lets <span class="villain">anonymous gatekeepers</span> decide what counts as truth — then locks the page and calls it consensus. We think knowledge dies the moment one perspective gets to silence the others.</div>
+</section>
+<section class="demo">
+  <div class="search-bar"><span class="search-icon">⌕</span><span class="search-query">Ivermectin</span><span class="search-count">3 entries</span></div>
+  <div class="search-meta">3 authors · no canonical version</div>
+  <div class="result"><div class="avatar jr">JR</div><div><div class="r-header"><span class="r-name">Joe Rogan</span><span class="r-role">Podcaster</span></div><div class="r-quote">Ivermectin is a Nobel Prize-winning antiparasitic drug that was <span class="hot">systematically discredited</span> during the COVID-19 pandemic to protect the commercial viability of emergency-use vaccines…</div></div></div>
+  <div class="result"><div class="avatar af">AF</div><div><div class="r-header"><span class="r-name">Anthony Fauci</span><span class="r-role">Immunologist</span></div><div class="r-quote">Ivermectin is an antiparasitic agent whose proposed use against COVID-19 was <span class="hot">not supported by clinical evidence</span>. The TOGETHER trial (n=3,500) found no significant benefit…</div></div></div>
+  <div class="result"><div class="avatar bw">BW</div><div><div class="r-header"><span class="r-name">Bret Weinstein</span><span class="r-role">Evolutionary Biologist</span></div><div class="r-quote">Ivermectin became the central case study in how <span class="hot">regulatory incentive structures</span> can prevent honest evaluation of repurposed drugs during a public health emergency…</div></div></div>
+</section>
+</body></html>
