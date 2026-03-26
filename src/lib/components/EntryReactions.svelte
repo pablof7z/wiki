@@ -15,7 +15,7 @@
 		reactionCount?: number | undefined;
 	} = $props();
 
-	let currentUser = $derived(ndk.$sessions?.currentUser);
+	let currentUser = $derived(ndk.$currentUser);
 	let deletedId = $state(undefined as NDKEventId | undefined);
 
 	const reactionsArray = $derived(Array.from(reactions.events ?? []));
