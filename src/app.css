@@ -216,7 +216,8 @@
 		border-style: solid;
 	}
 
-	.prose table td {
+	.prose table td,
+	.prose table th {
 		border-width: 1px;
 		border-style: solid;
 		padding: 0.5rem;
@@ -337,7 +338,7 @@
 		background: rgba(255, 255, 255, 0.018);
 	}
 
-	.article-document .markup-content table thead th {
+	.article-document .markup-content table th {
 		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 		background: rgba(255, 255, 255, 0.028);
 		padding: 1rem 1.1rem;
@@ -348,12 +349,13 @@
 		color: hsl(var(--muted-foreground));
 	}
 
-	.article-document .markup-content table td {
+	.article-document .markup-content table td,
+	.article-document .markup-content table th {
 		padding: 1rem 1.1rem;
 		vertical-align: top;
 	}
 
-	.article-document .markup-content table tbody tr + tr td {
+	.article-document .markup-content table tr + tr > * {
 		border-top: 1px solid rgba(255, 255, 255, 0.07);
 	}
 

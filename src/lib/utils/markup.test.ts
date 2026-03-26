@@ -25,6 +25,14 @@ describe('markup detection', () => {
 		expect(detectMarkupFormat('hello [[Target Page]]')).toBe('asciidoc');
 		expect(detectMarkupFormat('https://example.com[example]')).toBe('asciidoc');
 	});
+
+	it('prefers djot for markdown tables even when legacy wiki links are present', () => {
+		expect(
+			detectMarkupFormat(
+				'# Title\n\n| Name | Project |\n| --- | --- |\n| Alice | [[Target Page]] |'
+			)
+		).toBe('djot');
+	});
 });
 
 describe('djot rendering', () => {
@@ -69,6 +77,19 @@ describe('djot rendering', () => {
 		expect(html).toContain(`data-bech32="${note}"`);
 		expect(html).toContain(`data-bech32="${nevent}"`);
 		expect(html).toContain(`data-bech32="${naddr}"`);
+	});
+
+	it('normalizes markdown pipe tables and legacy wiki links', () => {
+		const html = renderMarkupToHtml(
+			'# Title\n\n| Name | Project |\n| --- | --- |\n| Alice | [[Target Page]] |'
+		);
+
+		expect(html).toContain('<table>');
+		expect(html).toContain('<th>Name</th>');
+		expect(html).toContain('<th>Project</th>');
+		expect(html).not.toContain('<td>---</td>');
+		expect(html).toContain('href="/target-page"');
+		expect(html).toContain('data-wiki-ref="Target Page"');
 	});
 });
 

@@ -48,6 +48,12 @@ const ASCII_DOC_PATTERNS = [
 	/\bfootnote:\[[^\]]*]/,
 	/^:[\w-]+:.*$/m
 ];
+const DJOT_PATTERNS = [
+	/^#{1,6}\s+\S/m,
+	/\[[^\]\n]+\]\((?:[^()\n]|\\.)+\)/,
+	/(?:^|\n)\|(?:[^\n|]*\|){2,}\s*\n\|(?:\s*:?-{3,}:?\s*\|){2,}\s*(?:\n|$)/m,
+	/(?:^|\n)```/
+];
 
 const BLOCK_TAGS = new Set([
 	'div',
@@ -103,6 +109,10 @@ export function detectMarkupFormat(content: string): MarkupFormat {
 		return 'djot';
 	}
 
+	if (DJOT_PATTERNS.some((pattern) => pattern.test(content))) {
+		return 'djot';
+	}
+
 	return ASCII_DOC_PATTERNS.some((pattern) => pattern.test(content)) ? 'asciidoc' : 'djot';
 }
 
@@ -135,7 +145,7 @@ export function renderDjotToHtml(content: string): string {
 		return '';
 	}
 
-	const ast = enhanceDjotAstWithNostrEntities(parse(content) as DjotDoc);
+	const ast = enhanceDjotAstWithNostrEntities(parseDjotDocument(content));
 
 	return renderHTML(ast as never, {
 		overrides: {
@@ -157,6 +167,139 @@ export function renderDjotToHtml(content: string): string {
 			}
 		}
 	});
+}
+
+function parseDjotDocument(content: string): DjotDoc {
+	return normalizeDjotAst(parse(preprocessDjotContent(content)) as DjotDoc);
+}
+
+function preprocessDjotContent(content: string): string {
+	return content.replace(/\[\[([^|\]]+?)(?:\|([^\]]+))?\]\]/g, (_match, rawTarget, rawLabel) => {
+		const target = rawTarget.trim();
+		const label = (rawLabel ?? rawTarget).trim();
+
+		if (label === target) {
+			return `[${escapeDjotText(label)}][]`;
+		}
+
+		return `[${escapeDjotText(label)}][${escapeDjotText(target)}]`;
+	});
+}
+
+function escapeDjotText(value: string): string {
+	return value.replace(/[\\[\]]/g, '\\$&');
+}
+
+function normalizeDjotAst(doc: DjotDoc): DjotDoc {
+	return {
+		...doc,
+		children: normalizeDjotNodesForTables(doc.children) as DjotBlock[]
+	};
+}
+
+function normalizeDjotNodesForTables(
+	nodes: Array<DjotBlock | DjotInline>
+): Array<DjotBlock | DjotInline> {
+	return nodes.map((node) => {
+		if (!Array.isArray(node.children)) {
+			return node;
+		}
+
+		const normalizedNode = {
+			...node,
+			children: normalizeDjotNodesForTables(node.children as Array<DjotBlock | DjotInline>)
+		};
+
+		if (normalizedNode.tag !== 'table') {
+			return normalizedNode;
+		}
+
+		return normalizeMarkdownTable(normalizedNode as DjotBlock);
+	});
+}
+
+function normalizeMarkdownTable(table: DjotBlock): DjotBlock {
+	const children = [...((table.children ?? []) as DjotBlock[])];
+	const rowIndexes = children.flatMap((child, index) => (child.tag === 'row' ? [index] : []));
+
+	if (rowIndexes.length < 2) {
+		return table;
+	}
+
+	const headerRowIndex = rowIndexes[0];
+	const separatorRowIndex = rowIndexes[1];
+	const headerRow = children[headerRowIndex];
+	const separatorRow = children[separatorRowIndex];
+
+	if (headerRow.head || !isMarkdownTableSeparatorRow(separatorRow)) {
+		return table;
+	}
+
+	const alignments = getMarkdownTableAlignments(separatorRow);
+	children[headerRowIndex] = formatMarkdownTableRow(headerRow, true, alignments);
+	children.splice(separatorRowIndex, 1);
+
+	for (const rowIndex of rowIndexes.slice(2).map((index) =>
+		index > separatorRowIndex ? index - 1 : index
+	)) {
+		children[rowIndex] = formatMarkdownTableRow(children[rowIndex], false, alignments);
+	}
+
+	return {
+		...table,
+		children
+	};
+}
+
+function isMarkdownTableSeparatorRow(row: DjotBlock): boolean {
+	const cells = (row.children ?? []) as DjotBlock[];
+	return (
+		cells.length > 0 &&
+		cells.every((cell) => /^:?-{3,}:?$/.test(extractDjotNodeText(cell).replace(/\s+/g, '')))
+	);
+}
+
+function getMarkdownTableAlignments(row: DjotBlock): string[] {
+	return ((row.children ?? []) as DjotBlock[]).map((cell) => {
+		const marker = extractDjotNodeText(cell).replace(/\s+/g, '');
+		if (marker.startsWith(':') && marker.endsWith(':')) {
+			return 'center';
+		}
+		if (marker.endsWith(':')) {
+			return 'right';
+		}
+		if (marker.startsWith(':')) {
+			return 'left';
+		}
+		return 'default';
+	});
+}
+
+function formatMarkdownTableRow(row: DjotBlock, head: boolean, alignments: string[]): DjotBlock {
+	return {
+		...row,
+		head,
+		children: ((row.children ?? []) as DjotBlock[]).map((cell, index) => ({
+			...cell,
+			head,
+			align: alignments[index] ?? cell.align ?? 'default'
+		}))
+	};
+}
+
+function extractDjotNodeText(node: DjotBlock | DjotInline): string {
+	if ('text' in node && typeof node.text === 'string') {
+		return node.text;
+	}
+	if ('alias' in node && typeof node.alias === 'string') {
+		return node.alias;
+	}
+	if (Array.isArray(node.children)) {
+		return node.children
+			.map((child) => extractDjotNodeText(child as DjotBlock | DjotInline))
+			.join('');
+	}
+	return '';
 }
 
 function enhanceDjotAstWithNostrEntities(doc: DjotDoc): DjotDoc {
@@ -328,7 +471,7 @@ export function djotToTiptap(content: string): JSONContent {
 		return { type: 'doc', content: [] };
 	}
 
-	const ast = parse(content) as DjotDoc;
+	const ast = parseDjotDocument(content);
 
 	return {
 		type: 'doc',
@@ -753,7 +896,7 @@ function extractDjotHeadings(content: string): MarkupHeading[] {
 		return [];
 	}
 
-	const ast = parse(content) as DjotDoc;
+	const ast = parseDjotDocument(content);
 	return extractDjotHeadingsFromBlocks(ast.children);
 }
 

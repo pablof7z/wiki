@@ -13,6 +13,7 @@
 	import Sun from 'svelte-radix/Sun.svelte';
 	import Moon from 'svelte-radix/Moon.svelte';
 	import { toggleMode } from 'mode-watcher';
+	import Logo from './Logo.svelte';
 	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
 
 	let currentUser = $derived(ndk.$sessions?.currentUser);
@@ -61,6 +62,7 @@
 	<div class="page-shell">
 		<div class="flex min-h-[3.5rem] items-center gap-3 py-2">
 			<a href="/" class="mr-2 flex min-w-0 items-center gap-2.5">
+				<Logo size={28} />
 				<div class="min-w-0">
 					<div class="display-wordmark text-[1.5rem] leading-none sm:text-[1.7rem]">
 						Wikifreedia
