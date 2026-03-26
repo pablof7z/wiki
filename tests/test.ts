@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 
+test('landing page renders without runtime errors', async ({ page }) => {
+	const pageErrors: string[] = [];
+
+	page.on('pageerror', (error) => {
+		pageErrors.push(String(error));
+	});
+
+	await page.goto('/');
+	await expect(page.getByText('Read. Write. Disagree.')).toBeVisible();
+	await expect(page.getByText('Wiki cache sync')).toBeVisible();
+	await page.waitForTimeout(1000);
+
+	expect(pageErrors).toEqual([]);
+});
+
 test('new page renders the editor without runtime errors', async ({ page }) => {
 	const pageErrors: string[] = [];
 
@@ -8,9 +23,24 @@ test('new page renders the editor without runtime errors', async ({ page }) => {
 	});
 
 	await page.goto('/new');
-	await expect(page.getByRole('heading', { name: 'Create New Entry' })).toBeVisible();
-	await expect(page.getByText('Title', { exact: true })).toBeVisible();
-	await expect(page.getByText(/Rich editor|Source editor/)).toBeVisible();
+	await expect(page.getByRole('textbox', { name: 'Title' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Save draft' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Publish' })).toBeVisible();
+	await page.waitForTimeout(1000);
+
+	expect(pageErrors).toEqual([]);
+});
+
+test('draft manager renders the signed-out state without runtime errors', async ({ page }) => {
+	const pageErrors: string[] = [];
+
+	page.on('pageerror', (error) => {
+		pageErrors.push(String(error));
+	});
+
+	await page.goto('/drafts');
+	await expect(page.getByRole('heading', { name: 'Draft Manager' })).toBeVisible();
+	await expect(page.getByText('Sign in to view drafts')).toBeVisible();
 	await page.waitForTimeout(1000);
 
 	expect(pageErrors).toEqual([]);
@@ -39,7 +69,7 @@ test('recent comments page renders without runtime errors', async ({ page }) => 
 
 	await page.goto('/comments');
 	await expect(page.getByRole('heading', { name: 'Recent comments' })).toBeVisible();
-	await expect(page.getByText('NIP-22', { exact: true })).toBeVisible();
+	await expect(page.getByText(/shown$/)).toBeVisible();
 	await page.waitForTimeout(1000);
 
 	expect(pageErrors).toEqual([]);
