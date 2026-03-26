@@ -35,7 +35,7 @@
 
 	function search() {
 		const trimmed = searchQuery.trim();
-		if (trimmed) goto(`/?q=${encodeURIComponent(trimmed)}`);
+		if (trimmed) goto(`/explore?q=${encodeURIComponent(trimmed)}`);
 	}
 
 	function formatDate(ts: number | undefined): string {

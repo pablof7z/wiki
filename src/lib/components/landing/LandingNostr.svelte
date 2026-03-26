@@ -5,27 +5,39 @@
 
 		<div class="nostr-body">
 			<p>Not our good intentions. Not a promise. <strong>The architecture.</strong></p>
-			<p>
-				Entries on Wikifreedia don't live on our servers. They live on an
-				<em>open protocol called Nostr</em> — the same protocol used by millions of people to publish
-				content that no company or government can take down.
-			</p>
-			<p>
-				That means: <strong>we can't edit your entry</strong>. We can't delete it. We can't lock the
-				page. We can't revert your work because an admin disagrees with you. Even if we wanted to —
-				and someday, someone at Wikifreedia might want to —
-				<em>the system won't let them</em>.
-			</p>
-			<p>
-				Wikipedia's corruption isn't a people problem. Good people built it. The problem is that
-				<strong>the architecture allows capture</strong>. A single database, controlled by a single
-				organization, protected by a single set of admins. Of course it got captured. Any system that
-				<em>can</em> be captured <em>will</em> be.
-			</p>
-			<p>
-				Wikifreedia is built so that capture is <strong>structurally impossible</strong>. Not because
-				we're better people — because the protocol doesn't have an admin button.
-			</p>
+		</div>
+
+		<div class="nostr-grid">
+			<div class="nostr-grid-item">
+				<div class="nostr-grid-icon">&#x1f512;</div>
+				<div class="nostr-grid-title">Can't edit your entry</div>
+				<div class="nostr-grid-desc">Entries live on Nostr, not our servers. No admin can touch your words.</div>
+			</div>
+			<div class="nostr-grid-item">
+				<div class="nostr-grid-icon">&#x1f6ab;</div>
+				<div class="nostr-grid-title">Can't delete it</div>
+				<div class="nostr-grid-desc">Even if someone at Wikifreedia wanted to — the system won't let them.</div>
+			</div>
+			<div class="nostr-grid-item">
+				<div class="nostr-grid-icon">&#x1f513;</div>
+				<div class="nostr-grid-title">Can't lock the page</div>
+				<div class="nostr-grid-desc">No reverting your work because an admin disagrees with you.</div>
+			</div>
+			<div class="nostr-grid-item">
+				<div class="nostr-grid-icon">&#x1f310;</div>
+				<div class="nostr-grid-title">Open protocol</div>
+				<div class="nostr-grid-desc">Built on the same protocol millions use to publish uncensorable content.</div>
+			</div>
+		</div>
+
+		<div class="landing-callout">
+			<div class="landing-callout-label">The core insight</div>
+			<div class="landing-callout-text">
+				Wikipedia's corruption isn't a people problem. Good people built it.
+				The problem is that <strong>the architecture allows capture</strong>.
+				Any system that <em style="color: rgba(204, 102, 68, 0.7); font-style: normal;">can</em>
+				be captured <em style="color: rgba(204, 102, 68, 0.7); font-style: normal;">will</em> be.
+			</div>
 		</div>
 
 		<div class="nostr-kicker">
