@@ -2,9 +2,8 @@
 	import { page } from '$app/stores';
 	import { DEFAULT_RELAYS } from '$lib/config/nostr-relays';
 	import { ndk } from '$lib/ndk.svelte';
-	import type { NDKEvent } from '@nostr-dev-kit/ndk';
+	import { NDKEvent, type NostrEvent } from '@nostr-dev-kit/ndk';
 	import EntryCard from '$lib/components/EntryCard.svelte';
-	import type { Subscription } from '@nostr-dev-kit/svelte';
 	import { getCachedPubkeyForNip05, rememberUserProfileNip05 } from '$lib/utils/nip05-cache';
 	import { nip19 } from 'nostr-tools';
 	import type { PageData } from './$types';
@@ -15,11 +14,24 @@
 	const userId = $derived($page.params.pubkey ?? '');
 	const seededUserPubkey = $derived(data.userPubkey);
 
+	function hydrateEvent(rawEvent: NostrEvent | undefined): NDKEvent | undefined {
+		return rawEvent ? new NDKEvent(ndk, rawEvent) : undefined;
+	}
+
 	let error = $state<string | undefined>(undefined);
 
 	let event = $state<NDKEvent | undefined>(undefined);
-	let otherVersions = $state<Subscription<NDKEvent> | undefined>(undefined);
 	let userPubkey = $state<string | undefined>(undefined);
+
+	const otherVersions = ndk.$subscribe(() => {
+		if (!topic) return undefined;
+		return {
+			filters: [{ kinds: [30818 as number], '#d': [topic] }]
+		};
+	});
+
+	const seededEvent = $derived(hydrateEvent(data.entryEvent));
+	const displayEvent = $derived(event ?? seededEvent);
 
 	$effect(() => {
 		const identifier = userId;
@@ -55,15 +67,12 @@
 	});
 
 	$effect(() => {
-		otherVersions?.stop();
-		event = undefined;
-		otherVersions = undefined;
 		error = undefined;
+		event = undefined;
 
 		if (!userPubkey || !topic) return;
 
 		let cancelled = false;
-		let versionsSubscription: Subscription<NDKEvent> | undefined;
 
 		try {
 			const naddr = nip19.naddrEncode({
@@ -79,25 +88,21 @@
 					if (cancelled) return;
 
 					if (!fetchedEvent) {
-						error = 'Entry not found';
+						if (!seededEvent) {
+							event = undefined;
+							error = 'Entry not found';
+						}
 						return;
 					}
 
 					event = fetchedEvent;
-
-					versionsSubscription = ndk.$subscribe(() => ({
-						filters: [
-							{
-								kinds: [30818 as number],
-								'#d': [topic]
-							}
-						]
-					}));
-					otherVersions = versionsSubscription;
 				})
 				.catch((e) => {
 					if (cancelled) return;
-					error = String(e);
+					if (!seededEvent) {
+						event = undefined;
+						error = String(e);
+					}
 				});
 		} catch (e) {
 			error = String(e);
@@ -105,15 +110,20 @@
 
 		return () => {
 			cancelled = true;
-			versionsSubscription?.stop();
 		};
 	});
 </script>
 
 <div class="page-shell-wide pt-6 pb-16">
-	{#if event}
-		{#key event.id}
-			<EntryCard {event} {otherVersions} />
+	{#if displayEvent}
+		{#key displayEvent.id}
+			<EntryCard
+				event={displayEvent}
+				{otherVersions}
+				authorProfile={data.authorProfile}
+				authorLabel={data.authorLabel}
+				authorRouteId={data.authorRouteId}
+			/>
 		{/key}
 	{:else if error}
 		<div class="surface-inset rounded-2xl px-6 py-8 text-muted-foreground">{error}</div>
