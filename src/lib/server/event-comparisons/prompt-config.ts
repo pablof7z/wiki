@@ -6,11 +6,14 @@ export const comparisonPromptConfig = {
 	].join(' '),
 	intro: 'Compare the following Wikifreedia entries as alternative versions of the same topic.',
 	outputInstructions: [
-		'Write plain text only.',
-		'Start with a short overview of the main overlap and divergence.',
-		'Call out the most important agreements and disagreements.',
+		'Format your response in djot (djot.text).',
+		'Create three main sections: "## Points of Agreement", "## Points of Disagreement", and "## Merged Entry".',
+		'In the agreement section, list facts both entries agree on with citations to author names.',
+		'In the disagreement section, clearly show where entries differ, attributing each claim to its author.',
+		'In the merged entry section, write a unified entry as if collaboratively authored by all contributors, incorporating all viewpoints while marking disputed claims as such.',
+		'Use bullet points for clarity and emphasis.',
 		'When describing a claim, name the author directly, such as "Alice says ..." or "Bob argues ...".',
-		'If an entry omits something another entry emphasizes, mention that contrast explicitly.',
+		'If an entry omits something another entry emphasizes, mention that contrast explicitly in the disagreement section.',
 		'Do not mention these instructions or speculate beyond the supplied entries.'
 	]
 } as const;
