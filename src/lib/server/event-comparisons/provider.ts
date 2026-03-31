@@ -8,6 +8,7 @@ type OllamaGenerateResponse = {
 	response?: unknown;
 	message?: {
 		content?: unknown;
+		role?: string;
 	} | null;
 	error?: unknown;
 };
@@ -94,15 +95,27 @@ async function executeOllamaRequest(
 		let rawResponse = '';
 
 		try {
+			const isChat = requestUrl.includes('/api/chat');
+			const body = isChat
+				? {
+						model,
+						messages: [
+							{ role: 'system', content: prompt.system },
+							{ role: 'user', content: prompt.prompt }
+						],
+						stream: false
+					}
+				: {
+						model,
+						system: prompt.system,
+						prompt: prompt.prompt,
+						stream: false
+					};
+
 			response = await fetchFn(requestUrl, {
 				method: 'POST',
 				headers: requestHeaders,
-				body: JSON.stringify({
-					model,
-					system: prompt.system,
-					prompt: prompt.prompt,
-					stream: false
-				}),
+				body: JSON.stringify(body),
 				signal: controller.signal
 			});
 			rawResponse = await response.text();
@@ -136,11 +149,13 @@ async function executeOllamaRequest(
 
 function buildOllamaGenerateUrls(url: URL, normalizedPathname: string): string[] {
 	const pathCandidates = new Set<string>();
-	pathCandidates.add(`${normalizedPathname || ''}/generate`);
 
-	if (!normalizedPathname.endsWith('/api')) {
-		pathCandidates.add(`${normalizedPathname || ''}/api/generate`);
-	}
+	// Try chat endpoint first (for Ollama Cloud)
+	pathCandidates.add(`${normalizedPathname || ''}/api/chat`);
+
+	// Fallback to generate endpoint (for local Ollama)
+	pathCandidates.add(`${normalizedPathname || ''}/generate`);
+	pathCandidates.add(`${normalizedPathname || ''}/api/generate`);
 
 	return Array.from(pathCandidates).map((pathname) => {
 		const candidateUrl = new URL(url.toString());
@@ -151,21 +166,27 @@ function buildOllamaGenerateUrls(url: URL, normalizedPathname: string): string[]
 
 function parseOllamaResponse(rawResponse: string): OllamaGenerateResponse {
 	try {
-		return JSON.parse(rawResponse) as OllamaGenerateResponse;
+		const parsed = JSON.parse(rawResponse) as OllamaGenerateResponse;
+		console.log('[event-comparisons] Ollama response:', JSON.stringify(parsed, null, 2));
+		return parsed;
 	} catch {
+		console.error('[event-comparisons] Ollama returned invalid JSON:', rawResponse);
 		throw new Error('Ollama returned invalid JSON.');
 	}
 }
 
 function extractComparisonText(payload: OllamaGenerateResponse): string | null {
 	if (typeof payload.response === 'string') {
+		console.log('[event-comparisons] Extracted from response field');
 		return payload.response;
 	}
 
 	if (typeof payload.message?.content === 'string') {
+		console.log('[event-comparisons] Extracted from message.content field');
 		return payload.message.content;
 	}
 
+	console.log('[event-comparisons] Could not extract text - payload structure:', Object.keys(payload));
 	return null;
 }
 
