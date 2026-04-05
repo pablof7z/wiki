@@ -7,6 +7,7 @@ import {
 	type SeoImage,
 	type SeoMetadata
 } from '$lib/seo';
+import { buildArticlePreviewImageUrl } from '$lib/server/article-preview';
 import { extractMarkupTitle } from '$lib/utils/markup';
 import { prettifyNip05 } from '$lib/utils/nip05';
 import { getPreferredDisplayName, shortenHexPubkey } from './nostr';
@@ -59,14 +60,30 @@ export function buildArticleShareData({
 }): { seo: SeoMetadata; preview: EntryPreview } {
 	const title = eventTitle(event);
 	const excerpt = excerptFromMarkup(event.content, title);
+	const section = cleanText(event.tagValue('c'));
+	const publishedLabel = formatPublishedLabel(event.created_at);
+	const contentImage = extractEntryImageFromContent(event.content);
+	const generatedImageUrl = buildArticlePreviewImageUrl(url, {
+		title,
+		authorName,
+		excerpt,
+		section,
+		publishedLabel
+	});
 	const description = truncateDescription(
 		excerpt ? `By ${authorName}. ${excerpt}` : `By ${authorName}. ${DEFAULT_ARTICLE_DESCRIPTION}`
 	);
-	const image = resolveImage(url, {
-		primary: extractEntryImageFromContent(event.content),
-		fallback: profile?.banner || profile?.picture || profile?.image,
-		alt: `${title} on ${SITE_NAME}`
-	});
+	const image = contentImage
+		? resolveImage(url, {
+				primary: contentImage,
+				alt: `${title} on ${SITE_NAME}`
+			})
+		: {
+				url: generatedImageUrl,
+				alt: `${title} on ${SITE_NAME}`,
+				width: DEFAULT_SOCIAL_IMAGE_WIDTH,
+				height: DEFAULT_SOCIAL_IMAGE_HEIGHT
+			};
 
 	return {
 		seo: {
@@ -77,14 +94,14 @@ export function buildArticleShareData({
 			image,
 			author: authorName,
 			publishedTime: toIsoTimestamp(event.created_at),
-			section: cleanText(event.tagValue('c'))
+			section
 		},
 		preview: {
 			eyebrow,
 			title,
 			description,
 			authorName,
-			publishedLabel: formatPublishedLabel(event.created_at)
+			publishedLabel
 		}
 	};
 }
@@ -358,7 +375,7 @@ function buildHandle(profile: NDKUserProfile | undefined, displayName: string): 
 	return candidate;
 }
 
-function sanitizeProfile(profile: NDKUserProfile | undefined): NDKUserProfile | undefined {
+export function sanitizeProfile(profile: NDKUserProfile | undefined): NDKUserProfile | undefined {
 	if (!profile) return undefined;
 
 	const sanitized: NDKUserProfile = {};

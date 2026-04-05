@@ -1,16 +1,26 @@
 import NDKCacheUpstashAdapter from '@nostr-dev-kit/cache-upstash';
-import NDK, { type NDKUser, type NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { DEFAULT_RELAYS } from '$lib/config/nostr-relays';
+import NDK, {
+	NDKRelaySet,
+	NDKSubscriptionCacheUsage,
+	type NDKEvent,
+	type NDKUser,
+	type NDKUserProfile
+} from '@nostr-dev-kit/ndk';
+import { DEFAULT_RELAYS, normalizeRelayUrls } from '$lib/config/nostr-relays';
 import { getRedis, getRedisConfig } from '$lib/server/redis';
 import {
 	applyCachedNip05ToProfile,
 	getCachedPubkeyForNip05,
 	rememberUserProfileNip05
 } from '$lib/utils/nip05-cache';
-import { prettifyNip05 } from '$lib/utils/nip05';
+import { looksLikeNip05, prettifyNip05 } from '$lib/utils/nip05';
+import { nip19 } from 'nostr-tools';
 
 const NDK_CONNECT_TIMEOUT_MS = 2500;
+const EVENT_FETCH_TIMEOUT_MS = 4000;
+const NIP05_FETCH_TIMEOUT_MS = 2500;
 const PROFILE_FETCH_TIMEOUT_MS = 1200;
+const PROFILE_EVENT_FETCH_TIMEOUT_MS = 4000;
 const DEFAULT_CACHE_NAMESPACE = 'wikifreedia:ssr:v1';
 const DEFAULT_CACHE_EXPIRATION_SECONDS = 3600;
 const CACHE_DEBUG_PATCHED = Symbol('wikifreedia.ssr-cache.debug-patched');
@@ -53,10 +63,8 @@ export async function fetchUserWithProfile(
 	relayUrls: readonly string[] = DEFAULT_RELAYS
 ): Promise<{ user?: NDKUser; profile?: NDKUserProfile }> {
 	const ndk = await getServerNdk(relayUrls);
-	const cachedPubkey = getCachedPubkeyForNip05(identifier);
-	const user = cachedPubkey
-		? ndk.getUser({ pubkey: cachedPubkey })
-		: await ndk.fetchUser(identifier);
+	const resolvedPubkey = await resolvePubkeyFromIdentifier(identifier);
+	const user = resolvedPubkey ? ndk.getUser({ pubkey: resolvedPubkey }) : await ndk.fetchUser(identifier);
 	if (!user) {
 		return {};
 	}
@@ -70,6 +78,66 @@ export async function fetchUserWithProfile(
 		user,
 		profile
 	};
+}
+
+export async function fetchEventByAddress(
+	address: string,
+	relayUrls: readonly string[] = DEFAULT_RELAYS
+): Promise<NDKEvent | undefined> {
+	const pointer = decodeAddressPointer(address);
+	const candidateRelayUrls = normalizeRelayUrls([
+		...relayUrls,
+		...(pointer?.relays ?? []),
+		...DEFAULT_RELAYS
+	]);
+	const ndk = await getServerNdk(candidateRelayUrls);
+	const relaySet =
+		candidateRelayUrls.length > 0 ? NDKRelaySet.fromRelayUrls(candidateRelayUrls, ndk, true) : undefined;
+	const attempts = [
+		() => withTimeout(ndk.fetchEvent(address, { closeOnEose: true }, relaySet), EVENT_FETCH_TIMEOUT_MS),
+		pointer
+			? () =>
+					withTimeout(
+						ndk.fetchEvent(addressFilter(pointer), { closeOnEose: true }, relaySet),
+						EVENT_FETCH_TIMEOUT_MS
+					)
+			: undefined,
+		() =>
+			withTimeout(
+				ndk.fetchEvent(
+					address,
+					{
+						closeOnEose: true,
+						cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY
+					},
+					relaySet
+				),
+				EVENT_FETCH_TIMEOUT_MS
+			),
+		pointer
+			? () =>
+					withTimeout(
+						ndk.fetchEvent(
+							addressFilter(pointer),
+							{
+								closeOnEose: true,
+								cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY
+							},
+							relaySet
+						),
+						EVENT_FETCH_TIMEOUT_MS
+					)
+			: undefined
+	].filter((attempt): attempt is () => Promise<NDKEvent | undefined | null> => Boolean(attempt));
+
+	for (const attempt of attempts) {
+		const event = await attempt();
+		if (event) {
+			return event;
+		}
+	}
+
+	return undefined;
 }
 
 export async function loadUserProfile(user: NDKUser): Promise<NDKUserProfile | undefined> {
@@ -94,6 +162,45 @@ export async function loadUserProfile(user: NDKUser): Promise<NDKUserProfile | u
 		const fallbackProfile = applyCachedNip05ToProfile(user.pubkey, user.profile ?? undefined);
 		rememberUserProfileNip05(user.pubkey, fallbackProfile);
 		return fallbackProfile;
+	}
+}
+
+export async function fetchProfileByPubkey(
+	pubkey: string,
+	relayUrls: readonly string[] = DEFAULT_RELAYS
+): Promise<NDKUserProfile | undefined> {
+	const ndk = await getServerNdk(relayUrls);
+	const fetchedProfiles = await withTimeout(
+		ndk.fetchEvents(
+			{
+				kinds: [0],
+				authors: [pubkey]
+			},
+			{ closeOnEose: true }
+		),
+		PROFILE_EVENT_FETCH_TIMEOUT_MS
+	);
+
+	let latestProfileEvent: NDKEvent | undefined;
+	for (const event of Array.from(fetchedProfiles ?? [])) {
+		if (!latestProfileEvent || (event.created_at ?? 0) > (latestProfileEvent.created_at ?? 0)) {
+			latestProfileEvent = event;
+		}
+	}
+
+	if (!latestProfileEvent) return undefined;
+
+	try {
+		const parsedProfile = JSON.parse(latestProfileEvent.content) as unknown;
+		if (!parsedProfile || typeof parsedProfile !== 'object' || Array.isArray(parsedProfile)) {
+			return undefined;
+		}
+
+		const profile = applyCachedNip05ToProfile(pubkey, parsedProfile as NDKUserProfile);
+		rememberUserProfileNip05(pubkey, profile);
+		return profile;
+	} catch {
+		return undefined;
 	}
 }
 
@@ -396,4 +503,97 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | und
 			setTimeout(resolve, timeoutMs);
 		})
 	]);
+}
+
+type AddressPointer = {
+	pubkey: string;
+	identifier: string;
+	kind: number;
+	relays: string[];
+};
+
+async function resolvePubkeyFromIdentifier(identifier: string): Promise<string | undefined> {
+	const cachedPubkey = getCachedPubkeyForNip05(identifier);
+	if (cachedPubkey) return cachedPubkey;
+
+	const normalizedIdentifier = identifier.trim();
+	if (/^[0-9a-f]{64}$/i.test(normalizedIdentifier)) {
+		return normalizedIdentifier.toLowerCase();
+	}
+
+	if (normalizedIdentifier.startsWith('npub1')) {
+		try {
+			const decoded = nip19.decode(normalizedIdentifier);
+			if (decoded.type === 'npub' && typeof decoded.data === 'string') {
+				return decoded.data.toLowerCase();
+			}
+		} catch {
+			return undefined;
+		}
+	}
+
+	if (!looksLikeNip05(normalizedIdentifier)) {
+		return undefined;
+	}
+
+	return resolveNip05Pubkey(normalizedIdentifier);
+}
+
+async function resolveNip05Pubkey(identifier: string): Promise<string | undefined> {
+	const prettyIdentifier = prettifyNip05(identifier).trim().toLowerCase();
+	if (!prettyIdentifier) return undefined;
+
+	const [namePart, domain] = prettyIdentifier.includes('@')
+		? prettyIdentifier.split('@', 2)
+		: ['_', prettyIdentifier];
+	if (!domain) return undefined;
+
+	const name = namePart || '_';
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), NIP05_FETCH_TIMEOUT_MS);
+
+	try {
+		const response = await fetch(
+			`https://${domain}/.well-known/nostr.json?name=${encodeURIComponent(name)}`,
+			{
+				headers: { accept: 'application/json' },
+				signal: controller.signal
+			}
+		);
+		if (!response.ok) return undefined;
+
+		const payload = (await response.json()) as { names?: Record<string, unknown> };
+		const pubkey = payload.names?.[name];
+		return typeof pubkey === 'string' && /^[0-9a-f]{64}$/i.test(pubkey)
+			? pubkey.toLowerCase()
+			: undefined;
+	} catch {
+		return undefined;
+	} finally {
+		clearTimeout(timeoutId);
+	}
+}
+
+function decodeAddressPointer(address: string): AddressPointer | undefined {
+	try {
+		const decoded = nip19.decode(address);
+		if (decoded.type !== 'naddr') return undefined;
+
+		return {
+			pubkey: decoded.data.pubkey,
+			identifier: decoded.data.identifier,
+			kind: decoded.data.kind,
+			relays: decoded.data.relays ?? []
+		};
+	} catch {
+		return undefined;
+	}
+}
+
+function addressFilter(pointer: AddressPointer): { authors: string[]; kinds: number[]; '#d': string[] } {
+	return {
+		authors: [pointer.pubkey],
+		kinds: [pointer.kind],
+		'#d': [pointer.identifier]
+	};
 }

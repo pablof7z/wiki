@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { ndk } from '$lib/ndk.svelte';
 	import type { Subscription } from '@nostr-dev-kit/svelte';
-	import { Avatar } from '@nostr-dev-kit/svelte';
-	import { NDKEvent, NDKKind, type NostrEvent } from '@nostr-dev-kit/ndk';
+	import { NDKEvent, NDKKind, type NostrEvent, type NDKUserProfile } from '@nostr-dev-kit/ndk';
 	import ArticleComments from '$lib/components/ArticleComments.svelte';
 	import ArticleContentHighlights from '$lib/components/ArticleContentHighlights.svelte';
 	import ArticleHighlights from '$lib/components/ArticleHighlights.svelte';
 	import ArticleOtherAuthors from '$lib/components/ArticleOtherAuthors.svelte';
 	import ArticleToc from '$lib/components/ArticleToc.svelte';
+	import NdkAvatar from '$lib/components/NdkAvatar.svelte';
 	import EntryCardSupportFooter from './EntryCardSupportFooter.svelte';
 	import EntryReactions from './EntryReactions.svelte';
 	import Input from './ui/input/input.svelte';
@@ -16,6 +16,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { mergeUniqueEvents } from '$lib/highlights/nostr';
 	import { extractMarkupHeadings, extractMarkupTitle } from '$lib/utils/markup';
+	import { prettifyNip05 } from '$lib/utils/nip05';
 	import { useNip05RouteId } from '$lib/utils/user-route.svelte';
 
 	let currentUser = $derived(ndk.$currentUser);
@@ -24,18 +25,28 @@
 		skipTitle = false,
 		event,
 		skipEdit = false,
-		otherVersions = undefined
+		otherVersions = undefined,
+		authorProfile = undefined,
+		authorLabel = undefined,
+		authorRouteId = undefined
 	}: {
 		skipTitle?: boolean;
 		event: NDKEvent;
 		skipEdit?: boolean;
 		otherVersions?: Subscription<NDKEvent>;
+		authorProfile?: NDKUserProfile;
+		authorLabel?: string;
+		authorRouteId?: string;
 	} = $props();
 
 	const title = $derived(
 		event.tagValue('title') || extractMarkupTitle(event.content) || event.dTag || 'Untitled'
 	);
 	const authorRoute = useNip05RouteId(() => event.pubkey);
+	const resolvedAuthorRouteId = $derived(
+		authorRouteId || prettifyNip05(authorProfile?.nip05 ?? '') || authorRoute.id || event.author.npub
+	);
+	const resolvedAuthorLabel = $derived(authorLabel || prettifyNip05(authorProfile?.nip05 ?? ''));
 	let forkPubkey = $state<string | undefined>(undefined);
 	let fork = $state<NDKEvent | undefined>(undefined);
 	let showRaw = $state(false);
@@ -147,6 +158,8 @@
 	const allHighlights = $derived(mergeUniqueEvents(exactHighlightsSub.events, topicHighlightsSub.events));
 	const hasHighlights = $derived(allHighlights.length > 0);
 	const tabsGridClass = $derived(hasHighlights ? 'grid-cols-4 sm:max-w-xl' : 'grid-cols-3 sm:max-w-md');
+	const layoutClass =
+		'grid gap-8 xl:grid-cols-[minmax(12rem,1fr)_minmax(0,54rem)_minmax(16rem,1fr)] xl:items-start 2xl:grid-cols-[minmax(14rem,1fr)_minmax(0,56rem)_minmax(18rem,1fr)]';
 
 	$effect(() => {
 		if (!hasHighlights && activeView === 'highlights') {
@@ -160,20 +173,18 @@
 	}
 </script>
 
-<div
-	class={showToc
-		? 'grid gap-8 xl:grid-cols-[1fr_minmax(0,54rem)_300px] 2xl:grid-cols-[1fr_minmax(0,56rem)_320px]'
-		: 'grid gap-8 xl:grid-cols-[minmax(0,56rem)_1fr]'}
->
+<div class={layoutClass}>
 	{#if showToc}
-		<aside class="hidden xl:block">
-			<div class="sticky top-32">
+		<aside class="hidden xl:block xl:justify-self-start">
+			<div class="sticky top-32 w-full max-w-[15rem] 2xl:max-w-[17rem]">
 				<ArticleToc headings={tocHeadings} />
 			</div>
 		</aside>
+	{:else}
+		<div class="hidden xl:block" aria-hidden="true"></div>
 	{/if}
 
-	<article class="min-w-0 w-full max-w-[56rem]">
+	<article class="min-w-0 xl:w-full">
 		<Tabs.Root bind:value={activeView}>
 			<div class="mt-7">
 				{#if !skipTitle}
@@ -184,15 +195,21 @@
 
 				<div class="mt-7 flex flex-col gap-5">
 					<div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
-						<a href={'/p/' + (authorRoute.id || event.author.npub)} class="flex items-center gap-3">
-							<Avatar
+						<a href={'/p/' + resolvedAuthorRouteId} class="flex items-center gap-3">
+							<NdkAvatar
 								{ndk}
 								pubkey={event.pubkey}
+								userProfile={authorProfile}
 								class="h-11 w-11 rounded-full object-cover ring-1 ring-white/10"
+								alt={resolvedAuthorLabel || title}
 							/>
 							<div>
 								<div class="font-medium text-foreground">
-									<Name {ndk} pubkey={event.pubkey} />
+									{#if resolvedAuthorLabel}
+										<span>{resolvedAuthorLabel}</span>
+									{:else}
+										<Name {ndk} pubkey={event.pubkey} userProfile={authorProfile} />
+									{/if}
 								</div>
 								<div class="text-xs text-muted-foreground">
 									Published {formatDate(event.created_at)}
@@ -339,8 +356,8 @@
 		</div>
 	</article>
 
-	<aside class="hidden xl:block">
-		<div class="sticky top-32">
+	<aside class="hidden xl:block xl:justify-self-end">
+		<div class="sticky top-32 w-full max-w-[20rem] 2xl:max-w-[22rem]">
 			<ArticleOtherAuthors versions={relatedVersions} />
 		</div>
 	</aside>

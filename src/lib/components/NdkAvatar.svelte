@@ -53,8 +53,14 @@
 	}
 
 	const identifier = $derived(user?.pubkey ?? pubkey ?? npub);
-	const image = $derived(profile?.image ?? profile?.picture);
-	const label = $derived(profile?.displayName ?? profile?.name ?? user?.npub ?? identifier ?? alt);
+	const seededProfile = $derived(
+		applyCachedNip05ToProfile(user?.pubkey ?? pubkey, userProfile ?? user?.profile)
+	);
+	const resolvedProfile = $derived(profile ?? seededProfile);
+	const image = $derived(resolvedProfile?.image ?? resolvedProfile?.picture);
+	const label = $derived(
+		resolvedProfile?.displayName ?? resolvedProfile?.name ?? user?.npub ?? identifier ?? alt
+	);
 	const fallbackText = $derived(initialsFor(label));
 	const gradient = $derived.by(() => {
 		const value = identifier ?? label ?? alt;

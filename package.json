@@ -32,6 +32,7 @@
 		"@nostr-dev-kit/sync": "^1.0.0",
 		"@nostr-dev-kit/wallet": "^1.0.0",
 		"@nostr-dev-kit/wot": "^1.0.0",
+		"@resvg/resvg-js": "^2.6.2",
 		"@tiptap/core": "^3.20.1",
 		"@tiptap/extension-link": "^3.20.1",
 		"@tiptap/extension-placeholder": "^3.20.1",
