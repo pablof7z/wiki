@@ -11,3 +11,7 @@ vite.config.ts.timestamp-*
 .tenex
 .playwright-mcp
 static/wa-sqlite-async.wasm
+.vercel
+
+# Git worktrees
+.worktrees/
