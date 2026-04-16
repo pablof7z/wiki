@@ -13,9 +13,16 @@
 	let sessionStarted = $state(false);
 	let userRelays = $derived(Array.from(ndk.$sessions?.relayList?.keys() ?? []));
 	let connectedUserRelays = $state(0);
-	let showHeader = $derived(
-		!($page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c'))
+	let isLanding = $derived(
+		$page.url.pathname === '/' && !$page.url.searchParams.get('q') && !$page.url.searchParams.get('c')
 	);
+	let showHeader = $derived(!isLanding);
+
+	// Toggle the "landing" class on <body> so CSS pseudo-element backgrounds
+	// (stars / grid) only render on the landing page.
+	$effect(() => {
+		document.body.classList.toggle('landing', isLanding);
+	});
 
 	// Build WoT graph when user session is ready
 	$effect(() => {

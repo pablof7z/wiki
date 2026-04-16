@@ -12,8 +12,7 @@
 	}
 </script>
 
-<section class="glass-panel rounded-[1.9rem] px-5 py-5">
-	<p class="eyebrow mb-3">Other authors</p>
+<section>
 	<h3 class="text-lg">Alternative versions</h3>
 
 	{#if versions.length === 0}

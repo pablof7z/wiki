@@ -130,8 +130,8 @@
 
 <div
 	class={showToc
-		? 'grid gap-8 xl:grid-cols-[200px_minmax(0,54rem)_300px] 2xl:grid-cols-[220px_minmax(0,56rem)_320px] xl:justify-center'
-		: 'grid gap-8 xl:grid-cols-[minmax(0,56rem)_300px] xl:justify-center'}
+		? 'grid gap-8 xl:grid-cols-[1fr_minmax(0,54rem)_1fr] 2xl:grid-cols-[1fr_minmax(0,56rem)_1fr]'
+		: 'grid gap-8 xl:grid-cols-[minmax(0,56rem)_1fr]'}
 >
 	{#if showToc}
 		<aside class="hidden xl:block">
@@ -141,7 +141,7 @@
 		</aside>
 	{/if}
 
-	<article class="min-w-0">
+	<article class="min-w-0 w-full max-w-[56rem]">
 		<Tabs.Root bind:value={activeView}>
 			<div class="mt-7">
 				{#if !skipTitle}

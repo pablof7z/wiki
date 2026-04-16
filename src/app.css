@@ -92,7 +92,7 @@
 		overflow-x: hidden;
 	}
 
-	body::before {
+	body.landing::before {
 		content: '';
 		position: fixed;
 		inset: 0;
@@ -115,7 +115,7 @@
 		animation: twinkle 16s ease-in-out infinite alternate;
 	}
 
-	body::after {
+	body.landing::after {
 		content: '';
 		position: fixed;
 		inset: 0;
