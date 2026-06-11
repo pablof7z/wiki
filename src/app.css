@@ -837,7 +837,6 @@
 }
 .hero-headline {
 	font-size: 2.4rem;
-	font-family: var(--font-display);
 	color: #e8e0d4;
 	line-height: 1.4;
 	max-width: 700px;
@@ -847,7 +846,6 @@
 }
 .hero-sub {
 	font-size: 1.15rem;
-	font-family: var(--font-display);
 	color: #888;
 	line-height: 1.7;
 	max-width: 600px;
@@ -1007,7 +1005,6 @@
 	font-size: 0.88rem;
 	line-height: 1.5;
 	color: #bbb;
-	font-family: var(--font-display);
 	font-style: italic;
 }
 :global(.r-quote .hot) {
@@ -1156,7 +1153,6 @@
 :global(.c-kicker) {
 	font-size: 0.88rem;
 	color: #ccc;
-	font-family: var(--font-display);
 	font-style: italic;
 	padding: 0.6rem 0.85rem;
 	border-left: 3px solid rgba(204, 102, 68, 0.35);
@@ -1223,7 +1219,6 @@
 }
 .sl-heading {
 	font-size: 2rem;
-	font-family: var(--font-display);
 	color: #111;
 	margin-bottom: 1.25rem;
 	line-height: 1.35;
@@ -1243,7 +1238,6 @@
 	line-height: 1.6;
 	padding-left: 1.25rem;
 	position: relative;
-	font-family: var(--font-display);
 }
 .sl-item::before {
 	content: '\00D7';
@@ -1256,7 +1250,6 @@
 }
 .sl-verdict {
 	font-size: 1rem;
-	font-family: var(--font-display);
 	color: #999;
 	font-style: italic;
 	line-height: 1.6;
@@ -1288,7 +1281,6 @@
 }
 .sr-heading {
 	font-size: 2rem;
-	font-family: var(--font-display);
 	color: #e8e0d4;
 	margin-bottom: 1.25rem;
 	line-height: 1.35;
@@ -1308,7 +1300,6 @@
 	line-height: 1.6;
 	padding-left: 1.25rem;
 	position: relative;
-	font-family: var(--font-display);
 }
 .sr-item::before {
 	content: '\2713';
@@ -1325,7 +1316,6 @@
 }
 .sr-verdict {
 	font-size: 1rem;
-	font-family: var(--font-display);
 	color: #666;
 	font-style: italic;
 	line-height: 1.6;
@@ -1371,7 +1361,6 @@
 }
 .nostr-heading {
 	font-size: 2.2rem;
-	font-family: var(--font-display);
 	color: #e8e0d4;
 	margin-bottom: 1.5rem;
 	line-height: 1.35;
@@ -1379,7 +1368,6 @@
 }
 .nostr-body {
 	font-size: 1rem;
-	font-family: var(--font-display);
 	color: #777;
 	line-height: 1.8;
 	margin-bottom: 2rem;
@@ -1395,7 +1383,6 @@
 }
 .nostr-kicker {
 	font-size: 1.1rem;
-	font-family: var(--font-display);
 	color: #888;
 	font-style: italic;
 	line-height: 1.6;
@@ -1426,7 +1413,6 @@
 }
 .landing-callout-text {
 	font-size: 1.05rem;
-	font-family: var(--font-display);
 	color: #ccc;
 	line-height: 1.65;
 	font-style: italic;
@@ -1450,7 +1436,6 @@
 }
 .landing-stat-number {
 	font-size: 1.8rem;
-	font-family: var(--font-display);
 	color: rgba(204, 102, 68, 0.7);
 	font-weight: 400;
 	line-height: 1;
@@ -1487,7 +1472,6 @@
 }
 .nostr-grid-desc {
 	font-size: 0.82rem;
-	font-family: var(--font-display);
 	color: #666;
 	line-height: 1.55;
 }
@@ -1521,7 +1505,6 @@
 }
 .wot-heading {
 	font-size: 2.2rem;
-	font-family: var(--font-display);
 	color: #e8e0d4;
 	margin-bottom: 1rem;
 	line-height: 1.35;
@@ -1529,7 +1512,6 @@
 }
 .wot-sub {
 	font-size: 1.05rem;
-	font-family: var(--font-display);
 	color: #777;
 	line-height: 1.7;
 	max-width: 600px;
@@ -1552,7 +1534,6 @@
 
 .wot-text {
 	font-size: 0.95rem;
-	font-family: var(--font-display);
 	color: #777;
 	line-height: 1.8;
 }
@@ -1687,7 +1668,6 @@
 }
 .wot-kicker {
 	font-size: 1.1rem;
-	font-family: var(--font-display);
 	color: #888;
 	font-style: italic;
 	line-height: 1.6;
@@ -1720,7 +1700,6 @@
 }
 .manifesto-block p {
 	font-size: 1.1rem;
-	font-family: var(--font-display);
 	color: #888;
 	line-height: 1.85;
 	margin-bottom: 1rem;
@@ -1734,7 +1713,6 @@
 }
 .manifesto-quote {
 	font-size: 1.15rem;
-	font-family: var(--font-display);
 	color: #ccc;
 	font-style: italic;
 	line-height: 1.7;
@@ -1753,7 +1731,6 @@
 }
 .manifesto-final {
 	font-size: 1.4rem;
-	font-family: var(--font-display);
 	color: #e8e0d4;
 	line-height: 1.5;
 	text-align: center;
@@ -1786,7 +1763,6 @@
 }
 .cta-headline {
 	font-size: 2rem;
-	font-family: var(--font-display);
 	color: #e8e0d4;
 	line-height: 1.4;
 	margin-bottom: 0.8rem;
@@ -1795,7 +1771,6 @@
 }
 .cta-sub {
 	font-size: 1.05rem;
-	font-family: var(--font-display);
 	color: #888;
 	line-height: 1.7;
 	max-width: 480px;
@@ -1884,7 +1859,6 @@
 }
 .cta-entry-title {
 	font-size: 0.95rem;
-	font-family: var(--font-display);
 	color: #ccc;
 	margin-bottom: 0.4rem;
 	font-weight: 400;
