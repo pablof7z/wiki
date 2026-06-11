@@ -1,7 +1,10 @@
 import { comparisonPromptConfig } from './prompt-config';
 import type { ComparableEntry, ComparisonPrompt } from './types';
 
-export function buildEventComparisonPrompt(entries: ComparableEntry[]): ComparisonPrompt {
+export function buildEventComparisonPrompt(
+	entries: ComparableEntry[],
+	systemPromptOverride?: string
+): ComparisonPrompt {
 	const promptSections = entries.map((entry, index) =>
 		[
 			`Entry ${index + 1}`,
@@ -21,7 +24,7 @@ export function buildEventComparisonPrompt(entries: ComparableEntry[]): Comparis
 		.join('\n');
 
 	return {
-		system: comparisonPromptConfig.systemPrompt,
+		system: systemPromptOverride ?? comparisonPromptConfig.systemPrompt,
 		prompt: [
 			comparisonPromptConfig.intro,
 			'Follow these response rules:',

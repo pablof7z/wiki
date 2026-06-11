@@ -3,6 +3,7 @@ import { getEventComparisonConfig } from './config';
 import { createComparableEventFetcher } from './nostr';
 import { createComparisonTextGenerator } from './provider';
 import { buildEventComparisonPrompt } from './prompt';
+import type { AdminComparisonConfig } from '$lib/server/admin-config';
 import type {
 	ComparableEventFetcher,
 	ComparisonCache,
@@ -46,14 +47,18 @@ export function createEventComparisonService(deps: EventComparisonServiceDeps) {
 }
 
 export function createDefaultEventComparisonService(
-	env: Record<string, string | undefined> = process.env
+	env: Record<string, string | undefined> = process.env,
+	adminOverrides: AdminComparisonConfig = {}
 ) {
 	const config = getEventComparisonConfig(env);
+	if (adminOverrides.model) {
+		config.ollama.model = adminOverrides.model;
+	}
 
 	return createEventComparisonService({
 		cache: createComparisonCache(config.cache),
 		fetchComparableEvents: createComparableEventFetcher({ relayUrls: config.relayUrls }),
-		buildPrompt: buildEventComparisonPrompt,
+		buildPrompt: (entries) => buildEventComparisonPrompt(entries, adminOverrides.systemPrompt),
 		generator: createComparisonTextGenerator(config)
 	});
 }
