@@ -5,8 +5,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import AppHeader from '$lib/components/AppHeader.svelte';
 	import SeoHead from '$lib/components/SeoHead.svelte';
-	import WikiCacheWarmSyncDebug from '$lib/components/WikiCacheWarmSyncDebug.svelte';
-	import { startWikiCacheWarmSync, wikiCacheWarmSync } from '$lib/stores/wiki-cache-warm-sync';
+	import { startWikiCacheWarmSync } from '$lib/stores/wiki-cache-warm-sync';
 	import { wot, wotLoading, wotDepth } from '$lib/stores/wot';
 	import { NDKWoT } from '@nostr-dev-kit/wot';
 	import { get } from 'svelte/store';
@@ -107,5 +106,3 @@
 		{@render children()}
 	</main>
 </div>
-
-<WikiCacheWarmSyncDebug state={$wikiCacheWarmSync} />
