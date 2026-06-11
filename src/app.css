@@ -163,8 +163,7 @@
 
 	h1,
 	h2 {
-		font-family: var(--font-display);
-		letter-spacing: -0.055em;
+		letter-spacing: -0.03em;
 	}
 
 	h1 {
